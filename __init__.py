@@ -7,4 +7,4 @@ This package integrates Zeek network monitoring with YARA file scanning
 for enhanced malware detection in network traffic.
 """
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

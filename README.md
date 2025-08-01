@@ -85,8 +85,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Run initial setup (if available)
-# bin/setup.sh
+# Run initial setup
+bin/setup.sh
 
 # Verify installation
 ./TOOLS/cli/zyi --version
@@ -112,7 +112,7 @@ cd EDUCATION
 python start_tutorial_server.py
 # Access at http://localhost:8001
 
-# 5. Run tests (if available)
+# 5. Run tests
 ./TOOLS/cli/zyi dev test
 ```
 

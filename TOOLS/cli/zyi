@@ -6,12 +6,13 @@ Main CLI tool for the educational platform providing easy access to all
 platform functionality including scanning, demos, and development tools.
 """
 
-import click
-import sys
+import json
 import os
 import subprocess
-import json
+import sys
 from pathlib import Path
+
+import click
 
 # Add platform to path for imports
 PROJECT_ROOT = Path(__file__).parent.parent.parent

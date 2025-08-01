@@ -4,26 +4,27 @@ Interactive Educational Tutorial Web Server
 Modern web-based tutorial system with rich interactivity
 """
 
-import os
-import json
-import time
-import uuid
 import asyncio
+import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
-
-from fastapi import FastAPI, Request, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+import os
 
 # Import tutorial system components
 import sys
+import time
+import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import uvicorn
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 sys.path.append(str(Path(__file__).parent.parent))
 from tutorial_system import TutorialManager, TutorialStep
 
@@ -31,6 +32,7 @@ from tutorial_system import TutorialManager, TutorialStep
 @dataclass
 class InteractiveStep:
     """Enhanced tutorial step with web interactivity."""
+
     id: str
     title: str
     content: str
@@ -48,6 +50,7 @@ class InteractiveStep:
 @dataclass
 class LearningSession:
     """Represents an active learning session."""
+
     session_id: str
     user_id: str
     tutorial_id: str
@@ -60,33 +63,35 @@ class LearningSession:
 
 class TutorialWebServer:
     """Web server for interactive educational tutorials."""
-    
+
     def __init__(self, config: Dict[str, Any]):
         self.config = config
-        self.project_root = Path(config.get('PROJECT_ROOT', '.'))
+        self.project_root = Path(config.get("PROJECT_ROOT", "."))
         self.education_dir = self.project_root / "EDUCATION"
         self.templates_dir = self.education_dir / "templates"
         self.static_dir = self.education_dir / "static"
-        
+
         # Ensure directories exist
         self.templates_dir.mkdir(parents=True, exist_ok=True)
         self.static_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize FastAPI app
-        self.app = FastAPI(title="Security Learning Platform", description="Interactive Security Education")
+        self.app = FastAPI(
+            title="Security Learning Platform", description="Interactive Security Education"
+        )
         self.setup_middleware()
         self.setup_routes()
-        
+
         # Tutorial management
         self.tutorial_manager = TutorialManager(config)
         self.active_sessions: Dict[str, LearningSession] = {}
         self.websocket_connections: Dict[str, WebSocket] = {}
-        
+
         # Templates
         self.templates = Jinja2Templates(directory=str(self.templates_dir))
-        
+
         self.logger = logging.getLogger(__name__)
-        
+
     def setup_middleware(self):
         """Setup FastAPI middleware."""
         self.app.add_middleware(
@@ -96,13 +101,13 @@ class TutorialWebServer:
             allow_methods=["*"],
             allow_headers=["*"],
         )
-    
+
     def setup_routes(self):
         """Setup web routes."""
-        
+
         # Serve static files
         self.app.mount("/static", StaticFiles(directory=str(self.static_dir)), name="static")
-        
+
         # Main routes
         self.app.get("/")(self.home)
         self.app.get("/tutorials")(self.tutorial_list)
@@ -113,62 +118,74 @@ class TutorialWebServer:
         self.app.get("/api/progress")(self.get_progress)
         self.app.get("/api/achievements")(self.get_achievements)
         self.app.websocket("/ws/{session_id}")(self.websocket_endpoint)
-        
+
         # Tutorial content API
         self.app.get("/api/tutorials")(self.api_get_tutorials)
         self.app.get("/api/tutorial/{tutorial_id}/content")(self.api_get_tutorial_content)
-        
+
     async def home(self, request: Request):
         """Home page with learning dashboard."""
-        return self.templates.TemplateResponse("dashboard.html", {
-            "request": request,
-            "user_progress": self.tutorial_manager.user_progress,
-            "available_tutorials": self.get_enhanced_tutorials()
-        })
-    
+        return self.templates.TemplateResponse(
+            "dashboard.html",
+            {
+                "request": request,
+                "user_progress": self.tutorial_manager.user_progress,
+                "available_tutorials": self.get_enhanced_tutorials(),
+            },
+        )
+
     async def tutorial_list(self, request: Request):
         """Tutorial listing page."""
         tutorials = self.get_enhanced_tutorials()
-        return self.templates.TemplateResponse("tutorial_list.html", {
-            "request": request,
-            "tutorials": tutorials,
-            "user_progress": self.tutorial_manager.user_progress
-        })
-    
+        return self.templates.TemplateResponse(
+            "tutorial_list.html",
+            {
+                "request": request,
+                "tutorials": tutorials,
+                "user_progress": self.tutorial_manager.user_progress,
+            },
+        )
+
     async def tutorial_detail(self, request: Request, tutorial_id: str):
         """Tutorial detail and overview page."""
         tutorial_content = self.get_tutorial_content(tutorial_id)
         if not tutorial_content:
             raise HTTPException(status_code=404, detail="Tutorial not found")
-        
-        return self.templates.TemplateResponse("tutorial_detail.html", {
-            "request": request,
-            "tutorial": tutorial_content,
-            "user_progress": self.tutorial_manager.user_progress
-        })
-    
+
+        return self.templates.TemplateResponse(
+            "tutorial_detail.html",
+            {
+                "request": request,
+                "tutorial": tutorial_content,
+                "user_progress": self.tutorial_manager.user_progress,
+            },
+        )
+
     async def tutorial_step(self, request: Request, tutorial_id: str, step_id: str):
         """Individual tutorial step page."""
         tutorial_content = self.get_tutorial_content(tutorial_id)
         if not tutorial_content:
             raise HTTPException(status_code=404, detail="Tutorial not found")
-        
-        step = next((s for s in tutorial_content['steps'] if s['id'] == step_id), None)
+
+        step = next((s for s in tutorial_content["steps"] if s["id"] == step_id), None)
         if not step:
             raise HTTPException(status_code=404, detail="Step not found")
-        
-        return self.templates.TemplateResponse("tutorial_step.html", {
-            "request": request,
-            "tutorial": tutorial_content,
-            "step": step,
-            "user_progress": self.tutorial_manager.user_progress
-        })
-    
+
+        return self.templates.TemplateResponse(
+            "tutorial_step.html",
+            {
+                "request": request,
+                "tutorial": tutorial_content,
+                "step": step,
+                "user_progress": self.tutorial_manager.user_progress,
+            },
+        )
+
     async def start_tutorial(self, tutorial_id: str, request: Request):
         """Start a new tutorial session."""
         session_id = str(uuid.uuid4())
         user_id = "default_user"  # In a real app, get from auth
-        
+
         session = LearningSession(
             session_id=session_id,
             user_id=user_id,
@@ -177,73 +194,73 @@ class TutorialWebServer:
             start_time=datetime.now(),
             last_activity=datetime.now(),
             progress_data={"steps_completed": [], "quiz_scores": {}, "time_spent": 0},
-            achievements_earned=[]
+            achievements_earned=[],
         )
-        
+
         self.active_sessions[session_id] = session
-        
-        return JSONResponse({
-            "session_id": session_id,
-            "tutorial_id": tutorial_id,
-            "status": "started"
-        })
-    
+
+        return JSONResponse(
+            {"session_id": session_id, "tutorial_id": tutorial_id, "status": "started"}
+        )
+
     async def complete_step(self, tutorial_id: str, step_id: str, request: Request):
         """Mark a step as completed."""
         body = await request.json()
         session_id = body.get("session_id")
-        
+
         if session_id not in self.active_sessions:
             raise HTTPException(status_code=404, detail="Session not found")
-        
+
         session = self.active_sessions[session_id]
         session.last_activity = datetime.now()
-        
+
         # Record step completion
         if step_id not in session.progress_data["steps_completed"]:
             session.progress_data["steps_completed"].append(step_id)
-        
+
         # Check for achievements
         achievements = self.check_step_achievements(session, step_id)
-        
-        return JSONResponse({
-            "status": "completed",
-            "achievements": achievements,
-            "progress": session.progress_data
-        })
-    
+
+        return JSONResponse(
+            {"status": "completed", "achievements": achievements, "progress": session.progress_data}
+        )
+
     async def get_progress(self, request: Request):
         """Get user progress data."""
         return JSONResponse(self.tutorial_manager.user_progress)
-    
+
     async def get_achievements(self, request: Request):
         """Get user achievements."""
-        return JSONResponse({
-            "achievements": self.tutorial_manager.user_progress.get("achievements", []),
-            "experience_points": self.tutorial_manager.user_progress.get("experience_points", 0)
-        })
-    
+        return JSONResponse(
+            {
+                "achievements": self.tutorial_manager.user_progress.get("achievements", []),
+                "experience_points": self.tutorial_manager.user_progress.get(
+                    "experience_points", 0
+                ),
+            }
+        )
+
     async def api_get_tutorials(self):
         """API endpoint for tutorial list."""
         return JSONResponse(self.get_enhanced_tutorials())
-    
+
     async def api_get_tutorial_content(self, tutorial_id: str):
         """API endpoint for tutorial content."""
         content = self.get_tutorial_content(tutorial_id)
         if not content:
             raise HTTPException(status_code=404, detail="Tutorial not found")
         return JSONResponse(content)
-    
+
     async def websocket_endpoint(self, websocket: WebSocket, session_id: str):
         """WebSocket endpoint for real-time tutorial interaction."""
         await websocket.accept()
         self.websocket_connections[session_id] = websocket
-        
+
         try:
             while True:
                 data = await websocket.receive_text()
                 message = json.loads(data)
-                
+
                 # Handle different message types
                 if message["type"] == "ping":
                     await websocket.send_text(json.dumps({"type": "pong"}))
@@ -251,73 +268,72 @@ class TutorialWebServer:
                     await self.handle_step_progress(session_id, message, websocket)
                 elif message["type"] == "request_hint":
                     await self.send_hint(session_id, message, websocket)
-                
+
         except WebSocketDisconnect:
             if session_id in self.websocket_connections:
                 del self.websocket_connections[session_id]
-    
+
     async def handle_step_progress(self, session_id: str, message: Dict, websocket: WebSocket):
         """Handle step progress updates via WebSocket."""
         if session_id in self.active_sessions:
             session = self.active_sessions[session_id]
             session.last_activity = datetime.now()
-            
+
             # Send progress update
-            await websocket.send_text(json.dumps({
-                "type": "progress_update",
-                "progress": session.progress_data
-            }))
-    
+            await websocket.send_text(
+                json.dumps({"type": "progress_update", "progress": session.progress_data})
+            )
+
     async def send_hint(self, session_id: str, message: Dict, websocket: WebSocket):
         """Send contextual hints via WebSocket."""
         step_id = message.get("step_id")
         hints = self.get_step_hints(step_id)
-        
-        await websocket.send_text(json.dumps({
-            "type": "hint",
-            "step_id": step_id,
-            "hints": hints
-        }))
-    
+
+        await websocket.send_text(json.dumps({"type": "hint", "step_id": step_id, "hints": hints}))
+
     def get_enhanced_tutorials(self) -> List[Dict[str, Any]]:
         """Get enhanced tutorial list with additional metadata."""
         base_tutorials = self.tutorial_manager.get_available_tutorials()
-        
+
         enhanced_tutorials = []
         for tutorial in base_tutorials:
             enhanced = {
                 **tutorial,
-                "steps_count": len(self.get_tutorial_content(tutorial['id'])['steps']) if self.get_tutorial_content(tutorial['id']) else 0,
+                "steps_count": (
+                    len(self.get_tutorial_content(tutorial["id"])["steps"])
+                    if self.get_tutorial_content(tutorial["id"])
+                    else 0
+                ),
                 "interactive_features": ["code_examples", "quizzes", "visualizations"],
-                "completion_rate": self.get_completion_rate(tutorial['id']),
-                "estimated_xp": self.calculate_tutorial_xp(tutorial['id'])
+                "completion_rate": self.get_completion_rate(tutorial["id"]),
+                "estimated_xp": self.calculate_tutorial_xp(tutorial["id"]),
             }
             enhanced_tutorials.append(enhanced)
-        
+
         return enhanced_tutorials
-    
+
     def get_tutorial_content(self, tutorial_id: str) -> Optional[Dict[str, Any]]:
         """Get comprehensive tutorial content with enhanced steps."""
         enhanced_tutorials = {
-            'network_security_basics': {
-                'id': 'network_security_basics',
-                'title': 'Network Security Fundamentals',
-                'description': 'Interactive journey through network security concepts',
-                'difficulty': 'Beginner',
-                'duration': '20 minutes',
-                'learning_objectives': [
-                    'Understand network traffic and communication',
-                    'Learn about security monitoring tools',
-                    'Recognize common network threats',
-                    'Practice with real network data'
+            "network_security_basics": {
+                "id": "network_security_basics",
+                "title": "Network Security Fundamentals",
+                "description": "Interactive journey through network security concepts",
+                "difficulty": "Beginner",
+                "duration": "20 minutes",
+                "learning_objectives": [
+                    "Understand network traffic and communication",
+                    "Learn about security monitoring tools",
+                    "Recognize common network threats",
+                    "Practice with real network data",
                 ],
-                'steps': [
+                "steps": [
                     {
-                        'id': 'intro',
-                        'title': 'Welcome to Network Security',
-                        'step_type': 'lesson',
-                        'duration_estimate': '3 minutes',
-                        'content': '''
+                        "id": "intro",
+                        "title": "Welcome to Network Security",
+                        "step_type": "lesson",
+                        "duration_estimate": "3 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>🛡️ Network Security Fundamentals</h3>
                             <p>Welcome to your journey into network security! In this interactive tutorial, you'll learn:</p>
@@ -332,22 +348,22 @@ class TutorialWebServer:
                                 Security professionals monitor this traffic to protect against cyber threats!
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'visualization': 'network_traffic_demo',
-                            'progress_check': True
+                        """,
+                        "interactive_elements": {
+                            "visualization": "network_traffic_demo",
+                            "progress_check": True,
                         },
-                        'learning_objectives': [
-                            'Understand the scope of network security',
-                            'Recognize the importance of traffic monitoring'
-                        ]
+                        "learning_objectives": [
+                            "Understand the scope of network security",
+                            "Recognize the importance of traffic monitoring",
+                        ],
                     },
                     {
-                        'id': 'network_basics',
-                        'title': 'Understanding Network Traffic',
-                        'step_type': 'demonstration',
-                        'duration_estimate': '5 minutes',
-                        'content': '''
+                        "id": "network_basics",
+                        "title": "Understanding Network Traffic",
+                        "step_type": "demonstration",
+                        "duration_estimate": "5 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>🌐 How Network Communication Works</h3>
                             <p>Every time you browse the web, send an email, or use an app, your device sends <strong>packets</strong> of data across the network.</p>
@@ -370,29 +386,29 @@ class TutorialWebServer:
                                 <div id="traffic-display"></div>
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'simulation': 'network_traffic',
-                            'quiz_question': {
-                                'question': 'What information does every network packet contain?',
-                                'type': 'multiple_choice',
-                                'options': [
-                                    'Source and destination addresses',
-                                    'Protocol type',
-                                    'Data payload',
-                                    'All of the above'
+                        """,
+                        "interactive_elements": {
+                            "simulation": "network_traffic",
+                            "quiz_question": {
+                                "question": "What information does every network packet contain?",
+                                "type": "multiple_choice",
+                                "options": [
+                                    "Source and destination addresses",
+                                    "Protocol type",
+                                    "Data payload",
+                                    "All of the above",
                                 ],
-                                'correct': 3,
-                                'explanation': 'Every network packet contains source/destination addresses, protocol information, and the actual data being transmitted.'
-                            }
-                        }
+                                "correct": 3,
+                                "explanation": "Every network packet contains source/destination addresses, protocol information, and the actual data being transmitted.",
+                            },
+                        },
                     },
                     {
-                        'id': 'security_tools',
-                        'title': 'Your Security Toolkit',
-                        'step_type': 'lesson',
-                        'duration_estimate': '6 minutes',
-                        'content': '''
+                        "id": "security_tools",
+                        "title": "Your Security Toolkit",
+                        "step_type": "lesson",
+                        "duration_estimate": "6 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>🛠️ Security Tools Overview</h3>
                             <p>This platform uses three powerful security tools working together:</p>
@@ -448,18 +464,15 @@ class TutorialWebServer:
                                 </div>
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'tool_demo': True,
-                            'progress_check': True
-                        }
+                        """,
+                        "interactive_elements": {"tool_demo": True, "progress_check": True},
                     },
                     {
-                        'id': 'threat_types',
-                        'title': 'Common Network Threats',
-                        'step_type': 'lesson',
-                        'duration_estimate': '5 minutes',
-                        'content': '''
+                        "id": "threat_types",
+                        "title": "Common Network Threats",
+                        "step_type": "lesson",
+                        "duration_estimate": "5 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>⚠️ Types of Network Threats</h3>
                             <p>Understanding threats helps you recognize and defend against them:</p>
@@ -518,24 +531,24 @@ class TutorialWebServer:
                                 </div>
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'accordion': True,
-                            'threat_quiz': {
-                                'question': 'Which security tool would be MOST effective at detecting a large file being secretly uploaded to an external server?',
-                                'type': 'multiple_choice',
-                                'options': ['YARA', 'Zeek', 'Suricata', 'All three equally'],
-                                'correct': 1,
-                                'explanation': 'Zeek excels at monitoring network traffic patterns and would be most likely to detect unusual file transfer activity.'
-                            }
-                        }
+                        """,
+                        "interactive_elements": {
+                            "accordion": True,
+                            "threat_quiz": {
+                                "question": "Which security tool would be MOST effective at detecting a large file being secretly uploaded to an external server?",
+                                "type": "multiple_choice",
+                                "options": ["YARA", "Zeek", "Suricata", "All three equally"],
+                                "correct": 1,
+                                "explanation": "Zeek excels at monitoring network traffic patterns and would be most likely to detect unusual file transfer activity.",
+                            },
+                        },
                     },
                     {
-                        'id': 'hands_on_demo',
-                        'title': 'Hands-On: Spot the Threat',
-                        'step_type': 'exercise',
-                        'duration_estimate': '4 minutes',
-                        'content': '''
+                        "id": "hands_on_demo",
+                        "title": "Hands-On: Spot the Threat",
+                        "step_type": "exercise",
+                        "duration_estimate": "4 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>🎯 Hands-On Exercise: Spot the Threat</h3>
                             <p>Now it's time to practice! Below is simulated network traffic data. Can you identify the security threats?</p>
@@ -605,22 +618,19 @@ class TutorialWebServer:
                                 </div>
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'clickable_exercise': True,
-                            'immediate_feedback': True
+                        """,
+                        "interactive_elements": {
+                            "clickable_exercise": True,
+                            "immediate_feedback": True,
                         },
-                        'completion_criteria': {
-                            'threats_identified': 2,
-                            'false_positives_max': 1
-                        }
+                        "completion_criteria": {"threats_identified": 2, "false_positives_max": 1},
                     },
                     {
-                        'id': 'summary',
-                        'title': 'Knowledge Check & Next Steps',
-                        'step_type': 'quiz',
-                        'duration_estimate': '3 minutes',
-                        'content': '''
+                        "id": "summary",
+                        "title": "Knowledge Check & Next Steps",
+                        "step_type": "quiz",
+                        "duration_estimate": "3 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>🎯 Knowledge Check</h3>
                             <p>Let's test what you've learned about network security fundamentals!</p>
@@ -698,61 +708,63 @@ class TutorialWebServer:
                                 </div>
                             </div>
                         </div>
-                        ''',
-                        'assessment_questions': [
+                        """,
+                        "assessment_questions": [
                             {
-                                'question': 'Which security tool is primarily responsible for analyzing network traffic patterns and extracting files?',
-                                'type': 'multiple_choice',
-                                'options': ['YARA', 'Zeek', 'Suricata', 'All three equally'],
-                                'correct': 1,
-                                'explanation': 'Zeek is specifically designed for network traffic analysis and file extraction.'
+                                "question": "Which security tool is primarily responsible for analyzing network traffic patterns and extracting files?",
+                                "type": "multiple_choice",
+                                "options": ["YARA", "Zeek", "Suricata", "All three equally"],
+                                "correct": 1,
+                                "explanation": "Zeek is specifically designed for network traffic analysis and file extraction.",
                             },
                             {
-                                'question': 'What makes network packet analysis effective for security monitoring?',
-                                'type': 'multiple_choice', 
-                                'options': [
-                                    'It only monitors encrypted traffic',
-                                    'It shows all network communications with source, destination, and content',
-                                    'It only works on wireless networks',
-                                    'It requires special hardware'
+                                "question": "What makes network packet analysis effective for security monitoring?",
+                                "type": "multiple_choice",
+                                "options": [
+                                    "It only monitors encrypted traffic",
+                                    "It shows all network communications with source, destination, and content",
+                                    "It only works on wireless networks",
+                                    "It requires special hardware",
                                 ],
-                                'correct': 1,
-                                'explanation': 'Packet analysis is effective because it provides complete visibility into network communications.'
+                                "correct": 1,
+                                "explanation": "Packet analysis is effective because it provides complete visibility into network communications.",
                             },
                             {
-                                'question': 'Which type of threat involves an infected computer regularly communicating with an attacker\'s server?',
-                                'type': 'multiple_choice',
-                                'options': ['Port scanning', 'Data exfiltration', 'Command & Control', 'Network intrusion'],
-                                'correct': 2,
-                                'explanation': 'Command & Control (C&C) communications involve infected systems regularly contacting attacker servers for instructions.'
-                            }
+                                "question": "Which type of threat involves an infected computer regularly communicating with an attacker's server?",
+                                "type": "multiple_choice",
+                                "options": [
+                                    "Port scanning",
+                                    "Data exfiltration",
+                                    "Command & Control",
+                                    "Network intrusion",
+                                ],
+                                "correct": 2,
+                                "explanation": "Command & Control (C&C) communications involve infected systems regularly contacting attacker servers for instructions.",
+                            },
                         ],
-                        'completion_criteria': {
-                            'quiz_score_min': 2,
-                            'quiz_attempts_max': 3
-                        }
-                    }
-                ]
-            },
-            'first_detection': {
-                'id': 'first_detection',
-                'title': 'Your First Threat Detection',
-                'description': 'Hands-on malware detection using EICAR test file',
-                'difficulty': 'Beginner',
-                'duration': '15 minutes',
-                'learning_objectives': [
-                    'Understand safe malware testing with EICAR',
-                    'Learn YARA rule functionality',
-                    'Practice threat detection workflow',
-                    'Interpret security alerts'
+                        "completion_criteria": {"quiz_score_min": 2, "quiz_attempts_max": 3},
+                    },
                 ],
-                'steps': [
+            },
+            "first_detection": {
+                "id": "first_detection",
+                "title": "Your First Threat Detection",
+                "description": "Hands-on malware detection using EICAR test file",
+                "difficulty": "Beginner",
+                "duration": "15 minutes",
+                "learning_objectives": [
+                    "Understand safe malware testing with EICAR",
+                    "Learn YARA rule functionality",
+                    "Practice threat detection workflow",
+                    "Interpret security alerts",
+                ],
+                "steps": [
                     {
-                        'id': 'eicar_intro',
-                        'title': 'Safe Malware Testing',
-                        'step_type': 'lesson',
-                        'duration_estimate': '3 minutes',
-                        'content': '''
+                        "id": "eicar_intro",
+                        "title": "Safe Malware Testing",
+                        "step_type": "lesson",
+                        "duration_estimate": "3 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>🧪 Safe Malware Testing with EICAR</h3>
                             <p>Before we work with real threats, let's learn about safe testing methods!</p>
@@ -788,18 +800,15 @@ class TutorialWebServer:
                                 <p>Even though it's just text, every security tool treats it as malware!</p>
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'code_display': True,
-                            'safety_emphasis': True
-                        }
+                        """,
+                        "interactive_elements": {"code_display": True, "safety_emphasis": True},
                     },
                     {
-                        'id': 'yara_rules_intro',
-                        'title': 'Understanding YARA Rules',
-                        'step_type': 'lesson',
-                        'duration_estimate': '4 minutes',
-                        'content': '''
+                        "id": "yara_rules_intro",
+                        "title": "Understanding YARA Rules",
+                        "step_type": "lesson",
+                        "duration_estimate": "4 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>🔍 How YARA Rules Work</h3>
                             <p>YARA rules are like fingerprints for malware - they describe patterns that identify specific threats.</p>
@@ -873,18 +882,18 @@ class TutorialWebServer:
                                 </div>
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'rule_visualization': True,
-                            'code_highlighting': True
-                        }
+                        """,
+                        "interactive_elements": {
+                            "rule_visualization": True,
+                            "code_highlighting": True,
+                        },
                     },
                     {
-                        'id': 'detection_exercise',
-                        'title': 'Hands-On: Create and Detect',
-                        'step_type': 'exercise',
-                        'duration_estimate': '6 minutes',
-                        'content': '''
+                        "id": "detection_exercise",
+                        "title": "Hands-On: Create and Detect",
+                        "step_type": "exercise",
+                        "duration_estimate": "6 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>🎯 Hands-On Detection Exercise</h3>
                             <p>Now let's create an EICAR file and watch our security system detect it!</p>
@@ -925,23 +934,20 @@ class TutorialWebServer:
                                 </ul>
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'file_creation': True,
-                            'real_time_monitoring': True,
-                            'detection_visualization': True
+                        """,
+                        "interactive_elements": {
+                            "file_creation": True,
+                            "real_time_monitoring": True,
+                            "detection_visualization": True,
                         },
-                        'completion_criteria': {
-                            'file_created': True,
-                            'detection_observed': True
-                        }
+                        "completion_criteria": {"file_created": True, "detection_observed": True},
                     },
                     {
-                        'id': 'alert_analysis',
-                        'title': 'Understanding Security Alerts',
-                        'step_type': 'lesson',
-                        'duration_estimate': '3 minutes',
-                        'content': '''
+                        "id": "alert_analysis",
+                        "title": "Understanding Security Alerts",
+                        "step_type": "lesson",
+                        "duration_estimate": "3 minutes",
+                        "content": """
                         <div class="lesson-content">
                             <h3>📊 Analyzing Security Alerts</h3>
                             <p>Great! You just triggered your first security detection. Let's understand what happened.</p>
@@ -1021,80 +1027,80 @@ class TutorialWebServer:
                                 </div>
                             </div>
                         </div>
-                        ''',
-                        'interactive_elements': {
-                            'alert_exploration': True,
-                            'response_simulation': True
-                        }
-                    }
-                ]
-            }
+                        """,
+                        "interactive_elements": {
+                            "alert_exploration": True,
+                            "response_simulation": True,
+                        },
+                    },
+                ],
+            },
         }
-        
+
         return enhanced_tutorials.get(tutorial_id)
-    
+
     def get_completion_rate(self, tutorial_id: str) -> float:
         """Calculate completion rate for a tutorial."""
         # In a real implementation, this would query actual user data
         return 0.85  # Example: 85% completion rate
-    
+
     def calculate_tutorial_xp(self, tutorial_id: str) -> int:
         """Calculate experience points for completing a tutorial."""
         base_xp = {
-            'network_security_basics': 150,
-            'first_detection': 100,
-            'zeek_basics': 200,
-            'suricata_intro': 200,
-            'custom_yara_rules': 300,
-            'correlation_analysis': 250,
-            'tool_integration': 400
+            "network_security_basics": 150,
+            "first_detection": 100,
+            "zeek_basics": 200,
+            "suricata_intro": 200,
+            "custom_yara_rules": 300,
+            "correlation_analysis": 250,
+            "tool_integration": 400,
         }
         return base_xp.get(tutorial_id, 100)
-    
+
     def check_step_achievements(self, session: LearningSession, step_id: str) -> List[str]:
         """Check for achievements earned by completing a step."""
         achievements = []
-        
+
         # Example achievement logic
         if len(session.progress_data["steps_completed"]) == 1:
             achievements.append("first_step")
-        
+
         if step_id.endswith("_quiz") and "quiz_master" not in session.achievements_earned:
             achievements.append("quiz_master")
-        
+
         # Add achievements to session
         session.achievements_earned.extend(achievements)
-        
+
         return achievements
-    
+
     def get_step_hints(self, step_id: str) -> List[str]:
         """Get contextual hints for a tutorial step."""
         hints_db = {
-            'network_basics': [
+            "network_basics": [
                 "Think of network packets like postal mail with addresses",
                 "Every communication needs a source and destination",
-                "Protocols define how different types of data are sent"
+                "Protocols define how different types of data are sent",
             ],
-            'security_tools': [
+            "security_tools": [
                 "Each tool has a specialized role in security",
                 "Zeek focuses on network traffic analysis",
                 "YARA specializes in malware detection",
-                "Suricata watches for attack patterns"
+                "Suricata watches for attack patterns",
             ],
-            'threat_types': [
+            "threat_types": [
                 "Look for unusual patterns in network behavior",
                 "Large file transfers might indicate data theft",
                 "Port scans often precede attacks",
-                "Regular connections to unknown servers are suspicious"
-            ]
+                "Regular connections to unknown servers are suspicious",
+            ],
         }
-        
+
         return hints_db.get(step_id, ["Keep learning and exploring!"])
-    
+
     def create_initial_templates(self):
         """Create initial HTML templates if they don't exist."""
         templates = {
-            'base.html': '''<!DOCTYPE html>
+            "base.html": """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1122,9 +1128,8 @@ class TutorialWebServer:
     <script src="/static/js/main.js"></script>
     {% block scripts %}{% endblock %}
 </body>
-</html>''',
-            
-            'dashboard.html': '''{% extends "base.html" %}
+</html>""",
+            "dashboard.html": """{% extends "base.html" %}
 
 {% block title %}Dashboard - Security Learning Platform{% endblock %}
 
@@ -1185,9 +1190,8 @@ class TutorialWebServer:
     </div>
     {% endif %}
 </div>
-{% endblock %}''',
-            
-            'tutorial_list.html': '''{% extends "base.html" %}
+{% endblock %}""",
+            "tutorial_list.html": """{% extends "base.html" %}
 
 {% block title %}Tutorials - Security Learning Platform{% endblock %}
 
@@ -1253,9 +1257,8 @@ class TutorialWebServer:
         {% endfor %}
     </div>
 </div>
-{% endblock %}''',
-            
-            'tutorial_detail.html': '''{% extends "base.html" %}
+{% endblock %}""",
+            "tutorial_detail.html": """{% extends "base.html" %}
 
 {% block title %}{{ tutorial.title }} - Security Learning Platform{% endblock %}
 
@@ -1331,9 +1334,8 @@ async function startTutorial(tutorialId) {
     }
 }
 </script>
-{% endblock %}''',
-            
-            'tutorial_step.html': '''{% extends "base.html" %}
+{% endblock %}""",
+            "tutorial_step.html": """{% extends "base.html" %}
 
 {% block title %}{{ step.title }} - {{ tutorial.title }}{% endblock %}
 
@@ -1411,24 +1413,24 @@ function showAchievements(achievements) {
     });
 }
 </script>
-{% endblock %}'''
+{% endblock %}""",
         }
-        
+
         for filename, content in templates.items():
             template_path = self.templates_dir / filename
             if not template_path.exists():
-                with open(template_path, 'w') as f:
+                with open(template_path, "w") as f:
                     f.write(content)
-    
+
     def create_static_assets(self):
         """Create CSS and JavaScript files."""
         css_dir = self.static_dir / "css"
         js_dir = self.static_dir / "js"
         css_dir.mkdir(parents=True, exist_ok=True)
         js_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create main CSS file
-        css_content = '''/* Security Learning Platform Styles */
+        css_content = """/* Security Learning Platform Styles */
 :root {
     --primary-color: #3b82f6;
     --secondary-color: #64748b;
@@ -1817,15 +1819,15 @@ body {
     .tools-grid {
         grid-template-columns: 1fr;
     }
-}'''
-        
+}"""
+
         css_file = css_dir / "styles.css"
         if not css_file.exists():
-            with open(css_file, 'w') as f:
+            with open(css_file, "w") as f:
                 f.write(css_content)
-        
+
         # Create main JavaScript file
-        js_content = '''// Security Learning Platform JavaScript
+        js_content = """// Security Learning Platform JavaScript
 
 // WebSocket connection for real-time features
 let ws = null;
@@ -2093,17 +2095,17 @@ document.addEventListener('click', function(e) {
 document.addEventListener('DOMContentLoaded', function() {
     // Add any page-specific initialization here
     console.log('Security Learning Platform loaded');
-});'''
-        
+});"""
+
         js_file = js_dir / "main.js"
         if not js_file.exists():
-            with open(js_file, 'w') as f:
+            with open(js_file, "w") as f:
                 f.write(js_content)
-    
+
     def create_initial_templates(self):
         """Create initial HTML templates if they don't exist."""
         # Create base template
-        base_template = '''<!DOCTYPE html>
+        base_template = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2131,22 +2133,22 @@ document.addEventListener('DOMContentLoaded', function() {
     <script src="/static/js/main.js"></script>
     {% block scripts %}{% endblock %}
 </body>
-</html>'''
-        
+</html>"""
+
         base_path = self.templates_dir / "base.html"
         if not base_path.exists():
-            with open(base_path, 'w') as f:
+            with open(base_path, "w") as f:
                 f.write(base_template)
-    
+
     def create_static_assets(self):
         """Create CSS and JavaScript files."""
         css_dir = self.static_dir / "css"
         js_dir = self.static_dir / "js"
         css_dir.mkdir(parents=True, exist_ok=True)
         js_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Basic CSS file
-        css_content = '''/* Security Learning Platform Styles */
+        css_content = """/* Security Learning Platform Styles */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
@@ -2203,48 +2205,47 @@ body {
 
 .btn-primary:hover {
     background: #2563eb;
-}'''
-        
+}"""
+
         css_file = css_dir / "styles.css"
         if not css_file.exists():
-            with open(css_file, 'w') as f:
+            with open(css_file, "w") as f:
                 f.write(css_content)
-        
+
         # Basic JavaScript file
-        js_content = '''// Security Learning Platform JavaScript
+        js_content = """// Security Learning Platform JavaScript
 console.log('Security Learning Platform loaded');
 
 // Basic tutorial functionality
 function startTutorial(tutorialId) {
     console.log('Starting tutorial:', tutorialId);
-}'''
-        
+}"""
+
         js_file = js_dir / "main.js"
         if not js_file.exists():
-            with open(js_file, 'w') as f:
+            with open(js_file, "w") as f:
                 f.write(js_content)
-    
+
     def create_initial_templates(self):
         """Create initial HTML templates if they don't exist."""
         # Create basic templates
         pass
-    
+
     def create_static_assets(self):
         """Create CSS and JavaScript files."""
         # Create basic assets
         pass
-    
+
     def run(self, host: str = "127.0.0.1", port: int = 8001):
         """Run the tutorial web server."""
         self.logger.info(f"Starting tutorial web server on {host}:{port}")
         uvicorn.run(self.app, host=host, port=port, log_level="info")
 
-
     def create_initial_templates(self):
         """Create initial HTML templates if they don't exist."""
         # Templates are already created as separate files
         print(f"Templates directory: {self.templates_dir}")
-        
+
     def create_static_assets(self):
         """Create CSS and JavaScript files."""
         # Static assets are already created as separate files
@@ -2255,21 +2256,21 @@ def main():
     """Main function to start the tutorial web server."""
     import sys
     from pathlib import Path
-    
+
     # Example configuration
     config = {
-        'PROJECT_ROOT': Path(__file__).parent.parent,
-        'EXPERIENCE_LEVEL': 'beginner',
-        'TUTORIAL_MODE': True,
-        'WEB_INTERFACE': True
+        "PROJECT_ROOT": Path(__file__).parent.parent,
+        "EXPERIENCE_LEVEL": "beginner",
+        "TUTORIAL_MODE": True,
+        "WEB_INTERFACE": True,
     }
-    
+
     server = TutorialWebServer(config)
-    
+
     # Create templates and static files if they don't exist
     server.create_initial_templates()
     server.create_static_assets()
-    
+
     try:
         server.run()
     except KeyboardInterrupt:

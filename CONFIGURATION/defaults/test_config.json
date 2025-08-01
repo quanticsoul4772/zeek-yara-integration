@@ -1,0 +1,7 @@
+{
+    "experience_level": "beginner",
+    "log_level": "INFO",
+    "extract_dir": "./extracted_files",
+    "rules_dir": "./rules",
+    "max_file_size": 10485760
+}

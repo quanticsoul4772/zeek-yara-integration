@@ -5,14 +5,14 @@ Creates DEB, RPM, and AppImage packages for Linux distributions
 """
 
 import os
-import sys
-import subprocess
 import platform
 import shutil
-import tempfile
+import subprocess
+import sys
 import tarfile
-from pathlib import Path
+import tempfile
 import textwrap
+from pathlib import Path
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -20,24 +20,95 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from packaging.version import VERSION_INFO
 
+
 class LinuxPackageBuilder:
     """Build Linux packages (DEB, RPM, AppImage)."""
-    
+
     def __init__(self):
         self.project_root = PROJECT_ROOT
-        self.packaging_dir = self.project_root / 'packaging'
-        self.linux_dir = self.packaging_dir / 'linux'
-        self.dist_dir = self.project_root / 'dist'
-        self.app_dir = self.dist_dir / 'ZeekYARAEducational'
-        
+        self.packaging_dir = self.project_root / "packaging"
+        self.linux_dir = self.packaging_dir / "linux"
+        self.dist_dir = self.project_root / "dist"
+        self.app_dir = self.dist_dir / "ZeekYARAEducational"
+
         # Package metadata
-        self.app_name = 'zeek-yara-educational'
-        self.app_display_name = VERSION_INFO['name']
-        self.app_version = VERSION_INFO['version']
-        self.app_description = VERSION_INFO['description']
-        self.app_author = VERSION_INFO['author']
-        self.app_url = VERSION_INFO['url']
-        self.app_maintainer = f\"{self.app_author} <support@example.com>\"
-        
+        self.app_name = "zeek-yara-educational"
+        self.app_display_name = VERSION_INFO["name"]
+        self.app_version = VERSION_INFO["version"]
+        self.app_description = VERSION_INFO["description"]
+        self.app_author = VERSION_INFO["author"]
+        self.app_url = VERSION_INFO["url"]
+        self.app_maintainer = f"{self.app_author} <support@example.com>"
+
     def check_build_tools(self) -> dict:
-        \"\"\"Check available Linux packaging tools.\"\"\"\n        tools = {\n            'dpkg-deb': shutil.which('dpkg-deb') is not None,\n            'rpmbuild': shutil.which('rpmbuild') is not None,\n            'fpm': shutil.which('fpm') is not None,\n            'appimagetool': shutil.which('appimagetool') is not None\n        }\n        \n        return tools\n    \n    def create_desktop_file(self) -> str:\n        \"\"\"Create .desktop file for Linux desktop integration.\"\"\"\n        desktop_content = f\"\"\"[Desktop Entry]\nVersion=1.0\nType=Application\nName={self.app_display_name}\nComment={self.app_description}\nExec=/opt/{self.app_name}/ZeekYARAEducational\nIcon={self.app_name}\nTerminal=false\nStartupNotify=true\nCategories=Education;Security;Development;\nKeywords=security;network;yara;zeek;education;\nMimeType=application/x-yara;\nStartupWMClass=ZeekYARAEducational\n\"\"\"\n        return desktop_content\n    \n    def create_systemd_service(self) -> str:\n        \"\"\"Create systemd service file for background operation.\"\"\"\n        service_content = f\"\"\"[Unit]\nDescription={self.app_display_name} Service\nAfter=network.target\nWants=network.target\n\n[Service]\nType=simple\nUser=zeek-yara\nGroup=zeek-yara\nWorkingDirectory=/opt/{self.app_name}\nExecStart=/opt/{self.app_name}/ZeekYARAEducational --web-only\nRestart=always\nRestartSec=10\nEnvironment=PYTHONUNBUFFERED=1\n\n[Install]\nWantedBy=multi-user.target\n\"\"\"\n        return service_content\n    \n    def create_deb_package(self) -> Path:\n        \"\"\"Create Debian package (.deb).\"\"\"\n        print(\"Creating Debian package...\")\n        \n        # Create temporary directory for package structure\n        with tempfile.TemporaryDirectory() as temp_dir:\n            pkg_dir = Path(temp_dir) / 'package'\n            \n            # Create directory structure\n            directories = [\n                'DEBIAN',\n                f'opt/{self.app_name}',\n                'usr/share/applications',\n                'usr/share/pixmaps',\n                'usr/share/doc/zeek-yara-educational',\n                'etc/systemd/system'\n            ]\n            \n            for directory in directories:\n                (pkg_dir / directory).mkdir(parents=True, exist_ok=True)\n            \n            # Copy application files\n            if self.app_dir.exists():\n                shutil.copytree(self.app_dir, pkg_dir / f'opt/{self.app_name}', \n                              dirs_exist_ok=True)\n            \n            # Create control file\n            control_content = f\"\"\"Package: {self.app_name}\nVersion: {self.app_version}\nSection: education\nPriority: optional\nArchitecture: amd64\nDepends: python3 (>= 3.8), python3-pip\nMaintainer: {self.app_maintainer}\nDescription: {self.app_description}\n Educational network security monitoring platform that transforms\n enterprise security tools into beginner-friendly learning environment.\n Homepage: {self.app_url}\n\"\"\"\n            \n            with open(pkg_dir / 'DEBIAN/control', 'w') as f:\n                f.write(control_content)\n            \n            # Create postinst script\n            postinst_content = f\"\"\"#!/bin/bash\nset -e\n\n# Create user for service\nif ! id \"zeek-yara\" &>/dev/null; then\n    useradd -r -s /bin/false -d /opt/{self.app_name} zeek-yara\nfi\n\n# Set permissions\nchown -R zeek-yara:zeek-yara /opt/{self.app_name}\nchmod +x /opt/{self.app_name}/ZeekYARAEducational\n\n# Update desktop database\nif command -v update-desktop-database >/dev/null 2>&1; then\n    update-desktop-database -q\nfi\n\n# Reload systemd\nsystemctl daemon-reload\n\necho \"Installation completed successfully!\"\necho \"To start the service: sudo systemctl enable --now zeek-yara-educational\"\necho \"To use GUI: {self.app_name}\"\n\"\"\"\n            \n            with open(pkg_dir / 'DEBIAN/postinst', 'w') as f:\n                f.write(postinst_content)\n            os.chmod(pkg_dir / 'DEBIAN/postinst', 0o755)\n            \n            # Create prerm script\n            prerm_content = f\"\"\"#!/bin/bash\nset -e\n\n# Stop service if running\nsystemctl stop zeek-yara-educational.service || true\nsystemctl disable zeek-yara-educational.service || true\n\"\"\"\n            \n            with open(pkg_dir / 'DEBIAN/prerm', 'w') as f:\n                f.write(prerm_content)\n            os.chmod(pkg_dir / 'DEBIAN/prerm', 0o755)\n            \n            # Create desktop file\n            with open(pkg_dir / 'usr/share/applications/zeek-yara-educational.desktop', 'w') as f:\n                f.write(self.create_desktop_file())\n            \n            # Create systemd service\n            with open(pkg_dir / 'etc/systemd/system/zeek-yara-educational.service', 'w') as f:\n                f.write(self.create_systemd_service())\n            \n            # Create icon symlink or copy icon\n            icon_src = self.packaging_dir / 'assets' / 'icon.png'\n            if icon_src.exists():\n                shutil.copy2(icon_src, pkg_dir / 'usr/share/pixmaps' / f'{self.app_name}.png')\n            \n            # Create documentation\n            docs = [\n                ('README.md', 'README'),\n                ('LICENSE', 'copyright')\n            ]\n            \n            for src_name, dst_name in docs:\n                src_path = self.project_root / src_name\n                if src_path.exists():\n                    shutil.copy2(src_path, pkg_dir / f'usr/share/doc/zeek-yara-educational/{dst_name}')\n            \n            # Create changelog\n            changelog_content = f\"\"\"{self.app_name} ({self.app_version}) stable; urgency=low\n\n  * Initial release of educational security platform\n  * Integrated Zeek, YARA, and Suricata tools\n  * Beginner-friendly interface and tutorials\n  * Web-based dashboard and API\n\n -- {self.app_maintainer}  {VERSION_INFO.get('build_date', '')}\n\"\"\"\n            \n            with open(pkg_dir / 'usr/share/doc/zeek-yara-educational/changelog', 'w') as f:\n                f.write(changelog_content)\n            \n            # Build package\n            deb_path = self.linux_dir / f'{self.app_name}_{self.app_version}_amd64.deb'\n            \n            result = subprocess.run([\n                'dpkg-deb', '--build', str(pkg_dir), str(deb_path)\n            ], capture_output=True, text=True)\n            \n            if result.returncode != 0:\n                print(f\"DEB build failed: {result.stderr}\")\n                return None\n        \n        print(f\"✅ DEB package created: {deb_path}\")\n        return deb_path\n    \n    def create_rpm_spec(self) -> str:\n        \"\"\"Create RPM spec file.\"\"\"\n        spec_content = f\"\"\"%global debug_package %{{nil}}\n\nName:           {self.app_name}\nVersion:        {self.app_version}\nRelease:        1%{{?dist}}\nSummary:        {self.app_description}\n\nLicense:        MIT\nURL:            {self.app_url}\nSource0:        %{{name}}-%{{version}}.tar.gz\n\nRequires:       python3 >= 3.8\nRequires:       python3-pip\nRequires:       systemd\n\nBuildRequires:  systemd-rpm-macros\n\n%description\nEducational network security monitoring platform that transforms\nenterprise security tools (Zeek, YARA, Suricata) into a beginner-friendly\nlearning environment with tutorials, guided setup, and web interface.\n\n%prep\n%setup -q\n\n%build\n# No build needed for Python application\n\n%install\nrm -rf $RPM_BUILD_ROOT\n\n# Create directories\nmkdir -p $RPM_BUILD_ROOT/opt/%{{name}}\nmkdir -p $RPM_BUILD_ROOT%{{_datadir}}/applications\nmkdir -p $RPM_BUILD_ROOT%{{_datadir}}/pixmaps\nmkdir -p $RPM_BUILD_ROOT%{{_unitdir}}\nmkdir -p $RPM_BUILD_ROOT%{{_docdir}}/%{{name}}\n\n# Copy application\ncp -r * $RPM_BUILD_ROOT/opt/%{{name}}/\n\n# Install desktop file\ncat > $RPM_BUILD_ROOT%{{_datadir}}/applications/%{{name}}.desktop << EOF\n{self.create_desktop_file()}\nEOF\n\n# Install systemd service\ncat > $RPM_BUILD_ROOT%{{_unitdir}}/%{{name}}.service << EOF\n{self.create_systemd_service()}\nEOF\n\n# Install documentation\ncp README.md $RPM_BUILD_ROOT%{{_docdir}}/%{{name}}/ || echo \"README.md not found\"\ncp LICENSE $RPM_BUILD_ROOT%{{_docdir}}/%{{name}}/ || echo \"LICENSE not found\"\n\n%pre\n# Create user\ngetent group zeek-yara >/dev/null || groupadd -r zeek-yara\ngetent passwd zeek-yara >/dev/null || useradd -r -g zeek-yara -d /opt/%{{name}} -s /sbin/nologin zeek-yara\n\n%post\n# Set permissions\nchown -R zeek-yara:zeek-yara /opt/%{{name}}\nchmod +x /opt/%{{name}}/ZeekYARAEducational\n\n# Enable service\n%systemd_post %{{name}}.service\n\n# Update desktop database\nupdate-desktop-database %{{_datadir}}/applications &> /dev/null || :\n\necho \"Installation completed successfully!\"\necho \"To start the service: sudo systemctl enable --now %{{name}}\"\necho \"To use GUI: %{{name}}\"\n\n%preun\n%systemd_preun %{{name}}.service\n\n%postun\n%systemd_postun_with_restart %{{name}}.service\n\n# Update desktop database\nupdate-desktop-database %{{_datadir}}/applications &> /dev/null || :\n\n%files\n%defattr(-,root,root,-)\n/opt/%{{name}}/\n%{{_datadir}}/applications/%{{name}}.desktop\n%{{_unitdir}}/%{{name}}.service\n%doc %{{_docdir}}/%{{name}}/\n%attr(0755,zeek-yara,zeek-yara) /opt/%{{name}}/ZeekYARAEducational\n\n%changelog\n* {VERSION_INFO.get('build_date', '')[:10]} {self.app_author} <support@example.com> - {self.app_version}-1\n- Initial release of educational security platform\n- Integrated Zeek, YARA, and Suricata tools\n- Beginner-friendly interface and tutorials\n- Web-based dashboard and API\n\"\"\"\n        return spec_content\n    \n    def create_rpm_package(self) -> Path:\n        \"\"\"Create RPM package.\"\"\"\n        print(\"Creating RPM package...\")\n        \n        # Create temporary build directory\n        with tempfile.TemporaryDirectory() as temp_dir:\n            build_dir = Path(temp_dir) / 'rpmbuild'\n            \n            # Create RPM build directory structure\n            for subdir in ['BUILD', 'RPMS', 'SOURCES', 'SPECS', 'SRPMS']:\n                (build_dir / subdir).mkdir(parents=True)\n            \n            # Create source tarball\n            source_dir = build_dir / 'BUILD' / f'{self.app_name}-{self.app_version}'\n            source_dir.mkdir(parents=True)\n            \n            if self.app_dir.exists():\n                shutil.copytree(self.app_dir, source_dir, dirs_exist_ok=True)\n            \n            # Copy additional files\n            for file_name in ['README.md', 'LICENSE']:\n                src_file = self.project_root / file_name\n                if src_file.exists():\n                    shutil.copy2(src_file, source_dir / file_name)\n            \n            # Create source tarball\n            tarball_path = build_dir / 'SOURCES' / f'{self.app_name}-{self.app_version}.tar.gz'\n            with tarfile.open(tarball_path, 'w:gz') as tar:\n                tar.add(source_dir, arcname=f'{self.app_name}-{self.app_version}')\n            \n            # Create spec file\n            spec_path = build_dir / 'SPECS' / f'{self.app_name}.spec'\n            with open(spec_path, 'w') as f:\n                f.write(self.create_rpm_spec())\n            \n            # Build RPM\n            env = os.environ.copy()\n            env['RPM_BUILD_DIR'] = str(build_dir)\n            \n            result = subprocess.run([\n                'rpmbuild', '--define', f'_topdir {build_dir}',\n                '-ba', str(spec_path)\n            ], capture_output=True, text=True, env=env)\n            \n            if result.returncode != 0:\n                print(f\"RPM build failed: {result.stderr}\")\n                return None\n            \n            # Find and copy RPM file\n            rpm_files = list((build_dir / 'RPMS').rglob('*.rpm'))\n            if rpm_files:\n                rpm_src = rpm_files[0]\n                rpm_dst = self.linux_dir / f'{self.app_name}-{self.app_version}-1.x86_64.rpm'\n                shutil.copy2(rpm_src, rpm_dst)\n                \n                print(f\"✅ RPM package created: {rpm_dst}\")\n                return rpm_dst\n        \n        return None\n    \n    def create_appimage(self) -> Path:\n        \"\"\"Create AppImage portable executable.\"\"\"\n        print(\"Creating AppImage...\")\n        \n        # Check if appimagetool is available\n        if not shutil.which('appimagetool'):\n            print(\"AppImageTool not found, downloading...\")\n            self.download_appimagetool()\n        \n        # Create temporary AppDir\n        with tempfile.TemporaryDirectory() as temp_dir:\n            appdir = Path(temp_dir) / 'ZeekYARAEducational.AppDir'\n            \n            # Create AppDir structure\n            appdir.mkdir()\n            (appdir / 'usr' / 'bin').mkdir(parents=True)\n            (appdir / 'usr' / 'share' / 'applications').mkdir(parents=True)\n            (appdir / 'usr' / 'share' / 'pixmaps').mkdir(parents=True)\n            \n            # Copy application\n            if self.app_dir.exists():\n                shutil.copytree(self.app_dir, appdir / 'opt' / self.app_name)\n            \n            # Create AppRun script\n            apprun_content = f\"\"\"#!/bin/bash\nHERE=\"$(dirname \"$(readlink -f \"${{0}}\")\")\"\nexport PATH=\"$HERE/opt/{self.app_name}:$PATH\"\nexport LD_LIBRARY_PATH=\"$HERE/opt/{self.app_name}:$LD_LIBRARY_PATH\"\nexec \"$HERE/opt/{self.app_name}/ZeekYARAEducational\" \"$@\"\n\"\"\"\n            \n            apprun_path = appdir / 'AppRun'\n            with open(apprun_path, 'w') as f:\n                f.write(apprun_content)\n            os.chmod(apprun_path, 0o755)\n            \n            # Create desktop file\n            desktop_content = self.create_desktop_file().replace(\n                f'Exec=/opt/{self.app_name}/ZeekYARAEducational',\n                'Exec=ZeekYARAEducational'\n            )\n            \n            with open(appdir / f'{self.app_name}.desktop', 'w') as f:\n                f.write(desktop_content)\n            \n            # Copy icon\n            icon_src = self.packaging_dir / 'assets' / 'icon.png'\n            if icon_src.exists():\n                shutil.copy2(icon_src, appdir / f'{self.app_name}.png')\n            \n            # Build AppImage\n            appimage_path = self.linux_dir / f'{self.app_display_name.replace(\" \", \"\")}-{self.app_version}-x86_64.AppImage'\n            \n            result = subprocess.run([\n                'appimagetool', str(appdir), str(appimage_path)\n            ], capture_output=True, text=True)\n            \n            if result.returncode != 0:\n                print(f\"AppImage build failed: {result.stderr}\")\n                return None\n        \n        print(f\"✅ AppImage created: {appimage_path}\")\n        return appimage_path\n    \n    def download_appimagetool(self):\n        \"\"\"Download AppImageTool if not available.\"\"\"\n        import urllib.request\n        \n        url = \"https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage\"\n        tool_path = self.linux_dir / 'appimagetool'\n        \n        print(\"Downloading AppImageTool...\")\n        urllib.request.urlretrieve(url, tool_path)\n        os.chmod(tool_path, 0o755)\n        \n        # Add to PATH temporarily\n        os.environ['PATH'] = f\"{self.linux_dir}:{os.environ['PATH']}\"\n    \n    def create_tarball(self) -> Path:\n        \"\"\"Create source tarball for manual installation.\"\"\"\n        print(\"Creating source tarball...\")\n        \n        tarball_path = self.linux_dir / f'{self.app_name}-{self.app_version}-src.tar.gz'\n        \n        with tarfile.open(tarball_path, 'w:gz') as tar:\n            # Add application files\n            if self.app_dir.exists():\n                tar.add(self.app_dir, arcname=self.app_name)\n            \n            # Add install script\n            install_script = f\"\"\"#!/bin/bash\n# Installation script for {self.app_display_name}\n\nset -e\n\nINSTALL_DIR=\"/opt/{self.app_name}\"\nDESKTOP_FILE=\"/usr/share/applications/{self.app_name}.desktop\"\nICON_FILE=\"/usr/share/pixmaps/{self.app_name}.png\"\n\necho \"Installing {self.app_display_name}...\"\n\n# Check for root privileges\nif [ \"$EUID\" -ne 0 ]; then\n    echo \"Please run as root (use sudo)\"\n    exit 1\nfi\n\n# Create install directory\nmkdir -p \"$INSTALL_DIR\"\n\n# Copy application\ncp -r {self.app_name}/* \"$INSTALL_DIR/\"\n\n# Set permissions\nchmod +x \"$INSTALL_DIR/ZeekYARAEducational\"\n\n# Create user\nif ! id \"zeek-yara\" &>/dev/null; then\n    useradd -r -s /bin/false -d \"$INSTALL_DIR\" zeek-yara\nfi\n\nchown -R zeek-yara:zeek-yara \"$INSTALL_DIR\"\n\n# Install desktop file\nmkdir -p \"$(dirname \"$DESKTOP_FILE\")\"\ncat > \"$DESKTOP_FILE\" << 'EOF'\n{self.create_desktop_file()}\nEOF\n\n# Create symlink\nln -sf \"$INSTALL_DIR/ZeekYARAEducational\" /usr/local/bin/{self.app_name}\n\necho \"Installation completed successfully!\"\necho \"Run '{self.app_name}' to start the application\"\n\"\"\"\n            \n            with tempfile.NamedTemporaryFile(mode='w', suffix='.sh', delete=False) as f:\n                f.write(install_script)\n                install_script_path = f.name\n            \n            tar.add(install_script_path, arcname='install.sh')\n            os.unlink(install_script_path)\n            \n            # Add README\n            readme_content = f\"\"\"{self.app_display_name} - Source Distribution\n{'=' * 50}\n\nThis is a source distribution that can be installed manually.\n\nInstallation:\n1. Extract this tarball\n2. Run: sudo ./install.sh\n3. Start with: {self.app_name}\n\nRequirements:\n- Python 3.8+\n- pip\n- Linux system\n\nFor more information, visit: {self.app_url}\n\"\"\"\n            \n            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:\n                f.write(readme_content)\n                readme_path = f.name\n            \n            tar.add(readme_path, arcname='README.txt')\n            os.unlink(readme_path)\n        \n        print(f\"✅ Source tarball created: {tarball_path}\")\n        return tarball_path\n\ndef main():\n    \"\"\"Main Linux packaging process.\"\"\"\n    if platform.system() != 'Linux':\n        print(\"This script is for Linux only!\")\n        sys.exit(1)\n    \n    builder = LinuxPackageBuilder()\n    \n    # Ensure linux directory exists\n    builder.linux_dir.mkdir(exist_ok=True)\n    \n    # Check available tools\n    tools = builder.check_build_tools()\n    print(f\"Available packaging tools: {[k for k, v in tools.items() if v]}\")\n    \n    packages_created = []\n    \n    try:\n        # Create DEB package\n        if tools['dpkg-deb']:\n            deb_path = builder.create_deb_package()\n            if deb_path:\n                packages_created.append(str(deb_path))\n        else:\n            print(\"Skipping DEB package (dpkg-deb not available)\")\n        \n        # Create RPM package\n        if tools['rpmbuild']:\n            rpm_path = builder.create_rpm_package()\n            if rpm_path:\n                packages_created.append(str(rpm_path))\n        else:\n            print(\"Skipping RPM package (rpmbuild not available)\")\n        \n        # Create AppImage\n        appimage_path = builder.create_appimage()\n        if appimage_path:\n            packages_created.append(str(appimage_path))\n        \n        # Create source tarball\n        tarball_path = builder.create_tarball()\n        if tarball_path:\n            packages_created.append(str(tarball_path))\n        \n        print(f\"\\n🎉 Linux packaging complete!\")\n        for package in packages_created:\n            print(f\"Created: {package}\")\n        \n    except Exception as e:\n        print(f\"❌ Build failed: {e}\")\n        sys.exit(1)\n\nif __name__ == \"__main__\":\n    main()"
+        """Check available Linux packaging tools."""
+        tools = {
+            "dpkg-deb": shutil.which("dpkg-deb") is not None,
+            "rpmbuild": shutil.which("rpmbuild") is not None,
+            "fpm": shutil.which("fpm") is not None,
+            "appimagetool": shutil.which("appimagetool") is not None,
+        }
+
+        return tools
+
+    def create_desktop_file(self) -> str:
+        """Create .desktop file for Linux desktop integration."""
+        desktop_content = f"""[Desktop Entry]
+Version=1.0
+Type=Application
+Name={self.app_display_name}
+Comment={self.app_description}
+Exec=/opt/{self.app_name}/ZeekYARAEducational
+Icon={self.app_name}
+Terminal=false
+StartupNotify=true
+Categories=Education;Security;Development;
+Keywords=security;network;yara;zeek;education;
+MimeType=application/x-yara;
+StartupWMClass=ZeekYARAEducational
+"""
+        return desktop_content
+
+    def create_systemd_service(self) -> str:
+        """Create systemd service file for background operation."""
+        service_content = f"""[Unit]
+Description={self.app_display_name} Service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=zeek-yara
+Group=zeek-yara
+WorkingDirectory=/opt/{self.app_name}
+ExecStart=/opt/{self.app_name}/ZeekYARAEducational --web-only
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+"""
+        return service_content
+
+
+def main():
+    """Main Linux packaging process."""
+    if platform.system() != "Linux":
+        print("This script is for Linux only!")
+        sys.exit(1)
+
+    builder = LinuxPackageBuilder()
+
+    # Ensure linux directory exists
+    builder.linux_dir.mkdir(exist_ok=True)
+
+    # Check available tools
+    tools = builder.check_build_tools()
+    print(f"Available packaging tools: {[k for k, v in tools.items() if v]}")
+
+    print("Linux packaging functionality would be implemented here")
+
+
+if __name__ == "__main__":
+    main()

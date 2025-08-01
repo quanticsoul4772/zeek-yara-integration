@@ -6,16 +6,16 @@ educational platform with custom functionality, educational content, and
 integrations.
 """
 
-from .base import BasePlugin, ScannerPlugin, IntegrationPlugin, EducationalPlugin
-from .registry import plugin_registry, PluginRegistry
+from .base import BasePlugin, EducationalPlugin, IntegrationPlugin, ScannerPlugin
+from .registry import PluginRegistry, plugin_registry
 
 __all__ = [
-    'BasePlugin',
-    'ScannerPlugin', 
-    'IntegrationPlugin',
-    'EducationalPlugin',
-    'plugin_registry',
-    'PluginRegistry'
+    "BasePlugin",
+    "ScannerPlugin",
+    "IntegrationPlugin",
+    "EducationalPlugin",
+    "plugin_registry",
+    "PluginRegistry",
 ]
 
 # Plugin system version

@@ -5,8 +5,8 @@ Creates portable, self-contained executables for all platforms
 """
 
 import os
-import sys
 import platform
+import sys
 from pathlib import Path
 
 # Get project root and platform info
@@ -19,70 +19,78 @@ from packaging.version import VERSION_INFO
 
 # PyInstaller spec configuration
 PYINSTALLER_CONFIG = {
-    'name': 'ZeekYARAEducational',
-    'script': str(PROJECT_ROOT / 'main.py'),
-    'icon': str(PROJECT_ROOT / 'packaging' / 'assets' / 'icon.ico'),
-    'version_file': str(PROJECT_ROOT / 'packaging' / 'assets' / 'version_info.txt'),
-    'additional_files': [
-        (str(PROJECT_ROOT / 'EDUCATION'), 'EDUCATION'),
-        (str(PROJECT_ROOT / 'docs'), 'docs'),
-        (str(PROJECT_ROOT / 'rules' / 'templates'), 'rules/templates'),
-        (str(PROJECT_ROOT / 'config' / 'default_config.json'), 'config'),
-        (str(PROJECT_ROOT / 'packaging' / 'assets'), 'assets'),
+    "name": "ZeekYARAEducational",
+    "script": str(PROJECT_ROOT / "main.py"),
+    "icon": str(PROJECT_ROOT / "packaging" / "assets" / "icon.ico"),
+    "version_file": str(PROJECT_ROOT / "packaging" / "assets" / "version_info.txt"),
+    "additional_files": [
+        (str(PROJECT_ROOT / "EDUCATION"), "EDUCATION"),
+        (str(PROJECT_ROOT / "docs"), "docs"),
+        (str(PROJECT_ROOT / "rules" / "templates"), "rules/templates"),
+        (str(PROJECT_ROOT / "config" / "default_config.json"), "config"),
+        (str(PROJECT_ROOT / "packaging" / "assets"), "assets"),
     ],
-    'hidden_imports': [
-        'yara',
-        'magic',
-        'watchdog',
-        'fastapi',
-        'uvicorn',
-        'pydantic',
-        'sqlalchemy',
-        'requests',
-        'rich',
-        'typer'
+    "hidden_imports": [
+        "yara",
+        "magic",
+        "watchdog",
+        "fastapi",
+        "uvicorn",
+        "pydantic",
+        "sqlalchemy",
+        "requests",
+        "rich",
+        "typer",
     ],
-    'excluded_modules': [
-        'tkinter',
-        'matplotlib',
-        'scipy',
-        'numpy.distutils',
-        'test',
-        'tests',
+    "excluded_modules": [
+        "tkinter",
+        "matplotlib",
+        "scipy",
+        "numpy.distutils",
+        "test",
+        "tests",
     ],
-    'console': True,  # Set to False for GUI-only version
-    'onefile': False,  # Directory distribution for better performance
-    'clean': True,
-    'upx': False,  # Disable UPX compression for compatibility
+    "console": True,  # Set to False for GUI-only version
+    "onefile": False,  # Directory distribution for better performance
+    "clean": True,
+    "upx": False,  # Disable UPX compression for compatibility
 }
+
 
 def get_platform_specific_config():
     """Get platform-specific PyInstaller configuration."""
     config = PYINSTALLER_CONFIG.copy()
-    
-    if PLATFORM == 'windows':
-        config.update({
-            'icon': str(PROJECT_ROOT / 'packaging' / 'assets' / 'icon.ico'),
-            'version_file': str(PROJECT_ROOT / 'packaging' / 'assets' / 'version_info.txt'),
-            'runtime_tmpdir': None,  # Use temp directory
-        })
-    elif PLATFORM == 'darwin':
-        config.update({
-            'icon': str(PROJECT_ROOT / 'packaging' / 'assets' / 'icon.icns'),
-            'bundle_identifier': 'edu.security.zeek-yara',
-            'codesign_identity': os.environ.get('CODESIGN_IDENTITY'),
-        })
-    elif PLATFORM == 'linux':
-        config.update({
-            'icon': str(PROJECT_ROOT / 'packaging' / 'assets' / 'icon.png'),
-        })
-    
+
+    if PLATFORM == "windows":
+        config.update(
+            {
+                "icon": str(PROJECT_ROOT / "packaging" / "assets" / "icon.ico"),
+                "version_file": str(PROJECT_ROOT / "packaging" / "assets" / "version_info.txt"),
+                "runtime_tmpdir": None,  # Use temp directory
+            }
+        )
+    elif PLATFORM == "darwin":
+        config.update(
+            {
+                "icon": str(PROJECT_ROOT / "packaging" / "assets" / "icon.icns"),
+                "bundle_identifier": "edu.security.zeek-yara",
+                "codesign_identity": os.environ.get("CODESIGN_IDENTITY"),
+            }
+        )
+    elif PLATFORM == "linux":
+        config.update(
+            {
+                "icon": str(PROJECT_ROOT / "packaging" / "assets" / "icon.png"),
+            }
+        )
+
     return config
+
 
 def create_spec_file():
     """Create PyInstaller spec file."""
     config = get_platform_specific_config()
-    
+
     spec_content = f'''# -*- mode: python ; coding: utf-8 -*-
 """
 PyInstaller spec file for Zeek-YARA Educational Platform
@@ -138,14 +146,14 @@ exe = EXE(
 '''
 
     # Add platform-specific icon
-    if config.get('icon') and Path(config['icon']).exists():
+    if config.get("icon") and Path(config["icon"]).exists():
         spec_content += f"    icon=r\"{config['icon']}\",\n"
-    
+
     # Add version file for Windows
-    if PLATFORM == 'windows' and config.get('version_file'):
+    if PLATFORM == "windows" and config.get("version_file"):
         spec_content += f"    version=r\"{config['version_file']}\",\n"
-    
-    spec_content += ''')
+
+    spec_content += """)
 
 # Collect files for distribution
 coll = COLLECT(
@@ -158,11 +166,11 @@ coll = COLLECT(
     upx_exclude=[],
     name='{config['name']}',
 )
-'''
+"""
 
     # Add macOS app bundle configuration
-    if PLATFORM == 'darwin':
-        spec_content += f'''
+    if PLATFORM == "darwin":
+        spec_content += f"""
 # macOS App Bundle
 app = BUNDLE(
     coll,
@@ -182,21 +190,22 @@ app = BUNDLE(
         'NSRequiresAquaSystemAppearance': False,
     }},
 )
-'''
-    
+"""
+
     # Write spec file
-    spec_path = PROJECT_ROOT / 'packaging' / f'{config["name"]}.spec'
-    with open(spec_path, 'w') as f:
+    spec_path = PROJECT_ROOT / "packaging" / f'{config["name"]}.spec'
+    with open(spec_path, "w") as f:
         f.write(spec_content)
-    
+
     return spec_path
+
 
 def create_build_script():
     """Create platform-specific build script."""
     config = get_platform_specific_config()
-    
-    if PLATFORM == 'windows':
-        script_content = f'''@echo off
+
+    if PLATFORM == "windows":
+        script_content = f"""@echo off
 REM Build script for Windows
 echo Building Zeek-YARA Educational Platform for Windows...
 
@@ -219,11 +228,11 @@ python "%PROJECT_ROOT%\\packaging\\windows\\create_installer.py"
 
 echo Build complete!
 pause
-'''
-        script_path = PROJECT_ROOT / 'packaging' / 'build_windows.bat'
-    
-    elif PLATFORM == 'darwin':
-        script_content = f'''#!/bin/bash
+"""
+        script_path = PROJECT_ROOT / "packaging" / "build_windows.bat"
+
+    elif PLATFORM == "darwin":
+        script_content = f"""#!/bin/bash
 # Build script for macOS
 echo "Building Zeek-YARA Educational Platform for macOS..."
 
@@ -245,11 +254,11 @@ echo "Creating macOS DMG..."
 python3 "$PROJECT_ROOT/packaging/macos/create_dmg.py"
 
 echo "Build complete!"
-'''
-        script_path = PROJECT_ROOT / 'packaging' / 'build_macos.sh'
-    
+"""
+        script_path = PROJECT_ROOT / "packaging" / "build_macos.sh"
+
     else:  # Linux
-        script_content = f'''#!/bin/bash
+        script_content = f"""#!/bin/bash
 # Build script for Linux
 echo "Building Zeek-YARA Educational Platform for Linux..."
 
@@ -271,28 +280,29 @@ echo "Creating Linux packages..."
 python3 "$PROJECT_ROOT/packaging/linux/create_packages.py"
 
 echo "Build complete!"
-'''
-        script_path = PROJECT_ROOT / 'packaging' / 'build_linux.sh'
-    
+"""
+        script_path = PROJECT_ROOT / "packaging" / "build_linux.sh"
+
     # Write build script
-    with open(script_path, 'w') as f:
+    with open(script_path, "w") as f:
         f.write(script_content)
-    
+
     # Make executable on Unix systems
-    if PLATFORM != 'windows':
+    if PLATFORM != "windows":
         os.chmod(script_path, 0o755)
-    
+
     return script_path
+
 
 if __name__ == "__main__":
     print("Creating PyInstaller configuration...")
-    
+
     # Create spec file
     spec_path = create_spec_file()
     print(f"Created spec file: {spec_path}")
-    
+
     # Create build script
     script_path = create_build_script()
     print(f"Created build script: {script_path}")
-    
+
     print("PyInstaller configuration complete!")
