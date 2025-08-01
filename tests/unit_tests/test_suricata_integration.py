@@ -118,7 +118,7 @@ class TestSuricataConfig:
         result = suricata_config.update_rules(download_emerging_threats=True)
 
         # Check result
-        assert result is True
+        assert result == True
 
         # Verify subprocess calls
         assert mock_subprocess.call_count > 0
@@ -157,7 +157,7 @@ class TestSuricataRunner:
         result = suricata_runner.run_live("eth0", duration=1)
 
         # Check result
-        assert result is True
+        assert result == True
 
         # Verify subprocess was called with correct arguments
         mock_popen.assert_called_once()
@@ -181,7 +181,7 @@ class TestSuricataRunner:
         result = suricata_runner.run_pcap(pcap_file)
 
         # Check result
-        assert result is True
+        assert result == True
 
         # Verify subprocess was called with correct arguments
         mock_subprocess.assert_called_once()
@@ -364,7 +364,7 @@ class TestSuricataRunner:
         result = suricata_runner.stop()
 
         # Check result
-        assert result is True
+        assert result == True
 
         # Verify subprocess calls
         assert mock_check_output.call_count == 1

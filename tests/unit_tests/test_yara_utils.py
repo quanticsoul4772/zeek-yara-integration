@@ -88,7 +88,7 @@ def test_rule_manager_compilation_with_index(temp_rule_dir):
     rule_manager = RuleManager(temp_rule_dir, rules_index=index_path)
     result = rule_manager.compile_rules()
 
-    assert result is True
+    assert result == True
     assert rule_manager.rules is not None
     assert len(rule_manager.compile_errors) == 0
 
@@ -112,7 +112,7 @@ rule InvalidRule {
     rule_manager = RuleManager(temp_rule_dir)
     result = rule_manager.compile_rules()
 
-    assert result is False
+    assert result == False
     assert len(rule_manager.compile_errors) > 0
     assert rule_manager.rules is None
 
@@ -188,12 +188,12 @@ def test_yara_matcher_file_matching(temp_rule_dir):
     try:
         # Test matching file
         match_result = matcher.scan_file(match_file_path)
-        assert match_result["matched"] is True
+        assert match_result["matched"] == True
         assert len(match_result["matches"]) > 0
 
         # Test non-matching file
         no_match_result = matcher.scan_file(no_match_file_path)
-        assert no_match_result["matched"] is False
+        assert no_match_result["matched"] == False
         assert len(no_match_result["matches"]) == 0
     finally:
         os.unlink(match_file_path)
@@ -210,7 +210,7 @@ def test_yara_matcher_file_not_found():
 
     result = matcher.scan_file("/path/to/nonexistent/file")
 
-    assert result["matched"] is False
+    assert result["matched"] == False
     assert result["error"] is not None
 
 
@@ -256,12 +256,12 @@ rule WhitelistRule {
         try:
             # Test whitelisting
             assert matcher.is_file_whitelisted(
-                whitelisted_path, whitelist_rules) is True
+                whitelisted_path, whitelist_rules) == True
             assert matcher.is_file_whitelisted(
-                non_whitelisted_path, whitelist_rules) is False
+                non_whitelisted_path, whitelist_rules) == False
 
             # Test with no whitelist rules
-            assert matcher.is_file_whitelisted(whitelisted_path, None) is False
+            assert matcher.is_file_whitelisted(whitelisted_path, None) == False
         finally:
             os.unlink(whitelisted_path)
             os.unlink(non_whitelisted_path)
@@ -288,7 +288,7 @@ def test_yara_matcher_scan_with_callback(temp_rule_dir):
         result = matcher.scan_file(
             test_file_path, callback=stop_after_first_match)
 
-        assert result["matched"] is True
+        assert result["matched"] == True
         assert len(result["matches"]) > 0
     finally:
         os.unlink(test_file_path)
@@ -326,7 +326,7 @@ def test_rule_manager_compilation_empty_directory():
         rule_manager = RuleManager(empty_dir)
         result = rule_manager.compile_rules()
 
-        assert result is False
+        assert result == False
         assert len(rule_manager.compile_errors) > 0
         assert rule_manager.rules is None
 
@@ -353,7 +353,7 @@ def test_rule_manager_modification_time_check(temp_rule_dir):
     # Recompile without force
     second_result = rule_manager.compile_rules()
 
-    assert second_result is True
+    assert second_result == True
     assert rule_manager.last_compile_time > first_compile_time
 
 
@@ -404,7 +404,7 @@ def test_yara_matcher_error_handling_non_readable_file(temp_rule_dir):
 
             # Should result in an error
             assert result["error"] is not None
-            assert result["matched"] is False
+            assert result["matched"] == False
         finally:
             # Restore permissions to allow cleanup
             os.chmod(restricted_file_path, 0o666)

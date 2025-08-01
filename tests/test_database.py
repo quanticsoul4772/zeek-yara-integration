@@ -59,7 +59,7 @@ class TestDatabaseManager:
 
         # Add alert
         result = db_manager.add_alert(alert_data, match_data)
-        assert result is True
+        assert result == True
 
         # Verify alert was added
         alerts = db_manager.get_alerts(limit=10)
@@ -361,7 +361,7 @@ class TestDatabasePerformance:
 
         # Run the decorated method
         result = test_method()
-        assert result is True
+        assert result == True
 
         # Check if performance logs were captured
         log_contents = log_stream.getvalue()

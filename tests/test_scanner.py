@@ -42,7 +42,7 @@ class TestScanner:
         assert isinstance(scanner.rule_manager, RuleManager)
         assert isinstance(scanner.yara_matcher, YaraMatcher)
         assert isinstance(scanner.db_manager, DatabaseManager)
-        assert scanner.running is False
+        assert scanner.running == False
 
     def test_multi_thread_scanner_initialization(self, config):
         """Test multi-threaded scanner initialization"""
@@ -57,7 +57,7 @@ class TestScanner:
         assert isinstance(scanner.rule_manager, RuleManager)
         assert isinstance(scanner.yara_matcher, YaraMatcher)
         assert isinstance(scanner.db_manager, DatabaseManager)
-        assert scanner.running is False
+        assert scanner.running == False
         assert scanner.num_threads == 4
         assert isinstance(scanner.file_queue, Queue)
         assert scanner.worker_threads == []
@@ -78,7 +78,7 @@ class TestScanner:
 
         assert isinstance(result, dict)
         assert "matched" in result
-        assert result.get("matched") is False
+        assert result.get("matched") == False
         assert "error" in result
 
     def test_scan_directory(self, scanner, test_files):
@@ -148,10 +148,10 @@ class TestScannerIntegration:
         scanner.scan_callback = scan_callback
 
         # Start monitoring
-        assert scanner.running is False
+        assert scanner.running == False
         start_result = scanner.start_monitoring()
-        assert start_result is True
-        assert scanner.running is True
+        assert start_result == True
+        assert scanner.running == True
 
         # Wait a moment for setup
         time.sleep(1)
@@ -170,8 +170,8 @@ class TestScannerIntegration:
 
         # Stop monitoring
         stop_result = scanner.stop_monitoring()
-        assert stop_result is True
-        assert scanner.running is False
+        assert stop_result == True
+        assert scanner.running == False
 
         # Check events
         assert len(events) > 0
@@ -208,7 +208,7 @@ class TestScannerIntegration:
             result = scanner.scan_file(eicar_path)
 
             # Check result
-            assert result.get("matched", False) is True
+            assert result.get("matched", False) == True
             assert len(result.get("matches", [])) > 0
 
             # Check database entry - use the scanner's database manager

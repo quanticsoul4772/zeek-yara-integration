@@ -201,7 +201,7 @@ class TestSuricataIntegration:
         result = suricata_runner.run_pcap(test_pcap)
 
         # Verify Suricata ran successfully
-        assert result is True
+        assert result == True
 
         # Check if eve.json was created (regardless of alerts)
         eve_json = os.path.join(

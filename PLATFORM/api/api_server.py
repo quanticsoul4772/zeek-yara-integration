@@ -20,23 +20,18 @@ from api.suricata_api import suricata_router
 import datetime
 import json
 import logging
-import multiprocessing
 import os
 import sys
 import time
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import uvicorn
-
-# Import FastAPI components
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi import Path as PathParam
 from fastapi import Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(
@@ -217,25 +212,29 @@ async def get_status(_: bool = Depends(verify_api_key)):
 
     if scanner:
         scanner_running = getattr(scanner, "running", False)
-        scanner_type = ("Multi-threaded" if isinstance(scanner,
-                                                       MultiThreadScanner) else "Single-threaded")
+        scanner_type = (
+            "Multi-threaded" if isinstance(scanner, MultiThreadScanner)
+            else "Single-threaded"
+        )
 
     # Count extracted files
     extract_dir = config.get("EXTRACT_DIR")
     extracted_files_count = 0
 
     if os.path.exists(extract_dir) and os.path.isdir(extract_dir):
-        extracted_files_count = len(
-            [f for f in os.listdir(extract_dir) if os.path.isfile(
-                os.path.join(extract_dir, f))]
-        )
+        extracted_files_count = len([
+            f for f in os.listdir(extract_dir)
+            if os.path.isfile(os.path.join(extract_dir, f))
+        ])
 
     # Get alert counts
     all_alerts = db_manager.get_alerts(limit=1000000)
-    recent_cutoff = (datetime.datetime.now() -
-                     datetime.timedelta(days=1)).isoformat()
-    recent_alerts = [a for a in all_alerts if a.get(
-        "timestamp", "") >= recent_cutoff]
+    recent_cutoff = (
+        datetime.datetime.now() - datetime.timedelta(days=1)
+    ).isoformat()
+    recent_alerts = [
+        a for a in all_alerts if a.get("timestamp", "") >= recent_cutoff
+    ]
 
     # Get rule count
     rules_count = len(rule_manager.get_rule_list())
@@ -303,29 +302,37 @@ async def get_alerts(
 
         if severity is not None:
             filtered_alerts = [
-                a for a in filtered_alerts if a.get("severity") == severity]
+                a for a in filtered_alerts if a.get("severity") == severity
+            ]
 
         if rule_name:
             filtered_alerts = [
-                a for a in filtered_alerts if rule_name.lower() in a.get(
-                    "rule_name", "").lower()]
+                a for a in filtered_alerts
+                if rule_name.lower() in a.get("rule_name", "").lower()
+            ]
 
         if file_type:
             filtered_alerts = [
-                a for a in filtered_alerts if file_type.lower() in a.get(
-                    "file_type", "").lower()]
+                a for a in filtered_alerts
+                if file_type.lower() in a.get("file_type", "").lower()
+            ]
 
         if zeek_uid:
             filtered_alerts = [
-                a for a in filtered_alerts if zeek_uid == a.get("zeek_uid")]
+                a for a in filtered_alerts if zeek_uid == a.get("zeek_uid")
+            ]
 
         if start_date:
-            filtered_alerts = [a for a in filtered_alerts if a.get(
-                "timestamp", "") >= start_date]
+            filtered_alerts = [
+                a for a in filtered_alerts
+                if a.get("timestamp", "") >= start_date
+            ]
 
         if end_date:
-            filtered_alerts = [a for a in filtered_alerts if a.get(
-                "timestamp", "") <= end_date]
+            filtered_alerts = [
+                a for a in filtered_alerts
+                if a.get("timestamp", "") <= end_date
+            ]
 
         # Apply pagination
         paginated_alerts = filtered_alerts[offset: offset + limit]
@@ -438,7 +445,9 @@ async def get_alert(alert_id: int = PathParam(...,
         raise
     except Exception as e:
         logger.error(
-            f"Error retrieving alert {alert_id}: {str(e)}", exc_info=True)
+            f"Error retrieving alert {alert_id}: {str(e)}",
+            exc_info=True
+        )
         raise HTTPException(
             status_code=500, detail=f"Error retrieving alert: {str(e)}")
 
@@ -657,10 +666,9 @@ async def scan_file(
         raise
     except Exception as e:
         logger.error(
-            f"Error scanning {
-                scan_request.file_path}: {
-                str(e)}",
-            exc_info=True)
+            f"Error scanning {scan_request.file_path}: {str(e)}",
+            exc_info=True
+        )
         raise HTTPException(
             status_code=500, detail=f"Error scanning file: {str(e)}")
 
@@ -739,7 +747,8 @@ async def stop_scanner(_: bool = Depends(verify_api_key)):
 
         return {
             "success": success,
-            "status": "stopped" if success else "error"}
+            "status": "stopped" if success else "error"
+        }
 
     except Exception as e:
         logger.error(f"Error stopping scanner: {str(e)}", exc_info=True)
@@ -842,11 +851,13 @@ async def get_webhook_config(_: bool = Depends(verify_api_key)):
 
     except Exception as e:
         logger.error(
-            f"Error retrieving webhook config: {str(e)}", exc_info=True)
+            f"Error retrieving webhook config: {str(e)}",
+            exc_info=True
+        )
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving webhook config: {
-                str(e)}")
+            detail=f"Error retrieving webhook config: {str(e)}"
+        )
 
 
 # Main entry point for running the API server
