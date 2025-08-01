@@ -69,6 +69,14 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
+        sudo apt-get install -y curl gnupg software-properties-common
+        
+        # Add Zeek repository
+        curl -fsSL https://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/Release.key | sudo gpg --dearmor -o /usr/share/keyrings/zeek-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/zeek-keyring.gpg] https://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /" | sudo tee /etc/apt/sources.list.d/zeek.list
+        
+        # Update and install packages
+        sudo apt-get update
         sudo apt-get install -y zeek yara suricata
 
     - name: Install system dependencies (macOS)
@@ -126,6 +134,14 @@ jobs:
 
     - name: Install system dependencies
       run: |
+        sudo apt-get update
+        sudo apt-get install -y curl gnupg software-properties-common
+        
+        # Add Zeek repository
+        curl -fsSL https://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/Release.key | sudo gpg --dearmor -o /usr/share/keyrings/zeek-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/zeek-keyring.gpg] https://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /" | sudo tee /etc/apt/sources.list.d/zeek.list
+        
+        # Update and install packages
         sudo apt-get update
         sudo apt-get install -y zeek yara suricata
 
