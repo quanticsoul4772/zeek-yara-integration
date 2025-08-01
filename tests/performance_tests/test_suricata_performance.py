@@ -30,10 +30,14 @@ sys.path.insert(0, os.path.abspath(
 # Import benchmarking utilities
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..")))
-try:
-    from conftest import benchmark, timer
-except ImportError:
-    # Define fallback benchmark decorator
+
+# Use pytest.importorskip for optional conftest imports
+conftest = pytest.importorskip("conftest", reason="conftest module not available")
+benchmark = getattr(conftest, 'benchmark', None)
+timer = getattr(conftest, 'timer', None)
+
+# Define fallback benchmark decorator if not available
+if benchmark is None:
     def benchmark(iterations=1):
         def decorator(func):
             def wrapper(*args, **kwargs):
