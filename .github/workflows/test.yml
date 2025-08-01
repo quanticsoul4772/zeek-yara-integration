@@ -73,17 +73,17 @@ jobs:
     # Run different test suites
     - name: Run unit tests
       run: |
-        python -m pytest TESTING/unit/ -v --tb=short --maxfail=5
+        python -m pytest tests/unit_tests/ -v --tb=short --maxfail=5
       timeout-minutes: 30
 
     - name: Run integration tests
       run: |
-        python -m pytest TESTING/integration/ -v --tb=short --maxfail=3
+        python -m pytest tests/integration_tests/ -v --tb=short --maxfail=3
       timeout-minutes: 10
 
     - name: Run framework tests
       run: |
-        python -m pytest TESTING/unit/frameworks/ -v --tb=short || echo "Framework tests completed"
+        python -m pytest tests/frameworks/ -v --tb=short || echo "Framework tests completed"
       timeout-minutes: 5
 
     - name: Test setup wizard
@@ -139,7 +139,7 @@ jobs:
           --self-contained-html \
           --junit-xml=test_results/junit.xml \
           -n auto \
-          TESTING/
+          tests/
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
@@ -179,7 +179,7 @@ jobs:
 
     - name: Run performance tests
       run: |
-        python -m pytest TESTING/performance/ -v --benchmark-only --benchmark-json=benchmark_results.json
+        python -m pytest tests/performance_tests/ -v --benchmark-only --benchmark-json=benchmark_results.json
       timeout-minutes: 15
 
     - name: Upload benchmark results
