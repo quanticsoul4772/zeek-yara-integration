@@ -4,7 +4,6 @@ Interactive Educational Tutorial Web Server
 Modern web-based tutorial system with rich interactivity
 """
 
-from tutorial_system import TutorialManager, TutorialStep
 import asyncio
 import json
 import logging
@@ -25,6 +24,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+from tutorial_system import TutorialManager, TutorialStep
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -77,8 +78,8 @@ class TutorialWebServer:
 
         # Initialize FastAPI app
         self.app = FastAPI(
-            title="Security Learning Platform",
-            description="Interactive Security Education")
+            title="Security Learning Platform", description="Interactive Security Education"
+        )
         self.setup_middleware()
         self.setup_routes()
 
@@ -106,30 +107,22 @@ class TutorialWebServer:
         """Setup web routes."""
 
         # Serve static files
-        self.app.mount(
-            "/static",
-            StaticFiles(
-                directory=str(
-                    self.static_dir)),
-            name="static")
+        self.app.mount("/static", StaticFiles(directory=str(self.static_dir)), name="static")
 
         # Main routes
         self.app.get("/")(self.home)
         self.app.get("/tutorials")(self.tutorial_list)
         self.app.get("/tutorial/{tutorial_id}")(self.tutorial_detail)
-        self.app.get(
-            "/tutorial/{tutorial_id}/step/{step_id}")(self.tutorial_step)
+        self.app.get("/tutorial/{tutorial_id}/step/{step_id}")(self.tutorial_step)
         self.app.post("/api/tutorial/{tutorial_id}/start")(self.start_tutorial)
-        self.app.post(
-            "/api/tutorial/{tutorial_id}/step/{step_id}/complete")(self.complete_step)
+        self.app.post("/api/tutorial/{tutorial_id}/step/{step_id}/complete")(self.complete_step)
         self.app.get("/api/progress")(self.get_progress)
         self.app.get("/api/achievements")(self.get_achievements)
         self.app.websocket("/ws/{session_id}")(self.websocket_endpoint)
 
         # Tutorial content API
         self.app.get("/api/tutorials")(self.api_get_tutorials)
-        self.app.get(
-            "/api/tutorial/{tutorial_id}/content")(self.api_get_tutorial_content)
+        self.app.get("/api/tutorial/{tutorial_id}/content")(self.api_get_tutorial_content)
 
     async def home(self, request: Request):
         """Home page with learning dashboard."""
@@ -169,18 +162,13 @@ class TutorialWebServer:
             },
         )
 
-    async def tutorial_step(
-            self,
-            request: Request,
-            tutorial_id: str,
-            step_id: str):
+    async def tutorial_step(self, request: Request, tutorial_id: str, step_id: str):
         """Individual tutorial step page."""
         tutorial_content = self.get_tutorial_content(tutorial_id)
         if not tutorial_content:
             raise HTTPException(status_code=404, detail="Tutorial not found")
 
-        step = next(
-            (s for s in tutorial_content["steps"] if s["id"] == step_id), None)
+        step = next((s for s in tutorial_content["steps"] if s["id"] == step_id), None)
         if not step:
             raise HTTPException(status_code=404, detail="Step not found")
 
@@ -206,8 +194,7 @@ class TutorialWebServer:
             current_step=0,
             start_time=datetime.now(),
             last_activity=datetime.now(),
-            progress_data={"steps_completed": [],
-                           "quiz_scores": {}, "time_spent": 0},
+            progress_data={"steps_completed": [], "quiz_scores": {}, "time_spent": 0},
             achievements_earned=[],
         )
 
@@ -217,11 +204,7 @@ class TutorialWebServer:
             {"session_id": session_id, "tutorial_id": tutorial_id, "status": "started"}
         )
 
-    async def complete_step(
-            self,
-            tutorial_id: str,
-            step_id: str,
-            request: Request):
+    async def complete_step(self, tutorial_id: str, step_id: str, request: Request):
         """Mark a step as completed."""
         body = await request.json()
         session_id = body.get("session_id")
@@ -240,8 +223,7 @@ class TutorialWebServer:
         achievements = self.check_step_achievements(session, step_id)
 
         return JSONResponse(
-            {"status": "completed", "achievements": achievements,
-                "progress": session.progress_data}
+            {"status": "completed", "achievements": achievements, "progress": session.progress_data}
         )
 
     async def get_progress(self, request: Request):
@@ -252,13 +234,12 @@ class TutorialWebServer:
         """Get user achievements."""
         return JSONResponse(
             {
-                "achievements": self.tutorial_manager.user_progress.get(
-                    "achievements",
-                    []),
+                "achievements": self.tutorial_manager.user_progress.get("achievements", []),
                 "experience_points": self.tutorial_manager.user_progress.get(
-                    "experience_points",
-                    0),
-            })
+                    "experience_points", 0
+                ),
+            }
+        )
 
     async def api_get_tutorials(self):
         """API endpoint for tutorial list."""
@@ -293,11 +274,7 @@ class TutorialWebServer:
             if session_id in self.websocket_connections:
                 del self.websocket_connections[session_id]
 
-    async def handle_step_progress(
-            self,
-            session_id: str,
-            message: Dict,
-            websocket: WebSocket):
+    async def handle_step_progress(self, session_id: str, message: Dict, websocket: WebSocket):
         """Handle step progress updates via WebSocket."""
         if session_id in self.active_sessions:
             session = self.active_sessions[session_id]
@@ -305,15 +282,10 @@ class TutorialWebServer:
 
             # Send progress update
             await websocket.send_text(
-                json.dumps({"type": "progress_update",
-                           "progress": session.progress_data})
+                json.dumps({"type": "progress_update", "progress": session.progress_data})
             )
 
-    async def send_hint(
-            self,
-            session_id: str,
-            message: Dict,
-            websocket: WebSocket):
+    async def send_hint(self, session_id: str, message: Dict, websocket: WebSocket):
         """Send contextual hints via WebSocket."""
         step_id = message.get("step_id")
         hints = self.get_step_hints(step_id)
@@ -341,8 +313,7 @@ class TutorialWebServer:
 
         return enhanced_tutorials
 
-    def get_tutorial_content(
-            self, tutorial_id: str) -> Optional[Dict[str, Any]]:
+    def get_tutorial_content(self, tutorial_id: str) -> Optional[Dict[str, Any]]:
         """Get comprehensive tutorial content with enhanced steps."""
         enhanced_tutorials = {
             "network_security_basics": {
@@ -1087,10 +1058,7 @@ class TutorialWebServer:
         }
         return base_xp.get(tutorial_id, 100)
 
-    def check_step_achievements(
-            self,
-            session: LearningSession,
-            step_id: str) -> List[str]:
+    def check_step_achievements(self, session: LearningSession, step_id: str) -> List[str]:
         """Check for achievements earned by completing a step."""
         achievements = []
 
@@ -1098,8 +1066,7 @@ class TutorialWebServer:
         if len(session.progress_data["steps_completed"]) == 1:
             achievements.append("first_step")
 
-        if step_id.endswith(
-                "_quiz") and "quiz_master" not in session.achievements_earned:
+        if step_id.endswith("_quiz") and "quiz_master" not in session.achievements_earned:
             achievements.append("quiz_master")
 
         # Add achievements to session

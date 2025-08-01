@@ -15,10 +15,10 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 # Configure stdout encoding for Unicode compatibility
-if sys.platform.startswith('win'):
+if sys.platform.startswith("win"):
     try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
     except (AttributeError, OSError):
         # Fallback for older Python versions or restricted environments
         pass
@@ -37,9 +37,11 @@ try:
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
+
     # Define dummy Console class for type hints when rich is not available
     class Console:
         pass
+
 
 try:
     import uvicorn
@@ -194,8 +196,7 @@ class ServiceManager:
             from core.scanner import YaraScanner
 
             scanner = YaraScanner(self.config)
-            scanner_thread = threading.Thread(
-                target=scanner.start_monitoring, daemon=True)
+            scanner_thread = threading.Thread(target=scanner.start_monitoring, daemon=True)
             scanner_thread.start()
             self.services["yara_scanner"] = scanner_thread
 
@@ -318,8 +319,7 @@ Let's explore each section together!
 
                 return Confirm.ask("Continue to next step?", default=True)
             else:
-                self.console.print(
-                    "🎉 Tutorial completed! You're ready to explore on your own.")
+                self.console.print("🎉 Tutorial completed! You're ready to explore on your own.")
                 return False
         else:
             print(f"\n=== Tutorial: {step['title']} ===")
@@ -330,8 +330,7 @@ Let's explore each section together!
             self.execute_step_action(step["action"])
 
             if step_index < len(self.tutorial_steps) - 1:
-                response = input(
-                    "Continue to next step? (y/n) [y]: ").strip().lower()
+                response = input("Continue to next step? (y/n) [y]: ").strip().lower()
                 return response != "n"
             else:
                 print("Tutorial completed! You're ready to explore on your own.")
@@ -360,13 +359,11 @@ Let's explore each section together!
             tools_table.add_column("What it does", style="yellow")
 
             tools_table.add_row(
-                "Zeek",
-                "Network Monitoring",
-                "Watches traffic, extracts files, logs connections")
+                "Zeek", "Network Monitoring", "Watches traffic, extracts files, logs connections"
+            )
             tools_table.add_row(
-                "YARA",
-                "Malware Detection",
-                "Scans files for malicious patterns and signatures")
+                "YARA", "Malware Detection", "Scans files for malicious patterns and signatures"
+            )
             tools_table.add_row(
                 "Suricata",
                 "Intrusion Detection",
@@ -380,8 +377,7 @@ Let's explore each section together!
         self.log("Running detection demo with EICAR test file...")
 
         # Create EICAR test file for demonstration
-        eicar_path = Path(self.config.get(
-            "EXTRACT_DIR", "/tmp")) / "eicar_test.txt"
+        eicar_path = Path(self.config.get("EXTRACT_DIR", "/tmp")) / "eicar_test.txt"
         eicar_content = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
 
         try:
@@ -427,10 +423,8 @@ class EducationalPlatform:
         self.project_root = Path(__file__).parent.absolute()
         self.console = Console() if RICH_AVAILABLE else None
         self.config_manager = ConfigManager(self.project_root)
-        self.service_manager = ServiceManager(
-            self.config_manager.config, self.console)
-        self.tutorial_system = TutorialSystem(
-            self.config_manager.config, self.console)
+        self.service_manager = ServiceManager(self.config_manager.config, self.console)
+        self.tutorial_system = TutorialSystem(self.config_manager.config, self.console)
         self.running = False
 
     def show_welcome_banner(self):
@@ -469,17 +463,14 @@ Perfect for students, educators, and security professionals.
         """Check if this is first run and offer setup."""
         if self.config_manager.is_first_run():
             if self.console:
-                self.console.print(
-                    "🔧 First time setup required!", style="yellow bold")
+                self.console.print("🔧 First time setup required!", style="yellow bold")
 
                 from rich.prompt import Confirm
 
-                run_setup = Confirm.ask(
-                    "Would you like to run the setup wizard?", default=True)
+                run_setup = Confirm.ask("Would you like to run the setup wizard?", default=True)
             else:
                 print("First time setup required!")
-                response = input(
-                    "Run setup wizard? (y/n) [y]: ").strip().lower()
+                response = input("Run setup wizard? (y/n) [y]: ").strip().lower()
                 run_setup = response != "n"
 
             if run_setup:
@@ -521,8 +512,7 @@ Perfect for students, educators, and security professionals.
             # Platform info
             mode = config.get("PLATFORM_MODE", "educational")
             experience = config.get("EXPERIENCE_LEVEL", "beginner")
-            status_table.add_row(
-                "Platform Mode", mode.title(), f"Experience: {experience}")
+            status_table.add_row("Platform Mode", mode.title(), f"Experience: {experience}")
 
             # Tools status
             tools = config.get("TOOLS_ENABLED", {})
@@ -533,20 +523,19 @@ Perfect for students, educators, and security professionals.
             # Services status
             service_status = self.service_manager.get_service_status()
             for service, status in service_status.items():
-                status_table.add_row(
-                    f"{service.replace('_', ' ').title()}", status, "")
+                status_table.add_row(f"{service.replace('_', ' ').title()}", status, "")
 
             self.console.print(status_table)
         else:
             print("\nPlatform Status:")
             print("-" * 40)
-            print(
-                f"Mode: {config.get('PLATFORM_MODE', 'educational').title()}")
+            print(f"Mode: {config.get('PLATFORM_MODE', 'educational').title()}")
             print(
                 f"Experience Level: {
                     config.get(
                         'EXPERIENCE_LEVEL',
-                        'beginner').title()}")
+                        'beginner').title()}"
+            )
 
             tools = config.get("TOOLS_ENABLED", {})
             print("\nTools:")
@@ -569,8 +558,7 @@ Perfect for students, educators, and security professionals.
 
         # Tutorial option for beginners
         if self.config_manager.is_tutorial_mode():
-            menu_options.append(
-                ("4", "Start Interactive Tutorial", "tutorial"))
+            menu_options.append(("4", "Start Interactive Tutorial", "tutorial"))
 
         # Advanced options for experienced users
         if not self.config_manager.is_beginner_mode():
@@ -593,17 +581,21 @@ Perfect for students, educators, and security professionals.
             from rich.prompt import Prompt
 
             choice = Prompt.ask(
-                "Choose an option", choices=[
-                    opt[0] for opt in menu_options], default="2")
+                "Choose an option", choices=[opt[0] for opt in menu_options], default="2"
+            )
         else:
             print("\nMain Menu:")
             for key, description, _ in menu_options:
                 print(f"{key}. {description}")
 
             valid_choices = [opt[0] for opt in menu_options]
-            choice = input(
-                f"Choose an option ({
-                    '/'.join(valid_choices)}) [2]: ").strip() or "2"
+            choice = (
+                input(
+                    f"Choose an option ({
+                    '/'.join(valid_choices)}) [2]: "
+                ).strip()
+                or "2"
+            )
 
         # Return action for choice
         for key, _, action in menu_options:
@@ -651,9 +643,7 @@ Perfect for students, educators, and security professionals.
             webbrowser.open(url)
 
             if self.config_manager.is_beginner_mode():
-                self.log(
-                    "💡 Tip: The dashboard shows real-time security monitoring!",
-                    "info")
+                self.log("💡 Tip: The dashboard shows real-time security monitoring!", "info")
 
         except Exception as e:
             self.log(f"Failed to open dashboard: {e}", "error")
@@ -740,11 +730,9 @@ Perfect for students, educators, and security professionals.
                 if self.console:
                     from rich.prompt import Confirm
 
-                    start_tutorial = Confirm.ask(
-                        "Start the beginner tutorial?", default=True)
+                    start_tutorial = Confirm.ask("Start the beginner tutorial?", default=True)
                 else:
-                    response = input(
-                        "Start the beginner tutorial? (y/n) [y]: ").strip().lower()
+                    response = input("Start the beginner tutorial? (y/n) [y]: ").strip().lower()
                     start_tutorial = response != "n"
 
                 if start_tutorial:
@@ -779,16 +767,11 @@ Perfect for students, educators, and security professionals.
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Zeek-YARA Educational Security Platform")
-    parser.add_argument("--setup", action="store_true",
-                        help="Run setup wizard")
-    parser.add_argument("--demo", action="store_true",
-                        help="Run detection demo")
-    parser.add_argument("--tutorial", action="store_true",
-                        help="Start tutorial")
-    parser.add_argument("--web-only", action="store_true",
-                        help="Start web interface only")
+    parser = argparse.ArgumentParser(description="Zeek-YARA Educational Security Platform")
+    parser.add_argument("--setup", action="store_true", help="Run setup wizard")
+    parser.add_argument("--demo", action="store_true", help="Run detection demo")
+    parser.add_argument("--tutorial", action="store_true", help="Start tutorial")
+    parser.add_argument("--web-only", action="store_true", help="Start web interface only")
 
     args = parser.parse_args()
 

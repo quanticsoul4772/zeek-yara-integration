@@ -8,15 +8,6 @@ This module implements a RESTful API for the Zeek-YARA integration system using 
 It provides endpoints for retrieving alerts, system status, and basic control operations.
 """
 
-from api.suricata_api import get_alert_correlator, get_suricata_runner
-from utils.yara_utils import RuleManager, YaraMatcher
-from utils.file_utils import FileAnalyzer
-from suricata.suricata_integration import SuricataRunner
-from suricata.alert_correlation import AlertCorrelator
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from core.database import DatabaseManager
-from config.config import Config
-from api.suricata_api import suricata_router
 import datetime
 import json
 import logging
@@ -38,9 +29,17 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, validator
 
+from api.suricata_api import get_alert_correlator, get_suricata_runner, suricata_router
+from config.config import Config
+from core.database import DatabaseManager
+from core.scanner import MultiThreadScanner, SingleThreadScanner
+from suricata.alert_correlation import AlertCorrelator
+from suricata.suricata_integration import SuricataRunner
+from utils.file_utils import FileAnalyzer
+from utils.yara_utils import RuleManager, YaraMatcher
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 # Import application components
@@ -51,8 +50,7 @@ sys.path.insert(0, os.path.abspath(
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(os.path.join(
-        "logs", "api.log")), logging.StreamHandler()],
+    handlers=[logging.FileHandler(os.path.join("logs", "api.log")), logging.StreamHandler()],
 )
 
 logger = logging.getLogger("zeek_yara.api")
@@ -79,8 +77,7 @@ app.add_middleware(
 # Initialize application components
 db_manager = DatabaseManager(db_file=config.get("DB_FILE"))
 file_analyzer = FileAnalyzer(max_file_size=config.get("MAX_FILE_SIZE"))
-rule_manager = RuleManager(rules_dir=config.get(
-    "RULES_DIR"), rules_index=config.get("RULES_INDEX"))
+rule_manager = RuleManager(rules_dir=config.get("RULES_DIR"), rules_index=config.get("RULES_INDEX"))
 
 # Initialize Suricata components
 suricata_runner = SuricataRunner(config)
@@ -144,8 +141,7 @@ class SystemStatusModel(BaseModel):
 class ScanRequestModel(BaseModel):
     """Scan request model"""
 
-    file_path: str = Field(...,
-                           description="Path to file or directory to scan")
+    file_path: str = Field(..., description="Path to file or directory to scan")
     recursive: bool = Field(False, description="Recursively scan directories")
 
 
@@ -164,11 +160,10 @@ class WebhookConfigModel(BaseModel):
     """Webhook configuration model"""
 
     url: str = Field(..., description="Webhook URL to send alerts to")
-    secret: Optional[str] = Field(
-        None, description="Secret for webhook authentication")
+    secret: Optional[str] = Field(None, description="Secret for webhook authentication")
     events: List[str] = Field(
-        ["alert"],
-        description="Events to trigger webhook (alert, scan, startup, shutdown)")
+        ["alert"], description="Events to trigger webhook (alert, scan, startup, shutdown)"
+    )
     enabled: bool = Field(True, description="Whether webhook is enabled")
 
 
@@ -217,8 +212,9 @@ async def get_status(_: bool = Depends(verify_api_key)):
 
     if scanner:
         scanner_running = getattr(scanner, "running", False)
-        scanner_type = ("Multi-threaded" if isinstance(scanner,
-                                                       MultiThreadScanner) else "Single-threaded")
+        scanner_type = (
+            "Multi-threaded" if isinstance(scanner, MultiThreadScanner) else "Single-threaded"
+        )
 
     # Count extracted files
     extract_dir = config.get("EXTRACT_DIR")
@@ -226,16 +222,13 @@ async def get_status(_: bool = Depends(verify_api_key)):
 
     if os.path.exists(extract_dir) and os.path.isdir(extract_dir):
         extracted_files_count = len(
-            [f for f in os.listdir(extract_dir) if os.path.isfile(
-                os.path.join(extract_dir, f))]
+            [f for f in os.listdir(extract_dir) if os.path.isfile(os.path.join(extract_dir, f))]
         )
 
     # Get alert counts
     all_alerts = db_manager.get_alerts(limit=1000000)
-    recent_cutoff = (datetime.datetime.now() -
-                     datetime.timedelta(days=1)).isoformat()
-    recent_alerts = [a for a in all_alerts if a.get(
-        "timestamp", "") >= recent_cutoff]
+    recent_cutoff = (datetime.datetime.now() - datetime.timedelta(days=1)).isoformat()
+    recent_alerts = [a for a in all_alerts if a.get("timestamp", "") >= recent_cutoff]
 
     # Get rule count
     rules_count = len(rule_manager.get_rule_list())
@@ -276,15 +269,12 @@ async def get_status(_: bool = Depends(verify_api_key)):
 async def get_alerts(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
-    severity: Optional[int] = Query(
-        None, ge=0, le=10, description="Filter by severity"),
+    severity: Optional[int] = Query(None, ge=0, le=10, description="Filter by severity"),
     rule_name: Optional[str] = Query(None, description="Filter by rule name"),
     file_type: Optional[str] = Query(None, description="Filter by file type"),
     zeek_uid: Optional[str] = Query(None, description="Filter by Zeek UID"),
-    start_date: Optional[str] = Query(
-        None, description="Filter by start date (ISO format)"),
-    end_date: Optional[str] = Query(
-        None, description="Filter by end date (ISO format)"),
+    start_date: Optional[str] = Query(None, description="Filter by start date (ISO format)"),
+    end_date: Optional[str] = Query(None, description="Filter by end date (ISO format)"),
     _: bool = Depends(verify_api_key),
 ):
     """
@@ -302,33 +292,29 @@ async def get_alerts(
         filtered_alerts = all_alerts
 
         if severity is not None:
-            filtered_alerts = [
-                a for a in filtered_alerts if a.get("severity") == severity]
+            filtered_alerts = [a for a in filtered_alerts if a.get("severity") == severity]
 
         if rule_name:
             filtered_alerts = [
-                a for a in filtered_alerts if rule_name.lower() in a.get(
-                    "rule_name", "").lower()]
+                a for a in filtered_alerts if rule_name.lower() in a.get("rule_name", "").lower()
+            ]
 
         if file_type:
             filtered_alerts = [
-                a for a in filtered_alerts if file_type.lower() in a.get(
-                    "file_type", "").lower()]
+                a for a in filtered_alerts if file_type.lower() in a.get("file_type", "").lower()
+            ]
 
         if zeek_uid:
-            filtered_alerts = [
-                a for a in filtered_alerts if zeek_uid == a.get("zeek_uid")]
+            filtered_alerts = [a for a in filtered_alerts if zeek_uid == a.get("zeek_uid")]
 
         if start_date:
-            filtered_alerts = [a for a in filtered_alerts if a.get(
-                "timestamp", "") >= start_date]
+            filtered_alerts = [a for a in filtered_alerts if a.get("timestamp", "") >= start_date]
 
         if end_date:
-            filtered_alerts = [a for a in filtered_alerts if a.get(
-                "timestamp", "") <= end_date]
+            filtered_alerts = [a for a in filtered_alerts if a.get("timestamp", "") <= end_date]
 
         # Apply pagination
-        paginated_alerts = filtered_alerts[offset: offset + limit]
+        paginated_alerts = filtered_alerts[offset : offset + limit]
 
         # Convert to API models
         alerts = []
@@ -379,14 +365,13 @@ async def get_alerts(
 
     except Exception as e:
         logger.error(f"Error retrieving alerts: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Error retrieving alerts: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving alerts: {str(e)}")
 
 
 @app.get("/alerts/{alert_id}", response_model=AlertModel, tags=["Alerts"])
-async def get_alert(alert_id: int = PathParam(...,
-                                              description="Alert ID"),
-                    _: bool = Depends(verify_api_key)):
+async def get_alert(
+    alert_id: int = PathParam(..., description="Alert ID"), _: bool = Depends(verify_api_key)
+):
     """
     Get a specific alert by ID
     """
@@ -398,8 +383,7 @@ async def get_alert(alert_id: int = PathParam(...,
         alert = next((a for a in all_alerts if a.get("id") == alert_id), None)
 
         if not alert:
-            raise HTTPException(
-                status_code=404, detail=f"Alert with ID {alert_id} not found")
+            raise HTTPException(status_code=404, detail=f"Alert with ID {alert_id} not found")
 
         # Parse JSON fields
         rule_meta = alert.get("rule_meta", {})
@@ -437,16 +421,12 @@ async def get_alert(alert_id: int = PathParam(...,
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            f"Error retrieving alert {alert_id}: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Error retrieving alert: {str(e)}")
+        logger.error(f"Error retrieving alert {alert_id}: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error retrieving alert: {str(e)}")
 
 
 @app.post("/scan", response_model=ScanResultModel, tags=["Scanning"])
-async def scan_file(
-        scan_request: ScanRequestModel,
-        _: bool = Depends(verify_api_key)):
+async def scan_file(scan_request: ScanRequestModel, _: bool = Depends(verify_api_key)):
     """
     Scan a file or directory on demand
     """
@@ -454,9 +434,7 @@ async def scan_file(
         # Validate file path
         file_path = scan_request.file_path
         if not os.path.exists(file_path):
-            raise HTTPException(
-                status_code=404,
-                detail=f"File or directory not found: {file_path}")
+            raise HTTPException(status_code=404, detail=f"File or directory not found: {file_path}")
 
         # Initialize scanner if not already done
         global scanner
@@ -660,15 +638,14 @@ async def scan_file(
             f"Error scanning {
                 scan_request.file_path}: {
                 str(e)}",
-            exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Error scanning file: {str(e)}")
+            exc_info=True,
+        )
+        raise HTTPException(status_code=500, detail=f"Error scanning file: {str(e)}")
 
 
 @app.post("/scanner/start", tags=["Scanner Control"])
 async def start_scanner(
-    threads: int = Query(
-        0, ge=0, description="Number of threads (0 for single-threaded)"),
+    threads: int = Query(0, ge=0, description="Number of threads (0 for single-threaded)"),
     background_tasks: BackgroundTasks = None,
     _: bool = Depends(verify_api_key),
 ):
@@ -718,8 +695,7 @@ async def start_scanner(
 
     except Exception as e:
         logger.error(f"Error starting scanner: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Error starting scanner: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error starting scanner: {str(e)}")
 
 
 @app.post("/scanner/stop", tags=["Scanner Control"])
@@ -737,14 +713,11 @@ async def stop_scanner(_: bool = Depends(verify_api_key)):
         # Stop scanner
         success = scanner.stop_monitoring()
 
-        return {
-            "success": success,
-            "status": "stopped" if success else "error"}
+        return {"success": success, "status": "stopped" if success else "error"}
 
     except Exception as e:
         logger.error(f"Error stopping scanner: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Error stopping scanner: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error stopping scanner: {str(e)}")
 
 
 @app.post("/rules/update", tags=["Rules Management"])
@@ -770,8 +743,7 @@ async def update_rules(_: bool = Depends(verify_api_key)):
 
     except Exception as e:
         logger.error(f"Error updating rules: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Error updating rules: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating rules: {str(e)}")
 
 
 @app.get("/rules", tags=["Rules Management"])
@@ -798,14 +770,11 @@ async def get_rules(_: bool = Depends(verify_api_key)):
 
     except Exception as e:
         logger.error(f"Error retrieving rules: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Error retrieving rules: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving rules: {str(e)}")
 
 
 @app.post("/webhook/config", tags=["Webhooks"])
-async def configure_webhook(
-        webhook_config: WebhookConfigModel,
-        _: bool = Depends(verify_api_key)):
+async def configure_webhook(webhook_config: WebhookConfigModel, _: bool = Depends(verify_api_key)):
     """
     Configure webhook for alert notifications
     """
@@ -820,8 +789,7 @@ async def configure_webhook(
 
     except Exception as e:
         logger.error(f"Error configuring webhook: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Error configuring webhook: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error configuring webhook: {str(e)}")
 
 
 @app.get("/webhook/config", tags=["Webhooks"])
@@ -841,12 +809,12 @@ async def get_webhook_config(_: bool = Depends(verify_api_key)):
         return {"configured": True, "webhook": webhook_config}
 
     except Exception as e:
-        logger.error(
-            f"Error retrieving webhook config: {str(e)}", exc_info=True)
+        logger.error(f"Error retrieving webhook config: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Error retrieving webhook config: {
-                str(e)}")
+                str(e)}",
+        )
 
 
 # Main entry point for running the API server

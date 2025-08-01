@@ -41,8 +41,7 @@ class SystemDetector:
 
         if not logger.handlers:
             handler = logging.StreamHandler()
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+            formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
             handler.setFormatter(formatter)
             logger.addHandler(handler)
 
@@ -126,19 +125,14 @@ class SystemDetector:
         """Get platform-specific data directories."""
         if self.platform == "windows":
             return [
-                Path(os.environ.get("LOCALAPPDATA", "")) /
-                "ZeekYARAEducational",
+                Path(os.environ.get("LOCALAPPDATA", "")) / "ZeekYARAEducational",
                 self.project_root / "DATA",
             ]
         elif self.platform == "darwin":
             return [
-                Path.home() /
-                "Library" /
-                "Application Support" /
-                "ZeekYARAEducational",
+                Path.home() / "Library" / "Application Support" / "ZeekYARAEducational",
                 Path("/usr/local/var"),
-                self.project_root /
-                "DATA",
+                self.project_root / "DATA",
             ]
         else:  # Linux
             return [
@@ -151,8 +145,7 @@ class SystemDetector:
         """Get platform-specific cache directories."""
         if self.platform == "windows":
             return [
-                Path(os.environ.get("LOCALAPPDATA", "")) /
-                "ZeekYARAEducational" / "Cache",
+                Path(os.environ.get("LOCALAPPDATA", "")) / "ZeekYARAEducational" / "Cache",
                 self.project_root / "cache",
             ]
         elif self.platform == "darwin":
@@ -171,8 +164,7 @@ class SystemDetector:
         """Get platform-specific log directories."""
         if self.platform == "windows":
             return [
-                Path(os.environ.get("LOCALAPPDATA", "")) /
-                "ZeekYARAEducational" / "Logs",
+                Path(os.environ.get("LOCALAPPDATA", "")) / "ZeekYARAEducational" / "Logs",
                 self.project_root / "logs",
             ]
         elif self.platform == "darwin":
@@ -183,14 +175,9 @@ class SystemDetector:
             ]
         else:  # Linux
             return [
-                Path.home() /
-                ".local" /
-                "share" /
-                "zeek-yara-educational" /
-                "logs",
+                Path.home() / ".local" / "share" / "zeek-yara-educational" / "logs",
                 Path("/var/log/zeek-yara-educational"),
-                self.project_root /
-                "logs",
+                self.project_root / "logs",
             ]
 
     def _detect_security_tools(self) -> Dict[str, Any]:
@@ -241,12 +228,10 @@ class SystemDetector:
             zeek_info.update(self._detect_zeek_paths(zeek_path))
 
             # Detect capabilities
-            zeek_info["capabilities"] = self._detect_zeek_capabilities(
-                zeek_path)
+            zeek_info["capabilities"] = self._detect_zeek_capabilities(zeek_path)
 
             # Detect installation method
-            zeek_info["installation_method"] = self._detect_zeek_installation_method(
-                zeek_path)
+            zeek_info["installation_method"] = self._detect_zeek_installation_method(zeek_path)
 
         return zeek_info
 
@@ -262,8 +247,7 @@ class SystemDetector:
             if result.returncode == 0:
                 for line in result.stdout.split("\n"):
                     if "ZEEKPATH" in line or "BROPATH" in line:
-                        script_paths = line.split(
-                            "=")[1].strip() if "=" in line else None
+                        script_paths = line.split("=")[1].strip() if "=" in line else None
                         if script_paths:
                             paths["scripts_path"] = script_paths.split(":")[0]
         except (subprocess.TimeoutExpired, subprocess.SubprocessError):
@@ -281,8 +265,7 @@ class SystemDetector:
         for base_path in common_paths:
             if Path(base_path).exists():
                 if Path(base_path + "/share/zeek").exists():
-                    paths["scripts_path"] = str(
-                        Path(base_path + "/share/zeek"))
+                    paths["scripts_path"] = str(Path(base_path + "/share/zeek"))
                 elif Path(base_path + "/share/bro").exists():
                     paths["scripts_path"] = str(Path(base_path + "/share/bro"))
 
@@ -310,8 +293,7 @@ class SystemDetector:
 
         return capabilities
 
-    def _detect_zeek_installation_method(
-            self, zeek_path: str) -> Optional[str]:
+    def _detect_zeek_installation_method(self, zeek_path: str) -> Optional[str]:
         """Detect how Zeek was installed."""
         zeek_path_obj = Path(zeek_path)
 
@@ -357,8 +339,7 @@ class SystemDetector:
         if YARA_AVAILABLE:
             try:
                 yara_info["version"] = (
-                    yara.__version__ if hasattr(
-                        yara, "__version__") else "unknown"
+                    yara.__version__ if hasattr(yara, "__version__") else "unknown"
                 )
                 yara_info["compilation_support"] = True
             except BaseException:
@@ -380,14 +361,17 @@ class SystemDetector:
         ]
 
         if self.platform == "windows":
-            common_paths.extend(["C:\\Program Files\\YARA\\rules", str(
-                Path(os.environ.get("APPDATA", "")) / "YARA" / "rules"), ])
+            common_paths.extend(
+                [
+                    "C:\\Program Files\\YARA\\rules",
+                    str(Path(os.environ.get("APPDATA", "")) / "YARA" / "rules"),
+                ]
+            )
         elif self.platform == "darwin":
             common_paths.extend(
                 [
                     "/usr/local/Cellar/yara/*/share/yara",
-                    str(Path.home() / "Library" /
-                        "Application Support" / "YARA"),
+                    str(Path.home() / "Library" / "Application Support" / "YARA"),
                 ]
             )
 
@@ -433,8 +417,7 @@ class SystemDetector:
                     # Extract version
                     for line in build_info.split("\n"):
                         if "This is Suricata version" in line:
-                            suricata_info["version"] = line.split("version")[
-                                1].strip()
+                            suricata_info["version"] = line.split("version")[1].strip()
                             break
 
                     # Check for features
@@ -522,8 +505,7 @@ class SystemDetector:
                     "path": getattr(module, "__file__", "unknown"),
                 }
             except ImportError:
-                modules[module_name] = {
-                    "available": False, "version": None, "path": None}
+                modules[module_name] = {"available": False, "version": None, "path": None}
 
         return modules
 
@@ -547,8 +529,7 @@ class SystemDetector:
 
         for tool in system_tools:
             tool_path = shutil.which(tool)
-            tools[tool] = {
-                "available": tool_path is not None, "path": tool_path}
+            tools[tool] = {"available": tool_path is not None, "path": tool_path}
 
         return tools
 
@@ -567,8 +548,7 @@ class SystemDetector:
 
             for interface in interfaces:
                 # Skip loopback and virtual interfaces for monitoring
-                if interface.startswith(
-                        ("lo", "docker", "veth", "br-", "virbr")):
+                if interface.startswith(("lo", "docker", "veth", "br-", "virbr")):
                     continue
 
                 iface_info = {
@@ -614,13 +594,7 @@ class SystemDetector:
         """Guess the interface type based on naming conventions."""
         interface_lower = interface.lower()
 
-        if any(
-            prefix in interface_lower for prefix in [
-                "wlan",
-                "wifi",
-                "wl",
-                "ath",
-                "iwl"]):
+        if any(prefix in interface_lower for prefix in ["wlan", "wifi", "wl", "ath", "iwl"]):
             return "wireless"
         elif any(prefix in interface_lower for prefix in ["eth", "en", "em", "enp", "ens"]):
             return "ethernet"
@@ -691,8 +665,7 @@ class SystemDetector:
         resources["recommended_threads"] = min(max(cpu_count, 2), 8)
 
         # Recommended memory limit: 25% of available memory, min 512MB, max 4GB
-        memory_limit = max(
-            0.25 * resources["memory_available"], 512 * 1024 * 1024)
+        memory_limit = max(0.25 * resources["memory_available"], 512 * 1024 * 1024)
         resources["recommended_memory_limit"] = min(memory_limit, 4 * 1024**3)
 
         return resources
@@ -700,9 +673,7 @@ class SystemDetector:
     def _check_permissions(self) -> Dict[str, Any]:
         """Check various system permissions."""
         permissions = {
-            "root_access": os.geteuid() == 0 if hasattr(
-                os,
-                "geteuid") else False,
+            "root_access": os.geteuid() == 0 if hasattr(os, "geteuid") else False,
             "network_monitoring": False,
             "file_creation": {},
             "directory_access": {},
@@ -720,20 +691,17 @@ class SystemDetector:
             str(self.project_root),
             str(self.project_root / "logs"),
             str(self.project_root / "DATA"),
-            "/tmp" if self.platform != "windows" else os.environ.get(
-                "TEMP", "C:\\temp"),
+            "/tmp" if self.platform != "windows" else os.environ.get("TEMP", "C:\\temp"),
         ]
 
         for test_dir in test_dirs:
-            permissions["file_creation"][test_dir] = self._is_directory_writable(
-                test_dir)
+            permissions["file_creation"][test_dir] = self._is_directory_writable(test_dir)
 
         return permissions
 
     def _detect_virtualization(self) -> Dict[str, Any]:
         """Detect if running in virtualized environment."""
-        virtualization = {"detected": False, "type": None,
-                          "hypervisor": None, "container": False}
+        virtualization = {"detected": False, "type": None, "hypervisor": None, "container": False}
 
         try:
             # Check for common virtualization indicators
@@ -842,30 +810,13 @@ class SystemDetector:
         # Derived paths
         config.update(
             {
-                "EXTRACT_DIR": str(
-                    Path(
-                        config["DATA_DIR"]) /
-                    "runtime" /
-                    "extracted-files"),
-                "RULES_DIR": str(
-                    self.project_root /
-                    "rules"),
-                "DB_FILE": str(
-                    Path(
-                        config["DATA_DIR"]) /
-                    "persistent" /
-                    "databases" /
-                    "alerts.db"),
-                "LOG_FILE": str(
-                    Path(
-                        config["LOG_DIR"]) /
-                    "yara_scan.log"),
-                "PID_FILE": str(
-                    Path(
-                        config["DATA_DIR"]) /
-                    "runtime" /
-                    "app.pid"),
-            })
+                "EXTRACT_DIR": str(Path(config["DATA_DIR"]) / "runtime" / "extracted-files"),
+                "RULES_DIR": str(self.project_root / "rules"),
+                "DB_FILE": str(Path(config["DATA_DIR"]) / "persistent" / "databases" / "alerts.db"),
+                "LOG_FILE": str(Path(config["LOG_DIR"]) / "yara_scan.log"),
+                "PID_FILE": str(Path(config["DATA_DIR"]) / "runtime" / "app.pid"),
+            }
+        )
 
         return config
 
@@ -902,11 +853,9 @@ class SystemDetector:
             config["SURICATA_ENABLED"] = True
             config["SURICATA_BINARY"] = suricata.get("binary_path")
             config["SURICATA_CONFIG"] = suricata.get("config_path")
-            config["SURICATA_RULES_DIR"] = suricata.get(
-                "rules_paths", [None])[0]
+            config["SURICATA_RULES_DIR"] = suricata.get("rules_paths", [None])[0]
             config["SURICATA_LOG_DIR"] = suricata.get("log_path")
-            config["SURICATA_EVE_JSON"] = suricata.get(
-                "eve_json_support", False)
+            config["SURICATA_EVE_JSON"] = suricata.get("eve_json_support", False)
             config["TOOLS_AVAILABLE"]["suricata"] = True
         else:
             config["SURICATA_ENABLED"] = False
@@ -934,8 +883,7 @@ class SystemDetector:
 
         # API configuration
         config.update(
-            {"API_HOST": "127.0.0.1", "API_PORT": 8000,
-                "API_ENABLED": True, "WEB_INTERFACE": True}
+            {"API_HOST": "127.0.0.1", "API_PORT": 8000, "API_ENABLED": True, "WEB_INTERFACE": True}
         )
 
         return config
@@ -975,12 +923,8 @@ class SystemDetector:
         permissions = self.environment_info["permissions"]
 
         config = {
-            "REQUIRE_ROOT": permissions.get(
-                "network_monitoring",
-                False),
-            "ENABLE_NETWORK_MONITORING": permissions.get(
-                "network_monitoring",
-                False),
+            "REQUIRE_ROOT": permissions.get("network_monitoring", False),
+            "ENABLE_NETWORK_MONITORING": permissions.get("network_monitoring", False),
             "SECURE_MODE": True,
             "LOG_LEVEL": "INFO",
             "AUDIT_LOGGING": True,
@@ -1028,11 +972,9 @@ class SystemDetector:
         config_with_metadata = {
             "# Auto-Generated Configuration": "Created by intelligent system detection",
             "detection_metadata": {
-                "detection_date": str(
-                    Path(__file__).stat().st_mtime),
+                "detection_date": str(Path(__file__).stat().st_mtime),
                 "platform": self.environment_info["platform"]["system"],
-                "tools_detected": list(
-                    self.environment_info["tools"].keys()),
+                "tools_detected": list(self.environment_info["tools"].keys()),
                 "auto_configuration_version": "1.0.0",
             },
             **self.detected_config,
@@ -1045,14 +987,12 @@ class SystemDetector:
         self.logger.info(f"Configuration saved to: {output_path}")
         return output_path
 
-    def validate_configuration(
-            self, config: Optional[Dict] = None) -> Dict[str, Any]:
+    def validate_configuration(self, config: Optional[Dict] = None) -> Dict[str, Any]:
         """Validate the generated configuration."""
         if config is None:
             config = self.detected_config
 
-        validation_results = {"valid": True, "errors": [],
-                              "warnings": [], "recommendations": []}
+        validation_results = {"valid": True, "errors": [], "warnings": [], "recommendations": []}
 
         # Check required paths exist and are writable
         path_checks = [
@@ -1065,29 +1005,22 @@ class SystemDetector:
             if path_key in config:
                 path = Path(config[path_key])
                 if not self._is_directory_writable(str(path)):
-                    validation_results["errors"].append(
-                        f"{description} not writable: {path}")
+                    validation_results["errors"].append(f"{description} not writable: {path}")
                     validation_results["valid"] = False
 
         # Check tool availability vs configuration
         tools = self.environment_info.get("tools", {})
 
-        if config.get("ZEEK_ENABLED") and not tools.get(
-                "zeek", {}).get("available"):
-            validation_results["warnings"].append(
-                "Zeek is enabled but not detected on system")
+        if config.get("ZEEK_ENABLED") and not tools.get("zeek", {}).get("available"):
+            validation_results["warnings"].append("Zeek is enabled but not detected on system")
 
         if config.get("YARA_ENABLED") and not (
-            tools.get("yara", {}).get("available") or tools.get(
-                "yara", {}).get("python_module")
+            tools.get("yara", {}).get("available") or tools.get("yara", {}).get("python_module")
         ):
-            validation_results["warnings"].append(
-                "YARA is enabled but not detected on system")
+            validation_results["warnings"].append("YARA is enabled but not detected on system")
 
-        if config.get("SURICATA_ENABLED") and not tools.get(
-                "suricata", {}).get("available"):
-            validation_results["warnings"].append(
-                "Suricata is enabled but not detected on system")
+        if config.get("SURICATA_ENABLED") and not tools.get("suricata", {}).get("available"):
+            validation_results["warnings"].append("Suricata is enabled but not detected on system")
 
         # Performance recommendations
         resources = self.environment_info.get("resources", {})
@@ -1115,7 +1048,8 @@ def main():
     print(
         f"Platform: {
             env_info['platform']['system']} {
-            env_info['platform']['release']}")
+            env_info['platform']['release']}"
+    )
     print(f"Python: {env_info['platform']['python_version']}")
     print(f"Architecture: {env_info['platform']['architecture'][0]}")
 

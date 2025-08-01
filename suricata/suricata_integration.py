@@ -48,16 +48,15 @@ class SuricataConfig:
         if not os.path.exists(self.config_file):
             self.logger.info(
                 f"Creating default Suricata configuration at {
-                    self.config_file}")
+                    self.config_file}"
+            )
             try:
                 default_config = self._create_default_config()
                 with open(self.config_file, "w") as f:
                     f.write(default_config)
-                self.logger.info(
-                    "Default Suricata configuration created successfully")
+                self.logger.info("Default Suricata configuration created successfully")
             except Exception as e:
-                self.logger.error(
-                    f"Error creating default Suricata configuration: {e}")
+                self.logger.error(f"Error creating default Suricata configuration: {e}")
 
     def _create_default_config(self) -> str:
         """
@@ -144,36 +143,33 @@ detect:
                 et_url = "https://rules.emergingthreats.net/open/suricata-5.0/emerging.rules.tar.gz"
 
                 # Download rules to temporary file
-                temp_file = os.path.join(
-                    self.rules_dir, "emerging.rules.tar.gz")
-                
+                temp_file = os.path.join(self.rules_dir, "emerging.rules.tar.gz")
+
                 try:
                     # Ensure directory exists
                     os.makedirs(os.path.dirname(temp_file), exist_ok=True)
-                    
+
                     # Download with curl
                     result = subprocess.run(
-                        ["curl", "-L", "-o", temp_file, et_url], 
-                        check=True, 
-                        capture_output=True, 
-                        text=True
+                        ["curl", "-L", "-o", temp_file, et_url],
+                        check=True,
+                        capture_output=True,
+                        text=True,
                     )
-                    
+
                     # Verify download succeeded and file exists
                     if not os.path.exists(temp_file) or os.path.getsize(temp_file) == 0:
                         raise FileNotFoundError(f"Download failed: {temp_file} not found or empty")
-                    
+
                     # Extract rules
-                    subprocess.run(["tar", "-xzf", temp_file, "-C",
-                                   self.rules_dir], check=True)
+                    subprocess.run(["tar", "-xzf", temp_file, "-C", self.rules_dir], check=True)
 
                     # Remove temporary file
                     if os.path.exists(temp_file):
                         os.unlink(temp_file)
 
-                    self.logger.info(
-                        "Emerging Threats rules downloaded and extracted successfully")
-                        
+                    self.logger.info("Emerging Threats rules downloaded and extracted successfully")
+
                 except subprocess.CalledProcessError as e:
                     self.logger.error(f"Error downloading/extracting rules: {e}")
                     # Clean up temp file if exists
@@ -203,8 +199,7 @@ class SuricataRunner:
         """
         self.config = config
         self.suricata_bin = config.get("SURICATA_BIN", "suricata")
-        self.suricata_config = config.get(
-            "SURICATA_CONFIG", "config/suricata.yaml")
+        self.suricata_config = config.get("SURICATA_CONFIG", "config/suricata.yaml")
         self.output_dir = config.get("SURICATA_LOG_DIR", "logs/suricata")
         self.rules_dir = config.get("SURICATA_RULES_DIR", "rules/suricata")
         self.db_file = config.get("DB_FILE", "logs/alerts.db")
@@ -212,9 +207,8 @@ class SuricataRunner:
 
         # Create suricata configuration object
         self.suricata_config_obj = SuricataConfig(
-            config_file=self.suricata_config,
-            rules_dir=self.rules_dir,
-            log_dir=self.output_dir)
+            config_file=self.suricata_config, rules_dir=self.rules_dir, log_dir=self.output_dir
+        )
 
         # Initialize database for Suricata alerts
         self._init_database()
@@ -267,8 +261,7 @@ class SuricataRunner:
             self.logger.info("Suricata alerts database initialized")
 
         except Exception as e:
-            self.logger.error(
-                f"Error initializing Suricata alerts database: {e}")
+            self.logger.error(f"Error initializing Suricata alerts database: {e}")
 
     def run_live(self, interface: str, duration: int = 0) -> bool:
         """
@@ -302,8 +295,7 @@ class SuricataRunner:
                 time.sleep(duration)
                 process.terminate()
                 process.wait(timeout=10)
-                self.logger.info(
-                    f"Suricata monitoring completed after {duration} seconds")
+                self.logger.info(f"Suricata monitoring completed after {duration} seconds")
 
                 # Process the results
                 self._process_alerts()
@@ -331,30 +323,25 @@ class SuricataRunner:
         try:
             # Create output directory for this specific analysis
             pcap_name = os.path.basename(pcap_file)
-            output_dir = os.path.join(
-                self.output_dir, f"pcap_{pcap_name}_{int(time.time())}")
+            output_dir = os.path.join(self.output_dir, f"pcap_{pcap_name}_{int(time.time())}")
             os.makedirs(output_dir, exist_ok=True)
 
             # Build command
-            cmd = [self.suricata_bin, "-c", self.suricata_config,
-                   "-r", pcap_file, "-l", output_dir]
+            cmd = [self.suricata_bin, "-c", self.suricata_config, "-r", pcap_file, "-l", output_dir]
 
             # Run Suricata
             self.logger.info(f"Analyzing PCAP file: {pcap_file}")
-            process = subprocess.run(
-                cmd, check=True, capture_output=True, text=True)
+            process = subprocess.run(cmd, check=True, capture_output=True, text=True)
 
             # Check output
             if process.returncode == 0:
-                self.logger.info(
-                    f"PCAP analysis completed successfully: {pcap_file}")
+                self.logger.info(f"PCAP analysis completed successfully: {pcap_file}")
 
                 # Process alerts
                 self._process_alerts(output_dir)
                 return True
             else:
-                self.logger.error(
-                    f"Suricata exited with error code {process.returncode}")
+                self.logger.error(f"Suricata exited with error code {process.returncode}")
                 self.logger.error(f"Stderr: {process.stderr}")
                 return False
 
@@ -403,8 +390,7 @@ class SuricataRunner:
                         dest_ip = event.get("dest_ip", "")
                         dest_port = event.get("dest_port", 0)
                         proto = event.get("proto", "")
-                        timestamp = event.get(
-                            "timestamp", datetime.now().isoformat())
+                        timestamp = event.get("timestamp", datetime.now().isoformat())
 
                         # Handle signature and metadata
                         signature = alert.get("signature", "")
@@ -448,8 +434,7 @@ class SuricataRunner:
                         )
 
                     except json.JSONDecodeError:
-                        self.logger.warning(
-                            f"Invalid JSON in eve.json: {line}")
+                        self.logger.warning(f"Invalid JSON in eve.json: {line}")
                         continue
                     except Exception as e:
                         self.logger.error(f"Error processing alert: {e}")
@@ -459,18 +444,14 @@ class SuricataRunner:
             conn.commit()
             conn.close()
 
-            self.logger.info(
-                "Suricata alerts processed and stored in database")
+            self.logger.info("Suricata alerts processed and stored in database")
 
         except Exception as e:
             self.logger.error(f"Error processing Suricata alerts: {e}")
 
-    def get_alerts(self,
-                   filters: Optional[Dict[str,
-                                          Any]] = None,
-                   limit: Optional[int] = None,
-                   offset: int = 0) -> List[Dict[str,
-                                                 Any]]:
+    def get_alerts(
+        self, filters: Optional[Dict[str, Any]] = None, limit: Optional[int] = None, offset: int = 0
+    ) -> List[Dict[str, Any]]:
         """
         Retrieve Suricata alerts from database.
 
@@ -609,8 +590,7 @@ class SuricataRunner:
 
             # Get Suricata version
             try:
-                version_output = subprocess.check_output(
-                    [self.suricata_bin, "-V"], text=True)
+                version_output = subprocess.check_output([self.suricata_bin, "-V"], text=True)
                 status["version"] = version_output.strip()
             except BaseException:
                 pass

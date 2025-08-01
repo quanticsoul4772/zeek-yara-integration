@@ -82,8 +82,7 @@ def test_rule_manager_compilation_with_index(temp_rule_dir):
     # Create an index file
     index_path = os.path.join(temp_rule_dir, "index.yar")
     with open(index_path, "w") as f:
-        f.write("\n".join(
-            ['include "test_rule1.yar"', 'include "test_rule2.yar"']))
+        f.write("\n".join(['include "test_rule1.yar"', 'include "test_rule2.yar"']))
 
     rule_manager = RuleManager(temp_rule_dir, rules_index=index_path)
     result = rule_manager.compile_rules()
@@ -237,8 +236,7 @@ rule WhitelistRule {
             f.write(whitelist_content)
 
         # Compile whitelist rules
-        whitelist_rules = yara.compile(
-            os.path.join(whitelist_dir, "whitelist.yar"))
+        whitelist_rules = yara.compile(os.path.join(whitelist_dir, "whitelist.yar"))
 
         rule_manager = RuleManager(temp_rule_dir)
         rule_manager.compile_rules()
@@ -255,10 +253,8 @@ rule WhitelistRule {
 
         try:
             # Test whitelisting
-            assert matcher.is_file_whitelisted(
-                whitelisted_path, whitelist_rules) is True
-            assert matcher.is_file_whitelisted(
-                non_whitelisted_path, whitelist_rules) is False
+            assert matcher.is_file_whitelisted(whitelisted_path, whitelist_rules) is True
+            assert matcher.is_file_whitelisted(non_whitelisted_path, whitelist_rules) is False
 
             # Test with no whitelist rules
             assert matcher.is_file_whitelisted(whitelisted_path, None) is False
@@ -285,8 +281,7 @@ def test_yara_matcher_scan_with_callback(temp_rule_dir):
         return yara.CALLBACK_ABORT
 
     try:
-        result = matcher.scan_file(
-            test_file_path, callback=stop_after_first_match)
+        result = matcher.scan_file(test_file_path, callback=stop_after_first_match)
 
         assert result["matched"] is True
         assert len(result["matches"]) > 0
@@ -345,10 +340,7 @@ def test_rule_manager_modification_time_check(temp_rule_dir):
     for root, _, files in os.walk(temp_rule_dir):
         for file in files:
             file_path = os.path.join(root, file)
-            os.utime(
-                file_path,
-                (first_compile_time + 1,
-                 first_compile_time + 1))
+            os.utime(file_path, (first_compile_time + 1, first_compile_time + 1))
 
     # Recompile without force
     second_result = rule_manager.compile_rules()

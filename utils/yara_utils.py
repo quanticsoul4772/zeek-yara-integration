@@ -88,8 +88,7 @@ class RuleManager:
 
                 if not rule_files:
                     self.logger.warning("No YARA rule files found!")
-                    self.compile_errors.append(
-                        "No YARA rule files found in directory")
+                    self.compile_errors.append("No YARA rule files found in directory")
                     self.rules = None
                     return False
 
@@ -99,7 +98,8 @@ class RuleManager:
             # Update last compile time
             self.last_compile_time = time.time()
             self.logger.info(
-                f"Rule compilation completed in {time.time() - start_time:.2f} seconds")
+                f"Rule compilation completed in {time.time() - start_time:.2f} seconds"
+            )
             return True
 
         except Exception as e:
@@ -176,11 +176,12 @@ class YaraMatcher:
 
             # Default callback to continue scanning
             if not callback:
-                def callback(data): return yara.CALLBACK_CONTINUE
+
+                def callback(data):
+                    return yara.CALLBACK_CONTINUE
 
             # Scan the file
-            matches = rules.match(
-                file_path, timeout=self.timeout, callback=callback)
+            matches = rules.match(file_path, timeout=self.timeout, callback=callback)
 
             # Update result
             result["scan_time"] = time.time() - start_time
@@ -217,8 +218,7 @@ class YaraMatcher:
                                     }
                                 )
                         except Exception as e:
-                            self.logger.warning(
-                                f"Error extracting matched strings: {str(e)}")
+                            self.logger.warning(f"Error extracting matched strings: {str(e)}")
 
                     result["matches"].append(match_info)
 

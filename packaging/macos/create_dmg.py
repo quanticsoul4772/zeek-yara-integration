@@ -4,7 +4,6 @@ macOS DMG creation for Zeek-YARA Educational Platform
 Creates DMG installer packages for macOS systems
 """
 
-from packaging.version import VERSION_INFO
 import os
 import platform
 import plistlib
@@ -13,6 +12,8 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+from packaging.version import VERSION_INFO
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()

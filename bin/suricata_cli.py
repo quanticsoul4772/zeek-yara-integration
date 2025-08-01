@@ -7,9 +7,6 @@ Author: Security Team
 This script provides a command-line interface for Suricata management.
 """
 
-from suricata.suricata_integration import SuricataRunner
-from suricata.alert_correlation import AlertCorrelator
-from config.config import Config
 import argparse
 import json
 import logging
@@ -18,9 +15,12 @@ import sys
 import time
 from pathlib import Path
 
+from config.config import Config
+from suricata.alert_correlation import AlertCorrelator
+from suricata.suricata_integration import SuricataRunner
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import application components
 
@@ -35,30 +35,22 @@ logger = logging.getLogger("suricata_cli")
 
 # Parse arguments
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Suricata CLI for Zeek-YARA Integration")
+    parser = argparse.ArgumentParser(description="Suricata CLI for Zeek-YARA Integration")
 
     # Main operation modes
     mode_group = parser.add_mutually_exclusive_group(required=True)
-    mode_group.add_argument("--interface", "-i",
-                            help="Monitor network interface")
+    mode_group.add_argument("--interface", "-i", help="Monitor network interface")
     mode_group.add_argument("--pcap", "-r", help="Analyze PCAP file")
-    mode_group.add_argument(
-        "--status", action="store_true", help="Show Suricata status")
-    mode_group.add_argument(
-        "--update-rules", action="store_true", help="Update Suricata rules")
-    mode_group.add_argument("--stop", action="store_true",
-                            help="Stop running Suricata instance")
-    mode_group.add_argument(
-        "--correlate", action="store_true", help="Correlate alerts")
+    mode_group.add_argument("--status", action="store_true", help="Show Suricata status")
+    mode_group.add_argument("--update-rules", action="store_true", help="Update Suricata rules")
+    mode_group.add_argument("--stop", action="store_true", help="Stop running Suricata instance")
+    mode_group.add_argument("--correlate", action="store_true", help="Correlate alerts")
 
     # Additional options
     parser.add_argument("--config", help="Custom configuration file")
     parser.add_argument(
-        "--duration",
-        type=int,
-        default=0,
-        help="Monitoring duration in seconds (0 = continuous)")
+        "--duration", type=int, default=0, help="Monitoring duration in seconds (0 = continuous)"
+    )
     parser.add_argument(
         "--correlation-window",
         type=int,
@@ -92,10 +84,10 @@ def main():
             if success:
                 if args.duration > 0:
                     logger.info(
-                        f"Completed monitoring on {args.interface} for {args.duration} seconds")
+                        f"Completed monitoring on {args.interface} for {args.duration} seconds"
+                    )
                 else:
-                    logger.info(
-                        f"Suricata started in background mode on {args.interface}")
+                    logger.info(f"Suricata started in background mode on {args.interface}")
                     logger.info("Press Ctrl+C to stop when finished")
 
                     try:
@@ -171,20 +163,18 @@ def main():
             if success:
                 logger.info("Suricata stopped successfully")
             else:
-                logger.error(
-                    "Failed to stop Suricata or Suricata was not running")
+                logger.error("Failed to stop Suricata or Suricata was not running")
                 return 1
 
         elif args.correlate:
             logger.info(
                 f"Correlating alerts with time window: {
-                    args.correlation_window} seconds")
-            correlated_groups = alert_correlator.correlate_alerts(
-                args.correlation_window)
+                    args.correlation_window} seconds"
+            )
+            correlated_groups = alert_correlator.correlate_alerts(args.correlation_window)
 
             if correlated_groups:
-                logger.info(
-                    f"Found {len(correlated_groups)} correlated alert groups")
+                logger.info(f"Found {len(correlated_groups)} correlated alert groups")
 
                 # Print summary of correlated alerts
                 for i, group in enumerate(correlated_groups[:5], 1):
@@ -193,7 +183,8 @@ def main():
                         f"  Correlation type: {
                             group.get(
                                 'correlation_type',
-                                'unknown')}")
+                                'unknown')}"
+                    )
                     logger.info(f"  Confidence: {group.get('confidence', 0)}%")
                     logger.info(
                         f"  Primary alert: {
@@ -206,13 +197,12 @@ def main():
                                 'primary_alert',
                                 {}).get(
                                 'rule_name',
-                                'unknown')}")
-                    logger.info(
-                        f"  Related alerts: {len(group.get('related_alerts', []))}")
+                                'unknown')}"
+                    )
+                    logger.info(f"  Related alerts: {len(group.get('related_alerts', []))}")
 
                 if len(correlated_groups) > 5:
-                    logger.info(
-                        f"And {len(correlated_groups) - 5} more groups...")
+                    logger.info(f"And {len(correlated_groups) - 5} more groups...")
             else:
                 logger.info("No correlated alert groups found")
 

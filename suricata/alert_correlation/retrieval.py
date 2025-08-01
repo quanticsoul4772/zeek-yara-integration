@@ -13,8 +13,7 @@ from .base import AlertRetriever
 class YaraAlertRetriever(AlertRetriever):
     """Retrieves YARA alerts from the database"""
 
-    def get_alerts(self, conn: sqlite3.Connection,
-                   start_time: str) -> List[Dict[str, Any]]:
+    def get_alerts(self, conn: sqlite3.Connection, start_time: str) -> List[Dict[str, Any]]:
         """
         Retrieve YARA alerts from database
 
@@ -29,7 +28,7 @@ class YaraAlertRetriever(AlertRetriever):
             # Set row factory to get results as dictionaries
             original_row_factory = conn.row_factory
             conn.row_factory = sqlite3.Row
-            
+
             c = conn.cursor()
             c.execute(
                 """
@@ -49,8 +48,7 @@ class YaraAlertRetriever(AlertRetriever):
                     if isinstance(alert.get("rule_meta"), str):
                         alert["rule_meta"] = json.loads(alert["rule_meta"])
                     if isinstance(alert.get("strings_matched"), str):
-                        alert["strings_matched"] = json.loads(
-                            alert["strings_matched"])
+                        alert["strings_matched"] = json.loads(alert["strings_matched"])
                 except BaseException:
                     # Set defaults if JSON parsing fails
                     if isinstance(alert.get("rule_meta"), str):
@@ -73,8 +71,7 @@ class YaraAlertRetriever(AlertRetriever):
 class SuricataAlertRetriever(AlertRetriever):
     """Retrieves Suricata alerts from the database"""
 
-    def get_alerts(self, conn: sqlite3.Connection,
-                   start_time: str) -> List[Dict[str, Any]]:
+    def get_alerts(self, conn: sqlite3.Connection, start_time: str) -> List[Dict[str, Any]]:
         """
         Retrieve Suricata alerts from database
 
@@ -89,7 +86,7 @@ class SuricataAlertRetriever(AlertRetriever):
             # Set row factory to get results as dictionaries
             original_row_factory = conn.row_factory
             conn.row_factory = sqlite3.Row
-            
+
             c = conn.cursor()
             c.execute(
                 """

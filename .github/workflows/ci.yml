@@ -193,16 +193,18 @@ jobs:
       env:
         PYTHONPATH: ${{ github.workspace }}/PLATFORM
 
+    - name: Validate code examples
+      run: |
+        # Validate code examples from tutorials using our validation script
+        python TOOLS/dev-tools/documentation/validate_examples.py --directory EDUCATION --verbose
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+
     - name: Check external links
       run: |
         # Find all markdown files and check external links
         find EDUCATION/ -name "*.md" -exec grep -H "http" {} \; | head -20
         echo "Link checking completed (basic validation)"
-
-    - name: Validate code examples
-      run: |
-        # Extract and validate code examples from tutorials
-        echo "Code example validation skipped - script needs implementation"
       continue-on-error: true  # Educational content validation is advisory
 
   cli-tool-tests:

@@ -7,16 +7,6 @@ Author: Russell Smith
 This script runs the testing framework for the Zeek-YARA integration.
 """
 
-from tests.frameworks.test_framework import CustomTestRunner, CustomTestSuite
-from tests.frameworks.test_cases import (
-    DatabasePerformanceTestCase,
-    FileUtilsTestCase,
-    ScannerIntegrationTestCase,
-    ScannerPerformanceTestCase,
-    YaraRulesTestCase,
-    create_test_suites,
-)
-from config.config import Config
 import argparse
 import json
 import logging
@@ -25,9 +15,19 @@ import sys
 import time
 from pathlib import Path
 
+from config.config import Config
+from tests.frameworks.test_cases import (
+    DatabasePerformanceTestCase,
+    FileUtilsTestCase,
+    ScannerIntegrationTestCase,
+    ScannerPerformanceTestCase,
+    YaraRulesTestCase,
+    create_test_suites,
+)
+from tests.frameworks.test_framework import CustomTestRunner, CustomTestSuite
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import configuration
 
@@ -44,10 +44,8 @@ def parse_args():
     parser.add_argument("--config", "-c", help="Path to config file")
 
     parser.add_argument(
-        "--output-dir",
-        "-o",
-        default="test_results",
-        help="Directory for test results")
+        "--output-dir", "-o", default="test_results", help="Directory for test results"
+    )
 
     parser.add_argument(
         "--test-type",
@@ -56,8 +54,7 @@ def parse_args():
         help="Type of tests to run",
     )
 
-    parser.add_argument("--verbose", "-v", action="store_true",
-                        help="Enable verbose output")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
 
     return parser.parse_args()
 
@@ -101,8 +98,7 @@ def main():
     # Create test suites
     for suite in create_test_suites(config):
         # Filter suites by test type if specified
-        if args.test_type != "all" and suite.name.lower(
-        ) != f"{args.test_type} tests":
+        if args.test_type != "all" and suite.name.lower() != f"{args.test_type} tests":
             continue
 
         # Add suite to runner
@@ -125,14 +121,12 @@ def main():
     logger.info(f"Passed: {results['passed']}")
     logger.info(f"Failed: {results['failed']}")
     logger.info(f"Skipped: {results['skipped']}")
-    logger.info(
-        f"Success Rate: {(results['passed'] / results['tests'] * 100):.2f}%")
+    logger.info(f"Success Rate: {(results['passed'] / results['tests'] * 100):.2f}%")
     logger.info(f"Total Duration: {duration:.2f} seconds")
     logger.info("=" * 80)
 
     # Save detailed results
-    result_file = os.path.join(
-        args.output_dir, f"{args.test_type}_test_results.json")
+    result_file = os.path.join(args.output_dir, f"{args.test_type}_test_results.json")
     with open(result_file, "w") as f:
         json.dump(results, f, indent=2)
 
