@@ -205,7 +205,6 @@ async def root():
 @app.get("/status", response_model=SystemStatusModel, tags=["System"])
 async def get_status(_: bool = Depends(verify_api_key)):
     """Get system status information"""
-    global scanner
 
     # Get scanner status
     scanner_running = False
@@ -700,8 +699,6 @@ async def stop_scanner(_: bool = Depends(verify_api_key)):
     Stop the scanner if running
     """
     try:
-        global scanner
-
         if not scanner:
             return {"success": True, "status": "not_running"}
 
@@ -725,12 +722,9 @@ async def update_rules(_: bool = Depends(verify_api_key)):
     """
     try:
         # Update rules
-        global rule_manager
-
         success = rule_manager.compile_rules(force=True)
 
         # Update scanner rules if running
-        global scanner
         if scanner:
             scanner.rule_manager = rule_manager
             if hasattr(scanner, "yara_matcher"):
