@@ -797,10 +797,7 @@ Total XP: {self.user_progress['experience_points']}
             self.console.print(panel)
         else:
             print(
-                f"\n🎉 ACHIEVEMENT UNLOCKED: {
-                    info.get(
-                        'title',
-                        'Unknown Achievement')}"
+                f"\n🎉 ACHIEVEMENT UNLOCKED: {info.get('title', 'Unknown Achievement')}"
             )
             print(info.get("description", "Great job!"))
             print(f"Bonus XP: +{xp_bonus}")
