@@ -204,13 +204,9 @@ class BaseScanner:
         results["duration"] = time.time() - results["start_time"]
 
         self.logger.info(
-            f"Directory scan complete: {
-                results['scanned']} files scanned, "
-            f"{
-                results['skipped']} files skipped, "
-            f"{
-                results['matched']} matches found in {
-                    results['duration']:.2f} seconds"
+            f"Directory scan complete: {results['scanned']} files scanned, "
+            f"{results['skipped']} files skipped, "
+            f"{results['matched']} matches found in {results['duration']:.2f} seconds"
         )
 
         return results
