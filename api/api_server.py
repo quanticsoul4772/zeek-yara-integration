@@ -657,9 +657,7 @@ async def scan_file(
         raise
     except Exception as e:
         logger.error(
-            f"Error scanning {
-                scan_request.file_path}: {
-                str(e)}",
+            f"Error scanning {scan_request.file_path}: {str(e)}",
             exc_info=True)
         raise HTTPException(
             status_code=500, detail=f"Error scanning file: {str(e)}")

@@ -92,13 +92,10 @@ def main():
             if success:
                 if args.duration > 0:
                     logger.info(
-                        f"Completed monitoring on {
-                            args.interface} for {
-                            args.duration} seconds")
+                        f"Completed monitoring on {args.interface} for {args.duration} seconds")
                 else:
                     logger.info(
-                        f"Suricata started in background mode on {
-                            args.interface}")
+                        f"Suricata started in background mode on {args.interface}")
                     logger.info("Press Ctrl+C to stop when finished")
 
                     try:

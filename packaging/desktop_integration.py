@@ -398,10 +398,7 @@ pause
 
                 # Create shell command
                 with winreg.CreateKey(key, "shell\\open\\command") as cmd_key:
-                    command = f'"{
-                        sys.executable}" "{
-                        self.project_root /
-                        "main.py"}" "%1"'
+                    command = f'"{sys.executable}" "{self.project_root / "main.py"}" "%1"'
                     winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, command)
 
         except Exception as e:

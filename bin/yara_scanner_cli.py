@@ -155,13 +155,7 @@ def main():
                 logger.info(f"YARA match found in {args.scan_file}")
                 for match in result.get("matches", []):
                     logger.info(
-                        f"Rule: {
-                            match.get(
-                                'namespace',
-                                '')}.{
-                            match.get(
-                                'rule',
-                                '')}")
+                        f"Rule: {match.get('namespace', '')}.{match.get('rule', '')}")
             else:
                 logger.info(f"No YARA matches found in {args.scan_file}")
 

@@ -174,8 +174,7 @@ async def start_suricata(
 
             return {
                 "success": True,
-                "message": f"Started Suricata on interface {
-                    request.interface} in background mode",
+                "message": f"Started Suricata on interface {request.interface} in background mode",
                 "interface": request.interface,
             }
         else:

@@ -99,9 +99,7 @@ class RuleManager:
             # Update last compile time
             self.last_compile_time = time.time()
             self.logger.info(
-                f"Rule compilation completed in {
-                    time.time() -
-                    start_time:.2f} seconds")
+                f"Rule compilation completed in {time.time() - start_time:.2f} seconds")
             return True
 
         except Exception as e:

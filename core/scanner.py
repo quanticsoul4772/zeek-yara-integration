@@ -124,14 +124,10 @@ class BaseScanner:
                     file_metadata, scan_result)
                 if add_result:
                     self.logger.info(
-                        f"Added alert to database for file: {
-                            file_metadata.get(
-                                'name', '')}")
+                        f"Added alert to database for file: {file_metadata.get('name', '')}")
                 else:
                     self.logger.error(
-                        f"Failed to add alert to database for file: {
-                            file_metadata.get(
-                                'name', '')}")
+                        f"Failed to add alert to database for file: {file_metadata.get('name', '')}")
             except Exception as e:
                 self.logger.error(f"Exception adding alert to database: {e}")
         else:

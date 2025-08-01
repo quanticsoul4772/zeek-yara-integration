@@ -258,9 +258,7 @@ class DatabaseManager:
                     "severity": 0,
                 }
                 self.logger.debug(
-                    f"Alert record: file_path={
-                        alert_record['file_path']}, file_name={
-                        alert_record['file_name']}, metadata={file_data}")
+                    f"Alert record: file_path={alert_record['file_path']}, file_name={alert_record['file_name']}, metadata={file_data}")
 
                 # Process match data if present
                 if match_data and match_data.get("matched", False):
