@@ -7,10 +7,6 @@ This module contains tests for the scanner functionality, including performance 
 for the optimizations implemented in Phase 2.
 """
 
-from utils.yara_utils import RuleManager, YaraMatcher
-from utils.file_utils import FileAnalyzer
-from core.scanner import FileEventHandler, MultiThreadScanner, SingleThreadScanner
-from core.database import DatabaseManager
 import logging
 import os
 import shutil
@@ -22,9 +18,13 @@ from queue import Queue
 
 import pytest
 
+from core.database import DatabaseManager
+from core.scanner import FileEventHandler, MultiThreadScanner, SingleThreadScanner
+from utils.file_utils import FileAnalyzer
+from utils.yara_utils import RuleManager, YaraMatcher
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 # Unit tests for the Scanner
@@ -299,14 +299,16 @@ class TestScannerPerformance:
                 print(
                     f"{threads} threads: {
                         thread_time:.6f}s (speedup: {
-                        speedup:.2f}x)")
+                        speedup:.2f}x)"
+                )
 
             # Print comparison results without asserting which one is faster
             print(
                 f"Speed comparison: Single-threaded vs. min multi-threaded: {
                     single_time:.6f}s vs {
                     min(
-                        thread_times.values()):.6f}s")
+                        thread_times.values()):.6f}s"
+            )
             # Get best thread count - don't assert that multi-threaded is faster
             # as it may not be for small test datasets or test environments
 
@@ -316,7 +318,8 @@ class TestScannerPerformance:
 
             print(
                 f"Best performance with {best_threads} threads: {
-                    best_speedup:.2f}x speedup")
+                    best_speedup:.2f}x speedup"
+            )
 
         finally:
             # Clean up
@@ -396,18 +399,19 @@ class TestScannerPerformance:
             print(
                 f"Unfiltered scan: {
                     unfiltered_time:.6f}s for {
-                    unfiltered_result['scanned']} files")
+                    unfiltered_result['scanned']} files"
+            )
             print(
                 f"Filtered scan (text only): {
                     filtered_time:.6f}s for {
-                    filtered_result['scanned']} files")
+                    filtered_result['scanned']} files"
+            )
 
             # Calculate efficiency
-            unfiltered_per_file = unfiltered_time / \
-                unfiltered_result["scanned"]
+            unfiltered_per_file = unfiltered_time / unfiltered_result["scanned"]
             filtered_per_file = (
-                filtered_time /
-                filtered_result["scanned"] if filtered_result["scanned"] > 0 else 0)
+                filtered_time / filtered_result["scanned"] if filtered_result["scanned"] > 0 else 0
+            )
 
             print(f"Unfiltered: {unfiltered_per_file * 1000:.2f}ms per file")
             print(f"Filtered: {filtered_per_file * 1000:.2f}ms per file")
@@ -415,10 +419,10 @@ class TestScannerPerformance:
             # Compare efficiency on a per-file basis
             if filtered_result["scanned"] > 0:  # Avoid division by zero
                 filtered_per_file = filtered_time / filtered_result["scanned"]
-                unfiltered_per_file = unfiltered_time / \
-                    unfiltered_result["scanned"]
-                assert (filtered_per_file <= unfiltered_per_file *
-                        2.5), f"Filtered scan ({filtered_per_file *
+                unfiltered_per_file = unfiltered_time / unfiltered_result["scanned"]
+                assert (
+                    filtered_per_file <= unfiltered_per_file * 2.5
+                ), f"Filtered scan ({filtered_per_file *
                                                 1000:.2f}ms/file) should be efficient compared to unfiltered ({unfiltered_per_file *
                                                                                                                1000:.2f}ms/file)"
 
@@ -472,11 +476,11 @@ class TestScannerPerformance:
 
             # Calculate performance improvement
             compile_speedup = (
-                standard_compile_time /
-                optimized_compile_time if optimized_compile_time > 0 else 1)
+                standard_compile_time / optimized_compile_time if optimized_compile_time > 0 else 1
+            )
             scan_speedup = (
-                standard_scan_time /
-                optimized_scan_time if optimized_scan_time > 0 else 1)
+                standard_scan_time / optimized_scan_time if optimized_scan_time > 0 else 1
+            )
 
             print(f"Compilation speedup: {compile_speedup:.2f}x")
             print(f"Scan speedup: {scan_speedup:.2f}x")

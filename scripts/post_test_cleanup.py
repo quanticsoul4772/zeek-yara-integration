@@ -24,8 +24,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(
-            "/Users/russellsmith/zeek_yara_integration/logs/post_test_cleanup.log"),
+        logging.FileHandler("/Users/russellsmith/zeek_yara_integration/logs/post_test_cleanup.log"),
         logging.StreamHandler(),
     ],
 )
@@ -50,11 +49,9 @@ def check_database_before_cleanup(db_path):
         cursor = conn.cursor()
 
         # Check if the database has the expected structure
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='yara_alerts'")
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='yara_alerts'")
         if not cursor.fetchone():
-            logger.warning(
-                "Database doesn't contain the expected 'yara_alerts' table")
+            logger.warning("Database doesn't contain the expected 'yara_alerts' table")
             conn.close()
             return False
 
@@ -82,11 +79,8 @@ def run_cleanup_script():
 
     try:
         result = subprocess.run(
-            [cleanup_script],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            check=True)
+            [cleanup_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True
+        )
         logger.info(f"Cleanup script executed successfully")
         logger.debug(f"Cleanup output: {result.stdout}")
         return True
@@ -101,8 +95,7 @@ def run_full_cleanup(args):
     logger.info("Starting post-test cleanup process")
 
     # First, ensure all directories exist
-    create_directory_if_not_exists(
-        "/Users/russellsmith/zeek_yara_integration/logs")
+    create_directory_if_not_exists("/Users/russellsmith/zeek_yara_integration/logs")
 
     # Verify database is intact before cleanup if requested
     if args.verify_db:
@@ -137,26 +130,21 @@ def run_full_cleanup(args):
 
 def parse_arguments():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Clean up extracted files after Zeek-YARA testing")
+    parser = argparse.ArgumentParser(description="Clean up extracted files after Zeek-YARA testing")
     parser.add_argument(
-        "--verify-db",
-        action="store_true",
-        help="Verify database integrity before cleanup")
+        "--verify-db", action="store_true", help="Verify database integrity before cleanup"
+    )
     parser.add_argument(
         "--db-path",
         default="/Users/russellsmith/zeek_yara_integration/logs/yara_alerts.db",
         help="Path to the YARA alerts database",
     )
     parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Force cleanup even if verification fails")
+        "--force", action="store_true", help="Force cleanup even if verification fails"
+    )
     parser.add_argument(
-        "--delay",
-        type=int,
-        default=0,
-        help="Delay in seconds before cleanup (default: 0)")
+        "--delay", type=int, default=0, help="Delay in seconds before cleanup (default: 0)"
+    )
     return parser.parse_args()
 
 

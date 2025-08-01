@@ -30,8 +30,7 @@ class AlertCorrelator:
         """
         self.config = config
         self.db_file = config.get("DB_FILE", "logs/alerts.db")
-        self.correlation_window = config.get(
-            "CORRELATION_WINDOW", 300)  # 5 minutes by default
+        self.correlation_window = config.get("CORRELATION_WINDOW", 300)  # 5 minutes by default
         self.min_alert_confidence = config.get("MIN_ALERT_CONFIDENCE", 70)
         self.logger = logging.getLogger("zeek_yara.alert_correlation")
 
@@ -90,12 +89,9 @@ class AlertCorrelator:
             c.execute(
                 "CREATE INDEX IF NOT EXISTS idx_correlation_id ON correlated_alerts(correlation_id)"
             )
-            c.execute(
-                "CREATE INDEX IF NOT EXISTS idx_alert_type ON correlated_alerts(alert_type)")
-            c.execute(
-                "CREATE INDEX IF NOT EXISTS idx_yara_timestamp ON yara_alerts(timestamp)")
-            c.execute(
-                "CREATE INDEX IF NOT EXISTS idx_yara_rule_name ON yara_alerts(rule_name)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_alert_type ON correlated_alerts(alert_type)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_yara_timestamp ON yara_alerts(timestamp)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_yara_rule_name ON yara_alerts(rule_name)")
 
             conn.commit()
             conn.close()
@@ -103,11 +99,9 @@ class AlertCorrelator:
             self.logger.info("Correlated alerts database initialized")
 
         except Exception as e:
-            self.logger.error(
-                f"Error initializing correlated alerts database: {e}")
+            self.logger.error(f"Error initializing correlated alerts database: {e}")
 
-    def correlate_alerts(
-            self, time_window: Optional[int] = None) -> List[Dict[str, Any]]:
+    def correlate_alerts(self, time_window: Optional[int] = None) -> List[Dict[str, Any]]:
         """
         Correlate alerts from different sources based on various correlation factors.
 
@@ -122,8 +116,7 @@ class AlertCorrelator:
 
         try:
             # Calculate the start time for correlation window
-            start_time = (datetime.now() -
-                          timedelta(seconds=window)).isoformat()
+            start_time = (datetime.now() - timedelta(seconds=window)).isoformat()
 
             # Connect to database
             conn = sqlite3.connect(self.db_file)
@@ -146,8 +139,7 @@ class AlertCorrelator:
             correlated_groups.extend(hash_groups)
 
             # 3. Time-proximity correlation
-            time_groups = self._correlate_by_time_proximity(
-                yara_alerts, suricata_alerts)
+            time_groups = self._correlate_by_time_proximity(yara_alerts, suricata_alerts)
             correlated_groups.extend(time_groups)
 
             # Store correlated alerts in database
@@ -160,8 +152,7 @@ class AlertCorrelator:
             self.logger.error(f"Error correlating alerts: {e}")
             return []
 
-    def _get_yara_alerts(self, conn: sqlite3.Connection,
-                         start_time: str) -> List[Dict[str, Any]]:
+    def _get_yara_alerts(self, conn: sqlite3.Connection, start_time: str) -> List[Dict[str, Any]]:
         """
         Get recent YARA alerts from database.
 
@@ -192,8 +183,7 @@ class AlertCorrelator:
                     if isinstance(alert.get("rule_meta"), str):
                         alert["rule_meta"] = json.loads(alert["rule_meta"])
                     if isinstance(alert.get("strings_matched"), str):
-                        alert["strings_matched"] = json.loads(
-                            alert["strings_matched"])
+                        alert["strings_matched"] = json.loads(alert["strings_matched"])
                 except BaseException:
                     # Set defaults if JSON parsing fails
                     if isinstance(alert.get("rule_meta"), str):

@@ -6,9 +6,6 @@ Author: Security Team
 This module contains performance tests for the Suricata integration.
 """
 
-from suricata.suricata_integration import SuricataRunner
-from suricata.alert_correlation import AlertCorrelator
-from config.config import Config
 import json
 import os
 import shutil
@@ -21,15 +18,17 @@ from pathlib import Path
 
 import pytest
 
+from config.config import Config
+from suricata.alert_correlation import AlertCorrelator
+from suricata.suricata_integration import SuricataRunner
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 # Import application components
 
 # Import benchmarking utilities
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
     from conftest import benchmark, timer
 except ImportError:
@@ -46,7 +45,8 @@ except ImportError:
                         func.__name__} - Total time: {
                         total_time:.6f}s, Average: {
                         total_time /
-                        iterations:.6f}s")
+                        iterations:.6f}s"
+                )
                 return result
 
             return wrapper
@@ -236,8 +236,7 @@ def create_test_alerts(db_file, count=100):
     # Prepare YARA alerts
     yara_alerts = []
     for i in range(count):
-        timestamp = time.strftime(
-            "%Y-%m-%dT%H:%M:%S.000000", time.gmtime(time.time() - i))
+        timestamp = time.strftime("%Y-%m-%dT%H:%M:%S.000000", time.gmtime(time.time() - i))
         yara_alerts.append(
             (
                 timestamp,
@@ -250,8 +249,7 @@ def create_test_alerts(db_file, count=100):
                 f"zeek_uid_{i}",
                 f"Rule_{i % 10}",
                 "malware",
-                json.dumps({"severity": i %
-                           5, "description": f"Test rule {i}"}),
+                json.dumps({"severity": i % 5, "description": f"Test rule {i}"}),
                 json.dumps([f"string_{j}" for j in range(3)]),
                 i % 5,
             )
@@ -260,8 +258,7 @@ def create_test_alerts(db_file, count=100):
     # Prepare Suricata alerts
     suricata_alerts = []
     for i in range(count):
-        timestamp = time.strftime(
-            "%Y-%m-%dT%H:%M:%S.000000", time.gmtime(time.time() - i))
+        timestamp = time.strftime("%Y-%m-%dT%H:%M:%S.000000", time.gmtime(time.time() - i))
         suricata_alerts.append(
             (
                 timestamp,
@@ -307,8 +304,7 @@ def create_test_alerts(db_file, count=100):
     conn.commit()
     conn.close()
 
-    return {"yara_count": len(yara_alerts),
-            "suricata_count": len(suricata_alerts)}
+    return {"yara_count": len(yara_alerts), "suricata_count": len(suricata_alerts)}
 
 
 @pytest.mark.performance
@@ -336,11 +332,13 @@ class TestSuricataPerformance:
         print(
             f"Average time per alert: {
                 duration /
-                len(all_alerts):.6f} seconds")
+                len(all_alerts):.6f} seconds"
+        )
 
         # Test should run in reasonable time (adjust threshold as needed)
         assert (
-            duration < 5.0), f"Alert retrieval took {
+            duration < 5.0
+        ), f"Alert retrieval took {
             duration:.6f} seconds, which exceeds the 5-second threshold"
 
     def test_alert_filtering_performance(self, performance_test_env, timer):
@@ -369,11 +367,13 @@ class TestSuricataPerformance:
             print(
                 f"Filter {filter_dict}: Retrieved {
                     len(filtered_alerts)} alerts in {
-                    duration:.6f} seconds")
+                    duration:.6f} seconds"
+            )
 
             # Test should run in reasonable time
             assert (
-                duration < 1.0), f"Filtered retrieval took {
+                duration < 1.0
+            ), f"Filtered retrieval took {
                 duration:.6f} seconds, which exceeds the 1-second threshold"
 
     @benchmark(iterations=5)
@@ -406,15 +406,15 @@ class TestSuricataPerformance:
                 f"Correlated {
                     alert_counts['yara_count']} YARA and {
                     alert_counts['suricata_count']} Suricata alerts in {
-                    duration:.6f} seconds")
+                    duration:.6f} seconds"
+            )
             print(f"Found {len(correlated_groups)} correlation groups")
 
             # Test scaling - correlation should be reasonably efficient
             # We expect some non-linearity but it shouldn't be extreme
             if count > 10:
                 # Calculate time per alert (combined)
-                total_alerts = alert_counts["yara_count"] + \
-                    alert_counts["suricata_count"]
+                total_alerts = alert_counts["yara_count"] + alert_counts["suricata_count"]
                 time_per_alert = duration / total_alerts
 
                 # Calculate expected scaling factor (should be less than quadratic)
@@ -469,11 +469,13 @@ class TestSuricataPerformance:
         print(
             f"Stored {
                 len(correlation_groups)} correlation groups in {
-                duration:.6f} seconds")
+                duration:.6f} seconds"
+        )
         print(
             f"Average time per group: {
                 duration /
-                len(correlation_groups):.6f} seconds")
+                len(correlation_groups):.6f} seconds"
+        )
 
         # Verify correlations were stored
         conn = sqlite3.connect(db_file)
@@ -486,7 +488,8 @@ class TestSuricataPerformance:
 
         # Test should run in reasonable time
         assert (
-            duration < 10.0), f"Correlation storage took {
+            duration < 10.0
+        ), f"Correlation storage took {
             duration:.6f} seconds, which exceeds the 10-second threshold"
 
     def test_process_alerts_performance(self, performance_test_env, timer):
@@ -505,8 +508,7 @@ class TestSuricataPerformance:
                 alert = {
                     "event_type": "alert",
                     "timestamp": time.strftime(
-                        "%Y-%m-%dT%H:%M:%S.000000", time.gmtime(
-                            time.time() - i)
+                        "%Y-%m-%dT%H:%M:%S.000000", time.gmtime(time.time() - i)
                     ),
                     "src_ip": f"192.168.1.{i % 254}",
                     "src_port": 10000 + i,
@@ -545,5 +547,6 @@ class TestSuricataPerformance:
 
         # Test should run in reasonable time
         assert (
-            duration < 10.0), f"Alert processing took {
+            duration < 10.0
+        ), f"Alert processing took {
             duration:.6f} seconds, which exceeds the 10-second threshold"

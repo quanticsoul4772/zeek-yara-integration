@@ -7,7 +7,6 @@ This module contains tests for the database functionality, including performance
 for the optimizations implemented in Phase 2.
 """
 
-from core.database import ConnectionPool, DatabaseManager, performance_track
 import datetime
 import json
 import os
@@ -17,9 +16,10 @@ import time
 
 import pytest
 
+from core.database import ConnectionPool, DatabaseManager, performance_track
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 # Unit tests for the DatabaseManager
@@ -252,7 +252,8 @@ class TestDatabasePerformance:
         # Print results
         print(
             f"Single insert time: {
-                single_time:.6f}s for {single_inserts} inserts")
+                single_time:.6f}s for {single_inserts} inserts"
+        )
         print(f"Bulk insert time: {bulk_time:.6f}s for {bulk_size} inserts")
         print(f"Speedup: {speedup:.2f}x")
 
@@ -302,8 +303,7 @@ class TestDatabasePerformance:
 
             # Measure query time with filter
             timer.start()
-            filtered_alerts = db_manager.get_alerts(
-                filters={"rule_namespace": "namespace_1"})
+            filtered_alerts = db_manager.get_alerts(filters={"rule_namespace": "namespace_1"})
             filter_time = timer.stop().duration
 
             # Record results
@@ -312,11 +312,10 @@ class TestDatabasePerformance:
                     "size": size,
                     "all_time": all_time,
                     "filter_time": filter_time,
-                    "all_per_row": all_time /
-                    size if size > 0 else 0,
-                    "filter_per_row": filter_time /
-                    len(filtered_alerts) if filtered_alerts else 0,
-                })
+                    "all_per_row": all_time / size if size > 0 else 0,
+                    "filter_per_row": filter_time / len(filtered_alerts) if filtered_alerts else 0,
+                }
+            )
 
         # Print results
         for result in query_times:
@@ -325,12 +324,14 @@ class TestDatabasePerformance:
                 f"  All alerts query: {
                     result['all_time']:.6f}s ({
                     result['all_per_row'] *
-                    1000:.2f}ms per row)")
+                    1000:.2f}ms per row)"
+            )
             print(
                 f"  Filtered query: {
                     result['filter_time']:.6f}s ({
                     result['filter_per_row'] *
-                    1000:.2f}ms per row)")
+                    1000:.2f}ms per row)"
+            )
 
         # Verify performance is acceptable
         assert query_times[-1]["all_per_row"] < 0.001, "Query time per row should be less than 1ms"

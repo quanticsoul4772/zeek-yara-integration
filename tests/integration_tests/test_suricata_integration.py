@@ -6,9 +6,6 @@ Author: Security Team
 This module contains integration tests for the Suricata integration.
 """
 
-from suricata.suricata_integration import SuricataRunner
-from suricata.alert_correlation import AlertCorrelator
-from config.config import Config
 import json
 import os
 import shutil
@@ -21,9 +18,12 @@ from pathlib import Path
 
 import pytest
 
+from config.config import Config
+from suricata.alert_correlation import AlertCorrelator
+from suricata.suricata_integration import SuricataRunner
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 # Import application components
 
@@ -46,12 +46,10 @@ def test_pcap():
 
             # Try to capture a few packets
             try:
-                subprocess.run(["tcpdump", "-c", "10", "-w",
-                               pcap_path], timeout=5, check=False)
+                subprocess.run(["tcpdump", "-c", "10", "-w", pcap_path], timeout=5, check=False)
 
                 # Check if PCAP was created
-                if os.path.exists(pcap_path) and os.path.getsize(
-                        pcap_path) > 0:
+                if os.path.exists(pcap_path) and os.path.getsize(pcap_path) > 0:
                     yield pcap_path
                     return
             except (subprocess.SubprocessError, subprocess.TimeoutExpired):
@@ -66,8 +64,7 @@ def test_pcap():
                 b"\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x01\x00\x00\x00"
             )
             # Add some dummy packet data
-            f.write(
-                b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00")
+            f.write(b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00")
             f.write(
                 b"\x45\x00\x00\x1c\x00\x01\x00\x00\x40\x11\x7a\x83\xc0\xa8\x01\x01\xc0\xa8\x01\x02"
             )
@@ -206,8 +203,7 @@ class TestSuricataIntegration:
         # Check if eve.json was created (regardless of alerts)
         eve_json = os.path.join(
             integrated_test_env["config"]["SURICATA_LOG_DIR"],
-            "pcap_" + os.path.basename(test_pcap) +
-            "_" + str(int(time.time()))[:10],
+            "pcap_" + os.path.basename(test_pcap) + "_" + str(int(time.time()))[:10],
             "eve.json",
         )
 

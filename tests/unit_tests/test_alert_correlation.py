@@ -6,7 +6,6 @@ Author: Security Team
 This module contains unit tests for the alert correlation functionality.
 """
 
-from suricata.alert_correlation import AlertCorrelator
 import datetime
 import json
 import os
@@ -19,9 +18,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from suricata.alert_correlation import AlertCorrelator
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
 @pytest.fixture
@@ -164,8 +164,7 @@ def populate_test_alerts(db_file):
             "SuspiciousPDF",  # rule_name
             "document",  # rule_namespace
             # rule_meta
-            json.dumps(
-                {"severity": 2, "description": "Detected suspicious PDF"}),
+            json.dumps({"severity": 2, "description": "Detected suspicious PDF"}),
             json.dumps(["string3", "string4"]),  # strings_matched
             2,  # severity
         ),
@@ -217,8 +216,7 @@ def populate_test_alerts(db_file):
             "ET WEB_CLIENT PDF containing JavaScript",  # signature
             "web-client",  # category
             2,  # severity
-            json.dumps({"data": "sample payload data",
-                       "hash": "0987654321fedcba"}),  # payload
+            json.dumps({"data": "sample payload data", "hash": "0987654321fedcba"}),  # payload
             # packet_info
             json.dumps({"src_ip": "192.168.1.101", "dst_ip": "10.0.0.11"}),
         ),
@@ -255,8 +253,7 @@ class TestAlertCorrelator:
         c = conn.cursor()
 
         # Check if correlated_alerts table exists
-        c.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='correlated_alerts'")
+        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='correlated_alerts'")
         assert c.fetchone() is not None
 
         conn.close()
@@ -272,13 +269,14 @@ class TestAlertCorrelator:
             return {
                 "src_ip": "192.168.1.100",
                 "src_port": 45678,
-                "dst_ip": "10.0.0.10", 
+                "dst_ip": "10.0.0.10",
                 "dst_port": 80,
                 "proto": "tcp",
             }
-        
+
         # Replace the IP correlation strategy with a new one using our mock
         from suricata.alert_correlation.correlation import IPCorrelationStrategy
+
         alert_correlator.correlation_strategies[0] = IPCorrelationStrategy(
             connection_info_resolver=mock_connection_info
         )
@@ -290,8 +288,9 @@ class TestAlertCorrelator:
         assert len(correlated_groups) > 0
 
         # Check at least one IP-based correlation
-        ip_correlations = [g for g in correlated_groups if g.get(
-            "correlation_type") == "ip_correlation"]
+        ip_correlations = [
+            g for g in correlated_groups if g.get("correlation_type") == "ip_correlation"
+        ]
         assert len(ip_correlations) > 0
 
         # Check correlation structure
@@ -311,8 +310,9 @@ class TestAlertCorrelator:
         correlated_groups = alert_correlator.correlate_alerts()
 
         # Check for hash-based correlations
-        hash_correlations = [g for g in correlated_groups if g.get(
-            "correlation_type") == "hash_correlation"]
+        hash_correlations = [
+            g for g in correlated_groups if g.get("correlation_type") == "hash_correlation"
+        ]
 
         # We might not get hash correlations in this test due to how payload data is set up
         # but we should verify the function ran properly
@@ -327,8 +327,9 @@ class TestAlertCorrelator:
         correlated_groups = alert_correlator.correlate_alerts()
 
         # Check for time-proximity correlations
-        time_correlations = [g for g in correlated_groups if g.get(
-            "correlation_type") == "time_proximity"]
+        time_correlations = [
+            g for g in correlated_groups if g.get("correlation_type") == "time_proximity"
+        ]
 
         # Since alerts have the same timestamp, we should have time
         # correlations

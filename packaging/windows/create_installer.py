@@ -4,7 +4,6 @@ Windows MSI installer creation for Zeek-YARA Educational Platform
 Uses WiX Toolset for professional Windows installers
 """
 
-from packaging.version import VERSION_INFO
 import os
 import platform
 import subprocess
@@ -12,6 +11,8 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from xml.dom import minidom
+
+from packaging.version import VERSION_INFO
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -46,8 +47,7 @@ class WindowsInstallerBuilder:
     def create_wix_source(self) -> Path:
         """Create WiX source file for installer."""
         # Create basic WiX structure
-        root = ET.Element(
-            "Wix", xmlns="http://schemas.microsoft.com/wix/2006/wi")
+        root = ET.Element("Wix", xmlns="http://schemas.microsoft.com/wix/2006/wi")
 
         product = ET.SubElement(
             root,
@@ -66,23 +66,19 @@ class WindowsInstallerBuilder:
         ET.SubElement(
             product,
             "Package",
-            {"InstallerVersion": "200", "Compressed": "yes",
-                "InstallScope": "perMachine"},
+            {"InstallerVersion": "200", "Compressed": "yes", "InstallScope": "perMachine"},
         )
 
         # Media
         ET.SubElement(product, "MediaTemplate", {"EmbedCab": "yes"})
 
         # Directory structure
-        target_dir = ET.SubElement(product, "Directory", {
-                                   "Id": "TARGETDIR", "Name": "SourceDir"})
+        target_dir = ET.SubElement(product, "Directory", {"Id": "TARGETDIR", "Name": "SourceDir"})
 
-        program_files = ET.SubElement(target_dir, "Directory", {
-                                      "Id": "ProgramFilesFolder"})
+        program_files = ET.SubElement(target_dir, "Directory", {"Id": "ProgramFilesFolder"})
 
         install_folder = ET.SubElement(
-            program_files, "Directory", {
-                "Id": "INSTALLFOLDER", "Name": self.app_name}
+            program_files, "Directory", {"Id": "INSTALLFOLDER", "Name": self.app_name}
         )
 
         # Write WiX source file

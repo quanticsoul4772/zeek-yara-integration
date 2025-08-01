@@ -7,20 +7,6 @@ Author: Russell Smith
 This module contains predefined test cases for the Zeek-YARA integration testing framework.
 """
 
-from utils.yara_utils import RuleManager, YaraMatcher
-from utils.file_utils import FileAnalyzer, FileTypeCategories
-from tests.frameworks.test_framework import (
-    CustomTestCase,
-    CustomTestResult,
-    CustomTestRunner,
-    CustomTestSuite,
-    create_integration_test_case,
-    create_performance_test_case,
-    create_unit_test_case,
-)
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from core.database import DatabaseManager
-from config.config import Config
 import json
 import os
 import shutil
@@ -30,9 +16,23 @@ import time
 import unittest
 from typing import Any, Dict, List, Optional, Union
 
+from config.config import Config
+from core.database import DatabaseManager
+from core.scanner import MultiThreadScanner, SingleThreadScanner
+from tests.frameworks.test_framework import (
+    CustomTestCase,
+    CustomTestResult,
+    CustomTestRunner,
+    CustomTestSuite,
+    create_integration_test_case,
+    create_performance_test_case,
+    create_unit_test_case,
+)
+from utils.file_utils import FileAnalyzer, FileTypeCategories
+from utils.yara_utils import RuleManager, YaraMatcher
+
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
 # Unit Tests for File Utilities
@@ -83,8 +83,7 @@ class FileUtilsTestCase(CustomTestCase):
             file_type = analyzer.get_file_type(file_path)
 
             # Verify file exists
-            assert os.path.exists(
-                file_path), f"File does not exist: {file_path}"
+            assert os.path.exists(file_path), f"File does not exist: {file_path}"
 
             # Verify mime type detection
             assert mime_type, f"No MIME type detected for {file_path}"
@@ -99,10 +98,8 @@ class FileUtilsTestCase(CustomTestCase):
             assert "mime_type" in metadata, "MIME type missing from metadata"
 
             # Record results
-            result.add_metric(
-                f"mime_type_{os.path.basename(file_path)}", mime_type)
-            result.add_metric(
-                f"file_type_{os.path.basename(file_path)}", file_type)
+            result.add_metric(f"mime_type_{os.path.basename(file_path)}", mime_type)
+            result.add_metric(f"file_type_{os.path.basename(file_path)}", file_type)
 
         # Test file categorization
         categories = [
@@ -132,8 +129,7 @@ class FileUtilsTestCase(CustomTestCase):
                 analyzer.get_file_type(file_path)
 
         # All tests passed
-        result.add_metric("total_tests", len(
-            self.temp_files) + len(categories))
+        result.add_metric("total_tests", len(self.temp_files) + len(categories))
 
 
 # Unit Tests for YARA Rules
@@ -207,16 +203,14 @@ class YaraRulesTestCase(CustomTestCase):
         # If using a custom rule, it should match
         if os.path.exists(os.path.join(self.temp_dir, "test_rule.yar")):
             # Test custom rule manager
-            custom_manager = RuleManager(
-                rules_dir=self.temp_dir, rules_index=None)
+            custom_manager = RuleManager(rules_dir=self.temp_dir, rules_index=None)
             custom_manager.compile_rules()
 
             # Test custom matcher
             custom_matcher = YaraMatcher(rule_manager=custom_manager)
             custom_result = custom_matcher.scan_file(test_file)
 
-            assert custom_result.get(
-                "matched", False), "Custom rule did not match"
+            assert custom_result.get("matched", False), "Custom rule did not match"
             result.add_metric("custom_rule_matched", True)
 
         # All tests passed
@@ -278,8 +272,7 @@ class ScannerIntegrationTestCase(CustomTestCase):
 
         # Validate scan results
         assert "scanned" in scan_results, "Scan results missing 'scanned' field"
-        assert scan_results["scanned"] >= len(
-            self.test_files), "Not all files were scanned"
+        assert scan_results["scanned"] >= len(self.test_files), "Not all files were scanned"
 
         # Record metrics
         result.add_metric("files_scanned", scan_results["scanned"])
@@ -419,8 +412,7 @@ class ScannerPerformanceTestCase(CustomTestCase):
         # Check if any multi-threaded version is faster
         is_multi_faster = False
         for key in metrics.keys():
-            if key.startswith(
-                    "multi_threaded_") and "duration" in metrics[key]:
+            if key.startswith("multi_threaded_") and "duration" in metrics[key]:
                 if metrics[key]["duration"] < metrics["single_threaded"]["duration"]:
                     is_multi_faster = True
                     break
@@ -563,8 +555,7 @@ def create_test_suites(config: Dict[str, Any]) -> List[CustomTestSuite]:
     # Unit tests suite
     unit_suite = CustomTestSuite("Unit Tests")
     unit_suite.add_test(FileUtilsTestCase())
-    unit_suite.add_test(YaraRulesTestCase(
-        rules_dir=config.get("RULES_DIR", "rules")))
+    unit_suite.add_test(YaraRulesTestCase(rules_dir=config.get("RULES_DIR", "rules")))
     suites.append(unit_suite)
 
     # Integration tests suite

@@ -5,8 +5,9 @@ Tests to validate educational materials and tutorials
 """
 
 import os
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 class TestEducationalContent:
@@ -21,29 +22,20 @@ class TestEducationalContent:
     def test_required_education_files_exist(self):
         """Test that required educational files exist"""
         education_dir = Path("EDUCATION")
-        required_files = [
-            "README.md",
-            "tutorial_web_server.py"
-        ]
+        required_files = ["README.md", "tutorial_web_server.py"]
 
         for file_name in required_files:
             file_path = education_dir / file_name
-            assert file_path.exists(
-            ), f"Required educational file {file_name} should exist"
+            assert file_path.exists(), f"Required educational file {file_name} should exist"
 
     def test_tutorial_directories_exist(self):
         """Test that tutorial directory structure exists"""
         education_dir = Path("EDUCATION")
-        tutorial_dirs = [
-            "tutorials",
-            "examples",
-            "getting-started"
-        ]
+        tutorial_dirs = ["tutorials", "examples", "getting-started"]
 
         for dir_name in tutorial_dirs:
             dir_path = education_dir / dir_name
-            assert dir_path.exists(
-            ), f"Tutorial directory {dir_name} should exist"
+            assert dir_path.exists(), f"Tutorial directory {dir_name} should exist"
             assert dir_path.is_dir(), f"{dir_name} should be a directory"
 
     def test_tutorial_content_has_content(self):
@@ -61,7 +53,7 @@ class TestEducationalContent:
         readme_path = education_dir / "README.md"
 
         if readme_path.exists():
-            with open(readme_path, 'r', encoding='utf-8') as f:
+            with open(readme_path, "r", encoding="utf-8") as f:
                 content = f.read()
                 assert len(content) > 0, "README.md should have content"
                 assert "education" in content.lower(), "README should mention education"
@@ -72,10 +64,9 @@ class TestTutorialValidation:
 
     def test_eicar_detection_tutorial_exists(self):
         """Test that EICAR detection tutorial exists"""
-        eicar_tutorial = Path(
-            "EDUCATION/examples/quick-demos/eicar-detection.md")
+        eicar_tutorial = Path("EDUCATION/examples/quick-demos/eicar-detection.md")
         if eicar_tutorial.exists():
-            with open(eicar_tutorial, 'r', encoding='utf-8') as f:
+            with open(eicar_tutorial, "r", encoding="utf-8") as f:
                 content = f.read()
                 assert "EICAR" in content, "EICAR tutorial should mention EICAR"
 

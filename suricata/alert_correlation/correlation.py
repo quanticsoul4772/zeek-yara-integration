@@ -105,8 +105,7 @@ class IPCorrelationStrategy(CorrelationStrategy):
 
         return correlated_groups
 
-    def _default_connection_info(
-            self, alert: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _default_connection_info(self, alert: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Default method to generate connection information
 
@@ -267,8 +266,11 @@ class TimeProximityCorrelationStrategy(CorrelationStrategy):
             yara_time = yara_alert["datetime"]
 
             # Find Suricata alerts within the time window
-            matching_alerts = [suricata_alert for suricata_alert in suricata_alerts if abs(
-                (yara_time - suricata_alert["datetime"]).total_seconds()) <= self.time_window]
+            matching_alerts = [
+                suricata_alert
+                for suricata_alert in suricata_alerts
+                if abs((yara_time - suricata_alert["datetime"]).total_seconds()) <= self.time_window
+            ]
 
             # If matches found, create a correlation group
             if matching_alerts:

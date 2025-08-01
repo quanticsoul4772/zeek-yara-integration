@@ -14,8 +14,7 @@ class AlertRetriever(ABC):
     """Abstract base class for alert retrieval"""
 
     @abstractmethod
-    def get_alerts(self, conn: sqlite3.Connection,
-                   start_time: str) -> List[Dict[str, Any]]:
+    def get_alerts(self, conn: sqlite3.Connection, start_time: str) -> List[Dict[str, Any]]:
         """
         Retrieve alerts from a specific source
 
@@ -129,10 +128,8 @@ class AlertDatabaseManager:
                 c.execute(
                     "CREATE INDEX IF NOT EXISTS idx_alert_type ON correlated_alerts(alert_type)"
                 )
-                c.execute(
-                    "CREATE INDEX IF NOT EXISTS idx_yara_timestamp ON yara_alerts(timestamp)")
-                c.execute(
-                    "CREATE INDEX IF NOT EXISTS idx_yara_rule_name ON yara_alerts(rule_name)")
+                c.execute("CREATE INDEX IF NOT EXISTS idx_yara_timestamp ON yara_alerts(timestamp)")
+                c.execute("CREATE INDEX IF NOT EXISTS idx_yara_rule_name ON yara_alerts(rule_name)")
 
                 conn.commit()
 
@@ -181,15 +178,23 @@ class AlertDatabaseManager:
                         (timestamp, correlation_id, alert_type, alert_id, correlation_confidence,
                          correlation_rationale, correlated_alerts, summary)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (group.get(
-                            "timestamp", datetime.now().isoformat()), group.get(
-                            "correlation_id", f"corr_{
+                    """,
+                        (
+                            group.get("timestamp", datetime.now().isoformat()),
+                            group.get(
+                                "correlation_id",
+                                f"corr_{
                                 int(
-                                    datetime.now().timestamp())}"), primary_alert.get(
-                            "source", "unknown"), primary_id, group.get(
-                            "confidence", 0), group.get(
-                                "rationale", ""), related_alerts_json, group.get(
-                                    "summary", ""), ), )
+                                    datetime.now().timestamp())}",
+                            ),
+                            primary_alert.get("source", "unknown"),
+                            primary_id,
+                            group.get("confidence", 0),
+                            group.get("rationale", ""),
+                            related_alerts_json,
+                            group.get("summary", ""),
+                        ),
+                    )
 
                 conn.commit()
 
@@ -228,12 +233,9 @@ class AlertDatabaseManager:
         else:
             return f"Unknown alert type: {alert.get('source', 'unknown')}"
 
-    def get_correlated_alerts(self,
-                              filters: Optional[Dict[str,
-                                                     Any]] = None,
-                              limit: Optional[int] = None,
-                              offset: int = 0) -> List[Dict[str,
-                                                            Any]]:
+    def get_correlated_alerts(
+        self, filters: Optional[Dict[str, Any]] = None, limit: Optional[int] = None, offset: int = 0
+    ) -> List[Dict[str, Any]]:
         """
         Retrieve correlated alerts from database
 
@@ -281,20 +283,17 @@ class AlertDatabaseManager:
                 results = []
                 for row in c.fetchall():
                     # Convert row to dictionary
-                    alert = dict(zip([column[0]
-                                 for column in c.description], row))
+                    alert = dict(zip([column[0] for column in c.description], row))
 
                     # Parse JSON fields
                     try:
-                        alert["correlated_alerts"] = json.loads(
-                            alert["correlated_alerts"])
+                        alert["correlated_alerts"] = json.loads(alert["correlated_alerts"])
                     except BaseException:
                         alert["correlated_alerts"] = []
 
                     try:
                         alert["threat_intel"] = (
-                            json.loads(alert["threat_intel"]
-                                       ) if alert["threat_intel"] else {}
+                            json.loads(alert["threat_intel"]) if alert["threat_intel"] else {}
                         )
                     except BaseException:
                         alert["threat_intel"] = {}

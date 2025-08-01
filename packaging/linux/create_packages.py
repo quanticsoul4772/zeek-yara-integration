@@ -4,7 +4,6 @@ Linux package creation for Zeek-YARA Educational Platform
 Creates DEB, RPM, and AppImage packages for Linux distributions
 """
 
-from packaging.version import VERSION_INFO
 import os
 import platform
 import shutil
@@ -14,6 +13,8 @@ import tarfile
 import tempfile
 import textwrap
 from pathlib import Path
+
+from packaging.version import VERSION_INFO
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()

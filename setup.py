@@ -37,8 +37,7 @@ class PlatformInstaller:
         try:
             self.log(f"Running: {description}")
             if capture_output:
-                result = subprocess.run(
-                    cmd, capture_output=True, text=True, check=False)
+                result = subprocess.run(cmd, capture_output=True, text=True, check=False)
                 success = result.returncode == 0
                 output = result.stdout if success else result.stderr
             else:
@@ -65,7 +64,8 @@ class PlatformInstaller:
                 f"✅ Python {
                     version.major}.{
                     version.minor}.{
-                    version.micro} meets requirements")
+                    version.micro} meets requirements"
+            )
             return True
         else:
             self.log(
@@ -99,12 +99,8 @@ class PlatformInstaller:
 
         package_manager = self.detect_package_manager()
         if not package_manager:
-            self.log(
-                "Cannot install system dependencies automatically",
-                "WARNING")
-            self.log(
-                "Please install these manually: git, cmake, build-essential/xcode",
-                "WARNING")
+            self.log("Cannot install system dependencies automatically", "WARNING")
+            self.log("Please install these manually: git, cmake, build-essential/xcode", "WARNING")
             return True  # Continue anyway
 
         # Platform-specific dependency installation
@@ -113,12 +109,9 @@ class PlatformInstaller:
         for dep_name, commands in dependencies.items():
             cmd = commands.get(package_manager)
             if cmd:
-                success, output = self.run_command(
-                    cmd, f"Installing {dep_name}")
+                success, output = self.run_command(cmd, f"Installing {dep_name}")
                 if not success:
-                    self.log(
-                        f"Failed to install {dep_name}, continuing anyway",
-                        "WARNING")
+                    self.log(f"Failed to install {dep_name}, continuing anyway", "WARNING")
 
         return True
 
@@ -182,8 +175,7 @@ class PlatformInstaller:
 
         # Upgrade pip first
         success, _ = self.run_command(
-            [str(python_exe), "-m", "pip", "install",
-             "--upgrade", "pip"], "Upgrading pip"
+            [str(python_exe), "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip"
         )
         if not success:
             self.log("Failed to upgrade pip, continuing anyway", "WARNING")
@@ -215,8 +207,7 @@ class PlatformInstaller:
             ]
 
             for dep in minimal_deps:
-                success, _ = self.run_command(
-                    [str(pip_exe), "install", dep], f"Installing {dep}")
+                success, _ = self.run_command([str(pip_exe), "install", dep], f"Installing {dep}")
                 if not success:
                     self.log(f"Failed to install {dep}", "WARNING")
 
@@ -250,12 +241,9 @@ class PlatformInstaller:
             "AUTO_SETUP": True,
             "BEGINNER_MODE": True,
             "# File Locations (auto-detected)": "",
-            "EXTRACT_DIR": str(
-                self.project_root / "extracted_files"),
-            "RULES_DIR": str(
-                self.project_root / "rules"),
-            "LOG_DIR": str(
-                self.project_root / "logs"),
+            "EXTRACT_DIR": str(self.project_root / "extracted_files"),
+            "RULES_DIR": str(self.project_root / "rules"),
+            "LOG_DIR": str(self.project_root / "logs"),
             "# Scanner Settings (beginner-friendly)": "",
             "MAX_FILE_SIZE": "20MB",
             "SCAN_INTERVAL": "30 seconds",
@@ -345,8 +333,7 @@ python3 main.py "$@"
 
         # Check key dependencies
         success, output = self.run_command(
-            [str(python_exe), "-c",
-             "import yara, fastapi, uvicorn; print('Dependencies OK')"],
+            [str(python_exe), "-c", "import yara, fastapi, uvicorn; print('Dependencies OK')"],
             "Checking Python dependencies",
         )
 

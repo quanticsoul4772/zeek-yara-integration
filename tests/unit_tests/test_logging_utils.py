@@ -23,8 +23,7 @@ def test_json_formatter():
 
     # Create logger and record
     logger = logging.getLogger("test_logger")
-    record = logger.makeRecord(
-        "test_logger", logging.INFO, None, None, "Test message", None, None)
+    record = logger.makeRecord("test_logger", logging.INFO, None, None, "Test message", None, None)
     record.custom_field = "custom_value"
 
     # Format log record
@@ -72,14 +71,12 @@ def test_setup_logging_console_handler():
     """
     Test logging setup with console handler.
     """
-    config = {"LOG_CONSOLE": True, "LOG_LEVEL": "INFO",
-              "LOG_FORMAT": "%(levelname)s - %(message)s"}
+    config = {"LOG_CONSOLE": True, "LOG_LEVEL": "INFO", "LOG_FORMAT": "%(levelname)s - %(message)s"}
 
     logger = setup_logging(config, "console_logger")
 
     # Verify console handler was added
-    assert any(isinstance(handler, logging.StreamHandler)
-               for handler in logger.handlers)
+    assert any(isinstance(handler, logging.StreamHandler) for handler in logger.handlers)
 
 
 @pytest.mark.logging
@@ -89,8 +86,7 @@ def test_add_scan_context():
     Test adding scan context to logger.
     """
     base_logger = logging.getLogger("base_logger")
-    file_data = {"name": "test_file.txt", "size": 1024,
-                 "md5": "abc123", "zeek_uid": "xyz789"}
+    file_data = {"name": "test_file.txt", "size": 1024, "md5": "abc123", "zeek_uid": "xyz789"}
     scan_result = {"rule_name": "test_rule", "matched": True}
 
     logger_with_context = add_scan_context(base_logger, file_data, scan_result)
