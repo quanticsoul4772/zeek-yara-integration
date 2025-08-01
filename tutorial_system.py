@@ -86,70 +86,72 @@ class TutorialManager:
         """Get list of available tutorials based on experience level."""
         experience_level = self.config.get("EXPERIENCE_LEVEL", "beginner")
 
-        tutorials = {
-            "beginner": [
-                {
-                    "id": "network_security_basics",
-                    "title": "Network Security Fundamentals",
-                    "description": "Learn the basics of network security monitoring",
-                    "duration": "15 minutes",
-                    "difficulty": "Beginner",
-                    "topics": ["Network Traffic", "Security Monitoring", "Threat Detection"],
-                },
-                {
-                    "id": "first_detection",
-                    "title": "Your First Threat Detection",
-                    "description": "Detect malware using YARA rules and EICAR test file",
-                    "duration": "10 minutes",
-                    "difficulty": "Beginner",
-                    "topics": ["YARA Rules", "Malware Detection", "Test Files"],
-                },
-                {
-                    "id": "zeek_basics",
-                    "title": "Network Monitoring with Zeek",
-                    "description": "Monitor network traffic and extract files",
-                    "duration": "20 minutes",
-                    "difficulty": "Beginner",
-                    "topics": ["Zeek", "Network Analysis", "File Extraction"],
-                },
-                {
-                    "id": "suricata_intro",
-                    "title": "Intrusion Detection with Suricata",
-                    "description": "Detect network intrusions and attacks",
-                    "duration": "20 minutes",
-                    "difficulty": "Beginner",
-                    "topics": ["Suricata", "IDS", "Network Security"],
-                },
-            ],
-            "intermediate": [
-                {
-                    "id": "custom_yara_rules",
-                    "title": "Writing Custom YARA Rules",
-                    "description": "Create your own malware detection rules",
-                    "duration": "30 minutes",
-                    "difficulty": "Intermediate",
-                    "topics": ["YARA", "Rule Writing", "Pattern Matching"],
-                },
-                {
-                    "id": "correlation_analysis",
-                    "title": "Alert Correlation and Analysis",
-                    "description": "Correlate alerts from multiple security tools",
-                    "duration": "25 minutes",
-                    "difficulty": "Intermediate",
-                    "topics": ["Alert Correlation", "Analysis", "Investigation"],
-                },
-            ],
-            "advanced": [
-                {
-                    "id": "tool_integration",
-                    "title": "Advanced Tool Integration",
-                    "description": "Integrate additional security tools and customize workflows",
-                    "duration": "45 minutes",
-                    "difficulty": "Advanced",
-                    "topics": ["Integration", "Customization", "Automation"],
-                }
-            ],
-        }
+        tutorials = {"beginner": [{"id": "network_security_basics",
+                                   "title": "Network Security Fundamentals",
+                                   "description": "Learn the basics of network security monitoring",
+                                   "duration": "15 minutes",
+                                   "difficulty": "Beginner",
+                                   "topics": ["Network Traffic",
+                                                 "Security Monitoring",
+                                                 "Threat Detection"],
+                                   },
+                                  {"id": "first_detection",
+                                   "title": "Your First Threat Detection",
+                                   "description": "Detect malware using YARA rules and EICAR test file",
+                                   "duration": "10 minutes",
+                                   "difficulty": "Beginner",
+                                   "topics": ["YARA Rules",
+                                               "Malware Detection",
+                                               "Test Files"],
+                                   },
+                                  {"id": "zeek_basics",
+                                   "title": "Network Monitoring with Zeek",
+                                   "description": "Monitor network traffic and extract files",
+                                   "duration": "20 minutes",
+                                   "difficulty": "Beginner",
+                                   "topics": ["Zeek",
+                                              "Network Analysis",
+                                              "File Extraction"],
+                                   },
+                                  {"id": "suricata_intro",
+                                   "title": "Intrusion Detection with Suricata",
+                                   "description": "Detect network intrusions and attacks",
+                                   "duration": "20 minutes",
+                                   "difficulty": "Beginner",
+                                   "topics": ["Suricata",
+                                              "IDS",
+                                              "Network Security"],
+                                   },
+                                  ],
+                     "intermediate": [{"id": "custom_yara_rules",
+                                       "title": "Writing Custom YARA Rules",
+                                       "description": "Create your own malware detection rules",
+                                       "duration": "30 minutes",
+                                       "difficulty": "Intermediate",
+                                       "topics": ["YARA",
+                                                  "Rule Writing",
+                                                  "Pattern Matching"],
+                                       },
+                                      {"id": "correlation_analysis",
+                                       "title": "Alert Correlation and Analysis",
+                                       "description": "Correlate alerts from multiple security tools",
+                                       "duration": "25 minutes",
+                                       "difficulty": "Intermediate",
+                                       "topics": ["Alert Correlation",
+                                                  "Analysis",
+                                                  "Investigation"],
+                                       },
+                                      ],
+                     "advanced": [{"id": "tool_integration",
+                                   "title": "Advanced Tool Integration",
+                                   "description": "Integrate additional security tools and customize workflows",
+                                   "duration": "45 minutes",
+                                   "difficulty": "Advanced",
+                                   "topics": ["Integration",
+                                              "Customization",
+                                              "Automation"],
+                                   }],
+                     }
 
         return tutorials.get(experience_level, tutorials["beginner"])
 
@@ -171,14 +173,16 @@ class TutorialManager:
                     if tutorial["id"] in self.user_progress["tutorials_completed"]
                     else "📝 Available"
                 )
-                table.add_row(str(i), tutorial["title"], tutorial["duration"], status)
+                table.add_row(
+                    str(i), tutorial["title"], tutorial["duration"], status)
 
             self.console.print(table)
 
             choices = [str(i) for i in range(1, len(tutorials) + 1)] + ["0"]
             choice = Prompt.ask(
-                "Select a tutorial (0 to return to main menu)", choices=choices, default="1"
-            )
+                "Select a tutorial (0 to return to main menu)",
+                choices=choices,
+                default="1")
         else:
             print("\nAvailable Tutorials:")
             print("-" * 50)
@@ -188,7 +192,10 @@ class TutorialManager:
                     if tutorial["id"] in self.user_progress["tutorials_completed"]
                     else "📝 Available"
                 )
-                print(f"{i}. {tutorial['title']} ({tutorial['duration']}) - {status}")
+                print(
+                    f"{i}. {
+                        tutorial['title']} ({
+                        tutorial['duration']}) - {status}")
             print("0. Return to main menu")
 
             choice = input("Select a tutorial: ").strip()
@@ -215,7 +222,7 @@ class TutorialManager:
                     content="""
 🎓 Network Security Fundamentals
 
-Network security is about protecting your network and data from threats. 
+Network security is about protecting your network and data from threats.
 In this tutorial, you'll learn:
 
 • What network security monitoring is
@@ -511,7 +518,11 @@ You're on your way to becoming a security analyst!
             self.log(f"Tutorial error: {e}", "error")
             return False
 
-    def run_tutorial_step(self, step: TutorialStep, step_num: int, total_steps: int) -> bool:
+    def run_tutorial_step(
+            self,
+            step: TutorialStep,
+            step_num: int,
+            total_steps: int) -> bool:
         """Run a single tutorial step."""
         if self.console:
             # Show step panel
@@ -526,7 +537,8 @@ You're on your way to becoming a security analyst!
 
             # Show learning objectives if available
             if step.learning_objectives:
-                objectives_text = "\n".join([f"• {obj}" for obj in step.learning_objectives])
+                objectives_text = "\n".join(
+                    [f"• {obj}" for obj in step.learning_objectives])
                 objectives_panel = Panel(
                     objectives_text,
                     title="🎯 Learning Objectives",
@@ -552,7 +564,8 @@ You're on your way to becoming a security analyst!
             if self.console:
                 return Confirm.ask("Continue to next step?", default=True)
             else:
-                response = input("\nContinue to next step? (y/n) [y]: ").strip().lower()
+                response = input(
+                    "\nContinue to next step? (y/n) [y]: ").strip().lower()
                 return response != "n"
 
         return True
@@ -586,7 +599,9 @@ You're on your way to becoming a security analyst!
     def show_welcome_message(self):
         """Show tutorial welcome message."""
         if self.console:
-            welcome_text = Text("Welcome to your security learning journey! 🚀", style="bold green")
+            welcome_text = Text(
+                "Welcome to your security learning journey! 🚀",
+                style="bold green")
             self.console.print(welcome_text)
             self.console.print(
                 "You're about to learn skills used by professional security analysts."
@@ -607,14 +622,23 @@ You're on your way to becoming a security analyst!
             network_table.add_column("Info", style="white")
 
             network_table.add_row(
-                "10:30:01", "192.168.1.100", "google.com", "HTTPS", "Web browsing"
-            )
+                "10:30:01",
+                "192.168.1.100",
+                "google.com",
+                "HTTPS",
+                "Web browsing")
             network_table.add_row(
-                "10:30:02", "192.168.1.100", "mail.example.com", "SMTP", "Sending email"
-            )
+                "10:30:02",
+                "192.168.1.100",
+                "mail.example.com",
+                "SMTP",
+                "Sending email")
             network_table.add_row(
-                "10:30:05", "192.168.1.100", "malicious.site", "HTTP", "🚨 Suspicious!"
-            )
+                "10:30:05",
+                "192.168.1.100",
+                "malicious.site",
+                "HTTP",
+                "🚨 Suspicious!")
 
             self.console.print(network_table)
             self.console.print(
@@ -636,7 +660,8 @@ You're on your way to becoming a security analyst!
         self.log("Each tool has a specific role in your security monitoring:")
         self.log("• Zeek: 'I see a file being downloaded...'")
         self.log("• YARA: 'Let me check if this file is malicious...'")
-        self.log("• Suricata: 'I'm watching for attack patterns in the network traffic...'")
+        self.log(
+            "• Suricata: 'I'm watching for attack patterns in the network traffic...'")
         self.log("Together they provide comprehensive protection!", "success")
 
     def display_threat_examples(self):
@@ -647,12 +672,16 @@ You're on your way to becoming a security analyst!
             threat_table.add_column("Example", style="yellow")
             threat_table.add_column("Detection Method", style="green")
 
-            threat_table.add_row("Malware", "virus.exe downloaded", "YARA rules")
-            threat_table.add_row("Port Scan", "Probing ports 1-1000", "Suricata patterns")
-            threat_table.add_row("Data Theft", "Large file upload", "Zeek traffic analysis")
             threat_table.add_row(
-                "C&C Communication", "Regular beacons to attacker", "All tools combined"
-            )
+                "Malware", "virus.exe downloaded", "YARA rules")
+            threat_table.add_row(
+                "Port Scan", "Probing ports 1-1000", "Suricata patterns")
+            threat_table.add_row(
+                "Data Theft", "Large file upload", "Zeek traffic analysis")
+            threat_table.add_row(
+                "C&C Communication",
+                "Regular beacons to attacker",
+                "All tools combined")
 
             self.console.print(threat_table)
         else:
@@ -677,7 +706,8 @@ You're on your way to becoming a security analyst!
 
         self.log("The EICAR test file contains this harmless text string:")
         self.log(f"'{eicar_signature}'")
-        self.log("Even though it's just text, all antivirus tools treat it as malware for testing!")
+        self.log(
+            "Even though it's just text, all antivirus tools treat it as malware for testing!")
 
     def create_and_scan_eicar(self):
         """Create EICAR file and demonstrate detection."""
@@ -701,7 +731,8 @@ You're on your way to becoming a security analyst!
 
             # Give user time to observe
             if self.console:
-                Prompt.ask("Press Enter after checking the dashboard", default="")
+                Prompt.ask(
+                    "Press Enter after checking the dashboard", default="")
             else:
                 input("Press Enter after checking the dashboard...")
 
@@ -720,7 +751,9 @@ You're on your way to becoming a security analyst!
 
     def show_detection_completion(self):
         """Show detection tutorial completion."""
-        self.log("🎉 Excellent work! You've completed your first threat detection!", "success")
+        self.log(
+            "🎉 Excellent work! You've completed your first threat detection!",
+            "success")
         self.log("You now know how to:")
         self.log("✅ Create test files for security validation")
         self.log("✅ Trigger malware detection systems")
@@ -738,7 +771,8 @@ You're on your way to becoming a security analyst!
         if completed_count >= 1 and "first_tutorial" not in self.user_progress["achievements"]:
             achievements.append("first_tutorial")
 
-        if completed_count >= 3 and "tutorial_expert" not in self.user_progress["achievements"]:
+        if completed_count >= 3 and "tutorial_expert" not in self.user_progress[
+                "achievements"]:
             achievements.append("tutorial_expert")
 
         # Time-based achievements
@@ -796,7 +830,11 @@ Total XP: {self.user_progress['experience_points']}
             )
             self.console.print(panel)
         else:
-            print(f"\n🎉 ACHIEVEMENT UNLOCKED: {info.get('title', 'Unknown Achievement')}")
+            print(
+                f"\n🎉 ACHIEVEMENT UNLOCKED: {
+                    info.get(
+                        'title',
+                        'Unknown Achievement')}")
             print(info.get("description", "Great job!"))
             print(f"Bonus XP: +{xp_bonus}")
             print(f"Total XP: {self.user_progress['experience_points']}")
@@ -809,31 +847,42 @@ Total XP: {self.user_progress['experience_points']}
             progress_table.add_column("Value", style="green")
 
             progress_table.add_row(
-                "Tutorials Completed", str(len(self.user_progress["tutorials_completed"]))
+                "Tutorials Completed", str(
+                    len(self.user_progress["tutorials_completed"]))
             )
             progress_table.add_row(
-                "Experience Points", str(self.user_progress["experience_points"])
+                "Experience Points", str(
+                    self.user_progress["experience_points"])
             )
-            progress_table.add_row("Achievements", str(len(self.user_progress["achievements"])))
+            progress_table.add_row("Achievements", str(
+                len(self.user_progress["achievements"])))
             progress_table.add_row(
-                "Time Spent Learning", f"{self.user_progress['total_time_spent']/60:.1f} minutes"
-            )
+                "Time Spent Learning", f"{
+                    self.user_progress['total_time_spent'] / 60:.1f} minutes")
 
             self.console.print(progress_table)
 
             if self.user_progress["achievements"]:
-                achievements_text = ", ".join(self.user_progress["achievements"])
+                achievements_text = ", ".join(
+                    self.user_progress["achievements"])
                 self.console.print(f"\n🏆 Achievements: {achievements_text}")
         else:
             print("\nYour Learning Progress:")
             print("-" * 30)
-            print(f"Tutorials Completed: {len(self.user_progress['tutorials_completed'])}")
-            print(f"Experience Points: {self.user_progress['experience_points']}")
+            print(
+                f"Tutorials Completed: {len(self.user_progress['tutorials_completed'])}")
+            print(
+                f"Experience Points: {
+                    self.user_progress['experience_points']}")
             print(f"Achievements: {len(self.user_progress['achievements'])}")
-            print(f"Time Spent Learning: {self.user_progress['total_time_spent']/60:.1f} minutes")
+            print(
+                f"Time Spent Learning: {
+                    self.user_progress['total_time_spent'] /
+                    60:.1f} minutes")
 
             if self.user_progress["achievements"]:
-                achievements_text = ", ".join(self.user_progress["achievements"])
+                achievements_text = ", ".join(
+                    self.user_progress["achievements"])
                 print(f"🏆 Achievements: {achievements_text}")
 
     def log(self, message: str, level: str = "info"):

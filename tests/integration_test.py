@@ -7,6 +7,10 @@ Author: Security Team
 This script performs an end-to-end test of the Zeek-YARA integration.
 """
 
+from utils.logging_utils import setup_logging
+from core.scanner import MultiThreadScanner, SingleThreadScanner
+from core.database import DatabaseManager
+from config.config import get_config
 import argparse
 import logging
 import os
@@ -16,12 +20,8 @@ import sys
 import time
 
 # Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from config.config import get_config
-from core.database import DatabaseManager
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from utils.logging_utils import setup_logging
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
 
 def parse_args():
@@ -33,15 +33,19 @@ def parse_args():
 
     parser.add_argument("--config", "-c", help="Config file to use")
 
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                        help="Enable verbose output")
 
     parser.add_argument(
-        "--multi-threaded", "-m", action="store_true", help="Use multi-threaded scanner"
-    )
+        "--multi-threaded",
+        "-m",
+        action="store_true",
+        help="Use multi-threaded scanner")
 
     parser.add_argument(
-        "--clean", action="store_true", help="Clean extracted files directory before testing"
-    )
+        "--clean",
+        action="store_true",
+        help="Clean extracted files directory before testing")
 
     return parser.parse_args()
 
@@ -51,7 +55,8 @@ def run_test(config, use_multi_threaded=False, verbose=False):
     logger = logging.getLogger("integration_test")
 
     # Set up paths
-    project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    project_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), ".."))
     extract_dir = config["EXTRACT_DIR"]
     test_file = os.path.join(project_dir, "tests", "test_eicar.txt")
 
@@ -88,7 +93,8 @@ def run_test(config, use_multi_threaded=False, verbose=False):
         alerts = db_manager.get_alerts(filters={"file_name": "test_eicar.txt"})
 
         if alerts:
-            logger.info(f"Database alert created successfully - ID: {alerts[0]['id']}")
+            logger.info(
+                f"Database alert created successfully - ID: {alerts[0]['id']}")
 
             if verbose:
                 logger.info("Alert details:")
@@ -132,7 +138,8 @@ def main():
 
     # Run the test
     logger.info("Starting integration test")
-    success = run_test(config, use_multi_threaded=args.multi_threaded, verbose=args.verbose)
+    success = run_test(
+        config, use_multi_threaded=args.multi_threaded, verbose=args.verbose)
 
     if success:
         logger.info("Integration test passed!")

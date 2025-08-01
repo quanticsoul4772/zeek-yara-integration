@@ -7,6 +7,7 @@ This module contains tests for the database functionality, including performance
 for the optimizations implemented in Phase 2.
 """
 
+from core.database import ConnectionPool, DatabaseManager, performance_track
 import datetime
 import json
 import os
@@ -17,9 +18,8 @@ import time
 import pytest
 
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from core.database import ConnectionPool, DatabaseManager, performance_track
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
 
 # Unit tests for the DatabaseManager
@@ -250,7 +250,9 @@ class TestDatabasePerformance:
         speedup = single_time / bulk_time if bulk_time > 0 else float("inf")
 
         # Print results
-        print(f"Single insert time: {single_time:.6f}s for {single_inserts} inserts")
+        print(
+            f"Single insert time: {
+                single_time:.6f}s for {single_inserts} inserts")
         print(f"Bulk insert time: {bulk_time:.6f}s for {bulk_size} inserts")
         print(f"Speedup: {speedup:.2f}x")
 
@@ -281,7 +283,8 @@ class TestDatabasePerformance:
                     "sha256": f"sha256_{i}",
                     "zeek_uid": f"uid_{i}",
                     "rule_name": f"rule_{i % 10}",  # 10 different rules
-                    "rule_namespace": f"namespace_{i % 5}",  # 5 different namespaces
+                    # 5 different namespaces
+                    "rule_namespace": f"namespace_{i % 5}",
                     "rule_meta": json.dumps({"description": f"Test rule {i}", "severity": i % 10}),
                     "strings_matched": json.dumps([f"string_{i}"]),
                     "severity": i % 10,
@@ -299,7 +302,8 @@ class TestDatabasePerformance:
 
             # Measure query time with filter
             timer.start()
-            filtered_alerts = db_manager.get_alerts(filters={"rule_namespace": "namespace_1"})
+            filtered_alerts = db_manager.get_alerts(
+                filters={"rule_namespace": "namespace_1"})
             filter_time = timer.stop().duration
 
             # Record results
@@ -308,20 +312,25 @@ class TestDatabasePerformance:
                     "size": size,
                     "all_time": all_time,
                     "filter_time": filter_time,
-                    "all_per_row": all_time / size if size > 0 else 0,
-                    "filter_per_row": filter_time / len(filtered_alerts) if filtered_alerts else 0,
-                }
-            )
+                    "all_per_row": all_time /
+                    size if size > 0 else 0,
+                    "filter_per_row": filter_time /
+                    len(filtered_alerts) if filtered_alerts else 0,
+                })
 
         # Print results
         for result in query_times:
             print(f"Database size: {result['size']} alerts")
             print(
-                f"  All alerts query: {result['all_time']:.6f}s ({result['all_per_row']*1000:.2f}ms per row)"
-            )
+                f"  All alerts query: {
+                    result['all_time']:.6f}s ({
+                    result['all_per_row'] *
+                    1000:.2f}ms per row)")
             print(
-                f"  Filtered query: {result['filter_time']:.6f}s ({result['filter_per_row']*1000:.2f}ms per row)"
-            )
+                f"  Filtered query: {
+                    result['filter_time']:.6f}s ({
+                    result['filter_per_row'] *
+                    1000:.2f}ms per row)")
 
         # Verify performance is acceptable
         assert query_times[-1]["all_per_row"] < 0.001, "Query time per row should be less than 1ms"

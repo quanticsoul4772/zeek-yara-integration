@@ -64,7 +64,7 @@ class IPCorrelationStrategy(CorrelationStrategy):
                 continue
 
             # Look up connection information
-            conn_info = self._connection_info_resolver(zeek_uid)
+            conn_info = self._connection_info_resolver(yara_alert)
 
             if not conn_info:
                 continue
@@ -105,20 +105,22 @@ class IPCorrelationStrategy(CorrelationStrategy):
 
         return correlated_groups
 
-    def _default_connection_info(self, zeek_uid: str) -> Optional[Dict[str, Any]]:
+    def _default_connection_info(
+            self, alert: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Default method to generate connection information
 
         Args:
-            zeek_uid (str): Zeek unique identifier
+            alert (Dict): Alert data
 
         Returns:
             Optional connection information dictionary
         """
-        if zeek_uid == "unknown_uid":
+        zeek_uid = alert.get("zeek_uid", "")
+        if not zeek_uid or zeek_uid == "unknown_uid":
             return None
 
-        # Generate dummy connection info for testing
+        # Generate dummy connection info for testing based on UID
         return {
             "src_ip": f"192.168.1.{hash(zeek_uid) % 254 + 1}",
             "src_port": hash(zeek_uid) % 65535,
@@ -247,13 +249,13 @@ class TimeProximityCorrelationStrategy(CorrelationStrategy):
         for alert in yara_alerts:
             try:
                 alert["datetime"] = datetime.fromisoformat(alert["timestamp"])
-            except:
+            except BaseException:
                 alert["datetime"] = datetime.now()
 
         for alert in suricata_alerts:
             try:
                 alert["datetime"] = datetime.fromisoformat(alert["timestamp"])
-            except:
+            except BaseException:
                 alert["datetime"] = datetime.now()
 
         # Sort alerts by timestamp
@@ -265,11 +267,8 @@ class TimeProximityCorrelationStrategy(CorrelationStrategy):
             yara_time = yara_alert["datetime"]
 
             # Find Suricata alerts within the time window
-            matching_alerts = [
-                suricata_alert
-                for suricata_alert in suricata_alerts
-                if abs((yara_time - suricata_alert["datetime"]).total_seconds()) <= self.time_window
-            ]
+            matching_alerts = [suricata_alert for suricata_alert in suricata_alerts if abs(
+                (yara_time - suricata_alert["datetime"]).total_seconds()) <= self.time_window]
 
             # If matches found, create a correlation group
             if matching_alerts:

@@ -4,6 +4,7 @@ Enhanced setup.py for Zeek-YARA Educational Platform package distribution
 Supports pip, conda, and other package managers
 """
 
+from version import VERSION_INFO
 import os
 import sys
 from pathlib import Path
@@ -14,8 +15,6 @@ from setuptools import find_packages, setup
 PROJECT_ROOT = Path(__file__).parent.parent.absolute()
 sys.path.insert(0, str(PROJECT_ROOT / "packaging"))
 
-from version import VERSION_INFO
-
 
 # Read requirements
 def read_requirements(filename):
@@ -23,7 +22,8 @@ def read_requirements(filename):
     req_path = PROJECT_ROOT / filename
     if req_path.exists():
         with open(req_path, "r") as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            return [line.strip() for line in f if line.strip()
+                    and not line.startswith("#")]
     return []
 
 
@@ -156,11 +156,13 @@ setup_config = {
     # Data files for system-wide installation
     "data_files": [
         # Desktop integration
-        ("share/applications", ["packaging/assets/zeek-yara-educational.desktop"]),
+        ("share/applications",
+         ["packaging/assets/zeek-yara-educational.desktop"]),
         ("share/pixmaps", ["packaging/assets/icon.png"]),
         ("share/icons/hicolor/48x48/apps", ["packaging/assets/icon-48.png"]),
         ("share/icons/hicolor/64x64/apps", ["packaging/assets/icon-64.png"]),
-        ("share/icons/hicolor/128x128/apps", ["packaging/assets/icon-128.png"]),
+        ("share/icons/hicolor/128x128/apps",
+         ["packaging/assets/icon-128.png"]),
         # Documentation
         (
             "share/doc/zeek-yara-educational",
@@ -272,10 +274,12 @@ class DevelopCommand:
         import subprocess
 
         # Install in development mode
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-e", "."])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "-e", "."])
 
         # Install development dependencies
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-e", ".[dev]"])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "-e", ".[dev]"])
 
         # Setup pre-commit hooks if available
         try:

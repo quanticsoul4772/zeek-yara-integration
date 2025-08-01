@@ -386,21 +386,21 @@ jobs:
         # Test critical imports
         try:
             import main
-            print('✓ main.py imports successfully')
+            print('OK main.py imports successfully')
         except Exception as e:
-            print(f'✗ main.py import failed: {e}')
+            print(f'FAIL main.py import failed: {e}')
             
         try:
             import setup_wizard
-            print('✓ setup_wizard.py imports successfully')
+            print('OK setup_wizard.py imports successfully')
         except Exception as e:
-            print(f'✗ setup_wizard.py import failed: {e}')
+            print(f'FAIL setup_wizard.py import failed: {e}')
             
         try:
             import tutorial_system
-            print('✓ tutorial_system.py imports successfully')
+            print('OK tutorial_system.py imports successfully')
         except Exception as e:
-            print(f'✗ tutorial_system.py import failed: {e}')
+            print(f'FAIL tutorial_system.py import failed: {e}')
         "
 
     - name: Test path handling

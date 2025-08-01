@@ -6,6 +6,12 @@ Author: Russell Smith
 This module contains pytest fixtures and configuration for testing.
 """
 
+from utils.yara_utils import RuleManager, YaraMatcher
+from utils.file_utils import FileAnalyzer
+from tests.helpers.db_setup import initialize_test_db
+from core.scanner import MultiThreadScanner, SingleThreadScanner
+from core.database import DatabaseManager
+from config.config import Config
 import json
 import logging
 import os
@@ -18,21 +24,17 @@ from pathlib import Path
 import pytest
 
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
 # Import application components
-from config.config import Config
-from core.database import DatabaseManager
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from tests.helpers.db_setup import initialize_test_db
-from utils.file_utils import FileAnalyzer
-from utils.yara_utils import RuleManager, YaraMatcher
 
 # Configure logging for tests
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(os.path.join("logs", "tests.log")), logging.StreamHandler()],
+    handlers=[logging.FileHandler(os.path.join(
+        "logs", "tests.log")), logging.StreamHandler()],
 )
 
 

@@ -6,6 +6,7 @@ Author: Security Team
 This module contains unit tests for the alert correlation functionality.
 """
 
+from suricata.alert_correlation import AlertCorrelator
 import datetime
 import json
 import os
@@ -19,9 +20,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
-from suricata.alert_correlation import AlertCorrelator
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../..")))
 
 
 @pytest.fixture
@@ -121,7 +121,7 @@ def alert_correlator():
         if os.path.exists(db_file):
             os.unlink(db_file)
         os.rmdir(os.path.dirname(db_file))
-    except:
+    except BaseException:
         pass
 
 
@@ -163,7 +163,9 @@ def populate_test_alerts(db_file):
             "DpOaX31CeefCUs7f0b",  # zeek_uid
             "SuspiciousPDF",  # rule_name
             "document",  # rule_namespace
-            json.dumps({"severity": 2, "description": "Detected suspicious PDF"}),  # rule_meta
+            # rule_meta
+            json.dumps(
+                {"severity": 2, "description": "Detected suspicious PDF"}),
             json.dumps(["string3", "string4"]),  # strings_matched
             2,  # severity
         ),
@@ -172,7 +174,7 @@ def populate_test_alerts(db_file):
     c.executemany(
         """
         INSERT INTO yara_alerts
-        (timestamp, file_path, file_name, file_size, file_type, md5, sha256, zeek_uid, 
+        (timestamp, file_path, file_name, file_size, file_type, md5, sha256, zeek_uid,
          rule_name, rule_namespace, rule_meta, strings_matched, severity)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """,
@@ -197,7 +199,8 @@ def populate_test_alerts(db_file):
             "malware",  # category
             3,  # severity
             json.dumps({"data": "sample payload data"}),  # payload
-            json.dumps({"src_ip": "192.168.1.100", "dst_ip": "10.0.0.10"}),  # packet_info
+            # packet_info
+            json.dumps({"src_ip": "192.168.1.100", "dst_ip": "10.0.0.10"}),
         ),
         (
             timestamp,  # timestamp
@@ -214,8 +217,10 @@ def populate_test_alerts(db_file):
             "ET WEB_CLIENT PDF containing JavaScript",  # signature
             "web-client",  # category
             2,  # severity
-            json.dumps({"data": "sample payload data", "hash": "0987654321fedcba"}),  # payload
-            json.dumps({"src_ip": "192.168.1.101", "dst_ip": "10.0.0.11"}),  # packet_info
+            json.dumps({"data": "sample payload data",
+                       "hash": "0987654321fedcba"}),  # payload
+            # packet_info
+            json.dumps({"src_ip": "192.168.1.101", "dst_ip": "10.0.0.11"}),
         ),
     ]
 
@@ -250,25 +255,33 @@ class TestAlertCorrelator:
         c = conn.cursor()
 
         # Check if correlated_alerts table exists
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='correlated_alerts'")
+        c.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='correlated_alerts'")
         assert c.fetchone() is not None
 
         conn.close()
 
-    @patch("suricata.alert_correlation.AlertCorrelator._get_connection_info")
-    def test_correlate_alerts_ip_based(self, mock_get_connection_info, alert_correlator):
+    def test_correlate_alerts_ip_based(self, alert_correlator):
         """Test IP-based alert correlation"""
         # Populate database with test alerts
         populate_test_alerts(alert_correlator.db_file)
 
-        # Configure mock for connection info
-        mock_get_connection_info.return_value = {
-            "src_ip": "192.168.1.100",
-            "src_port": 45678,
-            "dst_ip": "10.0.0.10",
-            "dst_port": 80,
-            "proto": "tcp",
-        }
+        # Mock the connection info method directly on the instance
+        def mock_connection_info(alert):
+            # Return IP info that matches our test Suricata data
+            return {
+                "src_ip": "192.168.1.100",
+                "src_port": 45678,
+                "dst_ip": "10.0.0.10", 
+                "dst_port": 80,
+                "proto": "tcp",
+            }
+        
+        # Replace the IP correlation strategy with a new one using our mock
+        from suricata.alert_correlation.correlation import IPCorrelationStrategy
+        alert_correlator.correlation_strategies[0] = IPCorrelationStrategy(
+            connection_info_resolver=mock_connection_info
+        )
 
         # Run correlation
         correlated_groups = alert_correlator.correlate_alerts()
@@ -277,9 +290,8 @@ class TestAlertCorrelator:
         assert len(correlated_groups) > 0
 
         # Check at least one IP-based correlation
-        ip_correlations = [
-            g for g in correlated_groups if g.get("correlation_type") == "ip_correlation"
-        ]
+        ip_correlations = [g for g in correlated_groups if g.get(
+            "correlation_type") == "ip_correlation"]
         assert len(ip_correlations) > 0
 
         # Check correlation structure
@@ -299,9 +311,8 @@ class TestAlertCorrelator:
         correlated_groups = alert_correlator.correlate_alerts()
 
         # Check for hash-based correlations
-        hash_correlations = [
-            g for g in correlated_groups if g.get("correlation_type") == "hash_correlation"
-        ]
+        hash_correlations = [g for g in correlated_groups if g.get(
+            "correlation_type") == "hash_correlation"]
 
         # We might not get hash correlations in this test due to how payload data is set up
         # but we should verify the function ran properly
@@ -316,11 +327,11 @@ class TestAlertCorrelator:
         correlated_groups = alert_correlator.correlate_alerts()
 
         # Check for time-proximity correlations
-        time_correlations = [
-            g for g in correlated_groups if g.get("correlation_type") == "time_proximity"
-        ]
+        time_correlations = [g for g in correlated_groups if g.get(
+            "correlation_type") == "time_proximity"]
 
-        # Since alerts have the same timestamp, we should have time correlations
+        # Since alerts have the same timestamp, we should have time
+        # correlations
         assert len(time_correlations) > 0
 
         # Check correlation structure

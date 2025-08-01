@@ -54,10 +54,18 @@ class ContextualHelpSystem:
     def detect_user_context(self) -> Dict[str, any]:
         """Detect current user context for contextual help."""
         context = {
-            "experience_level": self.config.get("EXPERIENCE_LEVEL", "beginner"),
-            "platform_mode": self.config.get("PLATFORM_MODE", "educational"),
-            "tools_available": self.config.get("TOOLS_ENABLED", {}),
-            "tutorial_mode": self.config.get("TUTORIAL_MODE", True),
+            "experience_level": self.config.get(
+                "EXPERIENCE_LEVEL",
+                "beginner"),
+            "platform_mode": self.config.get(
+                "PLATFORM_MODE",
+                "educational"),
+            "tools_available": self.config.get(
+                "TOOLS_ENABLED",
+                {}),
+            "tutorial_mode": self.config.get(
+                "TUTORIAL_MODE",
+                True),
             "current_task": "general_use",
             "last_action": None,
             "common_issues": self.detect_common_issues(),
@@ -159,7 +167,8 @@ Our platform includes step-by-step tutorials designed for hands-on learning.
                 related_topics=["getting_started", "achievements"],
                 quick_actions=[
                     {"action": "show_tutorials", "label": "View Available Tutorials"},
-                    {"action": "start_beginner_tutorial", "label": "Start Beginner Tutorial"},
+                    {"action": "start_beginner_tutorial",
+                        "label": "Start Beginner Tutorial"},
                     {"action": "show_progress", "label": "Show My Progress"},
                 ],
             ),
@@ -591,11 +600,13 @@ If automatic detection fails:
         """Show main help menu."""
         if self.console:
             # Create help menu with contextual suggestions
-            self.console.print("\n🎯 Interactive Help System", style="bold blue")
+            self.console.print(
+                "\n🎯 Interactive Help System", style="bold blue")
 
             # Show contextual help first
             if self.user_context["common_issues"]:
-                self.console.print("\n⚠️ Detected Issues - Quick Help:", style="yellow")
+                self.console.print(
+                    "\n⚠️ Detected Issues - Quick Help:", style="yellow")
                 for issue in self.user_context["common_issues"]:
                     suggestion = self.get_contextual_suggestion(issue)
                     self.console.print(f"  • {suggestion}")
@@ -612,13 +623,15 @@ If automatic detection fails:
 
             for i, (topic_id, topic) in enumerate(topics.items(), 1):
                 description = topic.content.split("\n")[2].strip()[:60] + "..."
-                table.add_row(str(i), topic.title, topic.category.title(), description)
+                table.add_row(str(i), topic.title,
+                              topic.category.title(), description)
 
             self.console.print(table)
 
             # Add search and other options
             self.console.print("\nOther options:")
-            self.console.print("• Type 'search <keyword>' to search help topics")
+            self.console.print(
+                "• Type 'search <keyword>' to search help topics")
             self.console.print("• Type 'quick' for quick help commands")
             self.console.print("• Type '0' to return to main menu")
 
@@ -670,7 +683,11 @@ If automatic detection fails:
                 "dashboard",
             ]
         else:  # advanced
-            relevant_topics = ["configuration", "troubleshooting", "tools_overview", "tutorials"]
+            relevant_topics = [
+                "configuration",
+                "troubleshooting",
+                "tools_overview",
+                "tutorials"]
 
         return {
             topic_id: self.help_topics[topic_id]
@@ -687,7 +704,8 @@ If automatic detection fails:
         }
         return suggestions.get(issue, f"Issue detected: {issue}")
 
-    def process_help_choice(self, choice: str, topics: Dict[str, HelpTopic]) -> Optional[str]:
+    def process_help_choice(
+            self, choice: str, topics: Dict[str, HelpTopic]) -> Optional[str]:
         """Process user's help menu choice."""
         choice = choice.strip().lower()
 
@@ -714,7 +732,8 @@ If automatic detection fails:
                     return self.show_help_topic(topic_id)
 
         if self.console:
-            self.console.print(f"❌ Unknown help topic or command: {choice}", style="red")
+            self.console.print(
+                f"❌ Unknown help topic or command: {choice}", style="red")
         else:
             print(f"Unknown help topic or command: {choice}")
 
@@ -753,7 +772,8 @@ If automatic detection fails:
 
                 action_choice = Prompt.ask(
                     "Select an action",
-                    choices=[str(i) for i in range(len(topic.quick_actions) + 1)],
+                    choices=[str(i)
+                             for i in range(len(topic.quick_actions) + 1)],
                     default="0",
                 )
 
@@ -826,7 +846,8 @@ If automatic detection fails:
 
             for i, (topic_id, topic, score) in enumerate(results[:5], 1):
                 relevance = "●" * min(score // 2, 5)
-                table.add_row(str(i), topic.title, relevance, topic.category.title())
+                table.add_row(str(i), topic.title, relevance,
+                              topic.category.title())
 
             self.console.print(table)
 
@@ -835,7 +856,8 @@ If automatic detection fails:
 
             choice = Prompt.ask(
                 "Select a topic to view",
-                choices=[str(i) for i in range(1, min(len(results), 5) + 1)] + ["0"],
+                choices=[str(i) for i in range(
+                    1, min(len(results), 5) + 1)] + ["0"],
                 default="0",
             )
 
@@ -962,7 +984,8 @@ If automatic detection fails:
                 self.show_recent_logs()
 
             else:
-                self.log(f"Quick action '{action}' not implemented yet", "warning")
+                self.log(
+                    f"Quick action '{action}' not implemented yet", "warning")
 
         except Exception as e:
             self.log(f"Failed to execute action '{action}': {e}", "error")
@@ -1004,17 +1027,22 @@ If automatic detection fails:
 
         # Check project directory
         project_exists = self.project_root.exists()
-        diagnostics.append(f"Project directory: {'✅ Found' if project_exists else '❌ Missing'}")
+        diagnostics.append(
+            f"Project directory: {
+                '✅ Found' if project_exists else '❌ Missing'}")
 
         # Check configuration
         config_path = self.project_root / "config" / "educational_config.json"
         config_exists = config_path.exists()
-        diagnostics.append(f"Configuration: {'✅ Found' if config_exists else '❌ Missing'}")
+        diagnostics.append(
+            f"Configuration: {'✅ Found' if config_exists else '❌ Missing'}")
 
         # Check virtual environment
         venv_path = self.project_root / "venv"
         venv_exists = venv_path.exists()
-        diagnostics.append(f"Virtual environment: {'✅ Found' if venv_exists else '❌ Missing'}")
+        diagnostics.append(
+            f"Virtual environment: {
+                '✅ Found' if venv_exists else '❌ Missing'}")
 
         # Display results
         if self.console:
@@ -1048,7 +1076,8 @@ If automatic detection fails:
                     recent_lines = lines[-10:] if len(lines) > 10 else lines
 
                 if self.console:
-                    self.console.print("📋 Recent Log Entries:", style="bold blue")
+                    self.console.print(
+                        "📋 Recent Log Entries:", style="bold blue")
                     for line in recent_lines:
                         self.console.print(f"  {line.strip()}")
                 else:

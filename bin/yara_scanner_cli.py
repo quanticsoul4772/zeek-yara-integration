@@ -7,6 +7,9 @@ Author: Security Team
 Command-line interface for the Zeek-YARA scanner.
 """
 
+from utils.logging_utils import setup_logging
+from core.scanner import MultiThreadScanner, SingleThreadScanner
+from config.config import get_config, save_config
 import argparse
 import json
 import logging
@@ -15,11 +18,8 @@ import sys
 import time
 
 # Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from config.config import get_config, save_config
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from utils.logging_utils import setup_logging
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
 
 def parse_args():
@@ -47,35 +47,46 @@ def parse_args():
 
     # File and directory options
     file_group = parser.add_argument_group("File Options")
-    file_group.add_argument("--extract-dir", "-d", help="Directory to monitor for extracted files")
-    file_group.add_argument("--max-size", "-m", type=int, help="Maximum file size to scan in bytes")
+    file_group.add_argument("--extract-dir", "-d",
+                            help="Directory to monitor for extracted files")
+    file_group.add_argument("--max-size", "-m", type=int,
+                            help="Maximum file size to scan in bytes")
     file_group.add_argument(
-        "--scan-file", "-f", help="Scan a single file instead of monitoring a directory"
-    )
+        "--scan-file",
+        "-f",
+        help="Scan a single file instead of monitoring a directory")
     file_group.add_argument(
-        "--scan-dir", "-s", help="Scan all files in a directory once (no monitoring)"
-    )
+        "--scan-dir",
+        "-s",
+        help="Scan all files in a directory once (no monitoring)")
 
     # YARA rule options
     rule_group = parser.add_argument_group("YARA Rule Options")
     rule_group.add_argument("--rules-dir", "-r", help="YARA rules directory")
     rule_group.add_argument("--rules-file", "-i", help="YARA rules index file")
     rule_group.add_argument(
-        "--update-interval", type=int, help="YARA rules update interval in seconds"
-    )
+        "--update-interval",
+        type=int,
+        help="YARA rules update interval in seconds")
 
     # Output options
     output_group = parser.add_argument_group("Output Options")
     output_group.add_argument("--log-file", "-l", help="Log file path")
-    output_group.add_argument("--db-file", "-b", help="SQLite database file path")
-    output_group.add_argument("--quiet", "-q", action="store_true", help="Suppress console output")
-    output_group.add_argument("--debug", action="store_true", help="Enable debug logging")
-    output_group.add_argument("--json", action="store_true", help="Output logs in JSON format")
+    output_group.add_argument(
+        "--db-file", "-b", help="SQLite database file path")
+    output_group.add_argument(
+        "--quiet", "-q", action="store_true", help="Suppress console output")
+    output_group.add_argument(
+        "--debug", action="store_true", help="Enable debug logging")
+    output_group.add_argument(
+        "--json", action="store_true", help="Output logs in JSON format")
 
     # Config options
     config_group = parser.add_argument_group("Configuration Options")
-    config_group.add_argument("--config", "-c", help="Load configuration from file")
-    config_group.add_argument("--save-config", help="Save current configuration to file")
+    config_group.add_argument(
+        "--config", "-c", help="Load configuration from file")
+    config_group.add_argument(
+        "--save-config", help="Save current configuration to file")
 
     return parser.parse_args()
 
@@ -127,7 +138,8 @@ def main():
     try:
         # Initialize appropriate scanner
         if args.multi_threaded:
-            logger.info(f"Initializing multi-threaded scanner with {config['THREADS']} threads")
+            logger.info(
+                f"Initializing multi-threaded scanner with {config['THREADS']} threads")
             scanner = MultiThreadScanner(config)
         else:
             logger.info("Initializing single-threaded scanner")
@@ -142,7 +154,14 @@ def main():
             if result.get("matched", False):
                 logger.info(f"YARA match found in {args.scan_file}")
                 for match in result.get("matches", []):
-                    logger.info(f"Rule: {match.get('namespace', '')}.{match.get('rule', '')}")
+                    logger.info(
+                        f"Rule: {
+                            match.get(
+                                'namespace',
+                                '')}.{
+                            match.get(
+                                'rule',
+                                '')}")
             else:
                 logger.info(f"No YARA matches found in {args.scan_file}")
 
@@ -155,12 +174,17 @@ def main():
             results = scanner.scan_directory(args.scan_dir)
 
             logger.info(
-                f"Directory scan complete: {results.get('scanned', 0)} files scanned, "
-                f"{results.get('matched', 0)} matches found"
-            )
+                f"Directory scan complete: {
+                    results.get(
+                        'scanned',
+                        0)} files scanned, " f"{
+                    results.get(
+                        'matched',
+                        0)} matches found")
 
             if results.get("error"):
-                logger.warning(f"Error scanning directory: {results.get('error')}")
+                logger.warning(
+                    f"Error scanning directory: {results.get('error')}")
 
         else:
             # Start monitoring mode
@@ -174,10 +198,12 @@ def main():
                     # Monitor for files
                     while True:
                         # Print status if multi-threaded
-                        if args.multi_threaded and isinstance(scanner, MultiThreadScanner):
+                        if args.multi_threaded and isinstance(
+                                scanner, MultiThreadScanner):
                             queue_size = scanner.get_queue_size()
                             if queue_size > 0:
-                                logger.info(f"Current queue size: {queue_size} files")
+                                logger.info(
+                                    f"Current queue size: {queue_size} files")
 
                         # Check if rules need updating
                         if scanner.update_rules():
@@ -187,7 +213,8 @@ def main():
                         time.sleep(10)
 
                 except KeyboardInterrupt:
-                    logger.info("Keyboard interrupt received, shutting down...")
+                    logger.info(
+                        "Keyboard interrupt received, shutting down...")
                 finally:
                     scanner.stop_monitoring()
             else:

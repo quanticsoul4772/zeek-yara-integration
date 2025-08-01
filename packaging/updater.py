@@ -105,7 +105,9 @@ class UpdateManager:
         import time
 
         last_check = info.get("last_check", 0)
-        return (time.time() - last_check) > self.update_config["check_interval"]
+        return (
+            time.time() -
+            last_check) > self.update_config["check_interval"]
 
     async def check_for_updates(self) -> Optional[Dict]:
         """Check for available updates."""
@@ -226,7 +228,11 @@ class UpdateManager:
 
                         if total_size > 0:
                             progress = (downloaded / total_size) * 100
-                            print(f"\\rDownload progress: {progress:.1f}%", end="", flush=True)
+                            print(
+                                f"\\rDownload progress: {
+                                    progress:.1f}%",
+                                end="",
+                                flush=True)
 
             print("\\nDownload completed!")
 
@@ -359,7 +365,8 @@ class UpdateManager:
 
             finally:
                 # Unmount DMG
-                subprocess.run(["hdiutil", "detach", mount_point], capture_output=True)
+                subprocess.run(
+                    ["hdiutil", "detach", mount_point], capture_output=True)
 
         except Exception as e:
             print(f"Error installing macOS update: {e}")
@@ -445,7 +452,8 @@ class UpdateManager:
         """Get current update status."""
         info = self.load_update_info()
         if not info:
-            return {"checked": False, "available": False, "current_version": self.current_version}
+            return {"checked": False, "available": False,
+                    "current_version": self.current_version}
 
         return {
             "checked": True,
@@ -461,12 +469,18 @@ async def main():
     """Main update CLI interface."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Zeek-YARA Educational Platform Updater")
-    parser.add_argument("--check", action="store_true", help="Check for updates")
-    parser.add_argument("--download", action="store_true", help="Download available update")
-    parser.add_argument("--install", metavar="FILE", help="Install update from file")
-    parser.add_argument("--status", action="store_true", help="Show update status")
-    parser.add_argument("--auto", action="store_true", help="Perform automatic update check")
+    parser = argparse.ArgumentParser(
+        description="Zeek-YARA Educational Platform Updater")
+    parser.add_argument("--check", action="store_true",
+                        help="Check for updates")
+    parser.add_argument("--download", action="store_true",
+                        help="Download available update")
+    parser.add_argument("--install", metavar="FILE",
+                        help="Install update from file")
+    parser.add_argument("--status", action="store_true",
+                        help="Show update status")
+    parser.add_argument("--auto", action="store_true",
+                        help="Perform automatic update check")
 
     args = parser.parse_args()
 

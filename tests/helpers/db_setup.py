@@ -98,7 +98,8 @@ def initialize_test_db(db_file, seed_data=True, clear_existing=False):
                 "CqTvvd2Y19NiSsNN2J",
                 "MaliciousExe",
                 "malware",
-                json.dumps({"severity": 3, "description": "Detected malicious executable"}),
+                json.dumps(
+                    {"severity": 3, "description": "Detected malicious executable"}),
                 json.dumps(["string1", "string2"]),
                 3,
             )

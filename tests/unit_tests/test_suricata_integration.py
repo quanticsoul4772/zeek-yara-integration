@@ -6,6 +6,7 @@ Author: Security Team
 This module contains unit tests for the Suricata integration module.
 """
 
+from suricata.suricata_integration import SuricataConfig, SuricataRunner
 import json
 import os
 import sqlite3
@@ -17,9 +18,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
-from suricata.suricata_integration import SuricataConfig, SuricataRunner
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../..")))
 
 
 @pytest.fixture
@@ -31,7 +31,8 @@ def suricata_config():
     config_file = os.path.join(tempfile.mkdtemp(), "suricata.yaml")
 
     # Create configuration
-    config = SuricataConfig(config_file=config_file, rules_dir=rules_dir, log_dir=log_dir)
+    config = SuricataConfig(config_file=config_file,
+                            rules_dir=rules_dir, log_dir=log_dir)
 
     yield config
 
@@ -42,7 +43,7 @@ def suricata_config():
         shutil.rmtree(rules_dir, ignore_errors=True)
         shutil.rmtree(log_dir, ignore_errors=True)
         shutil.rmtree(os.path.dirname(config_file), ignore_errors=True)
-    except:
+    except BaseException:
         pass
 
 
@@ -79,7 +80,7 @@ def suricata_runner():
         shutil.rmtree(rules_dir, ignore_errors=True)
         shutil.rmtree(log_dir, ignore_errors=True)
         shutil.rmtree(os.path.dirname(config_file), ignore_errors=True)
-    except:
+    except BaseException:
         pass
 
 
@@ -140,7 +141,8 @@ class TestSuricataRunner:
         c = conn.cursor()
 
         # Check if suricata_alerts table exists
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='suricata_alerts'")
+        c.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='suricata_alerts'")
         assert c.fetchone() is not None
 
         conn.close()

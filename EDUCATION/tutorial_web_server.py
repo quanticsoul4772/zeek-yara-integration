@@ -4,6 +4,7 @@ Interactive Educational Tutorial Web Server
 Modern web-based tutorial system with rich interactivity
 """
 
+from tutorial_system import TutorialManager, TutorialStep
 import asyncio
 import json
 import logging
@@ -26,7 +27,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 sys.path.append(str(Path(__file__).parent.parent))
-from tutorial_system import TutorialManager, TutorialStep
 
 
 @dataclass
@@ -77,8 +77,8 @@ class TutorialWebServer:
 
         # Initialize FastAPI app
         self.app = FastAPI(
-            title="Security Learning Platform", description="Interactive Security Education"
-        )
+            title="Security Learning Platform",
+            description="Interactive Security Education")
         self.setup_middleware()
         self.setup_routes()
 
@@ -106,22 +106,30 @@ class TutorialWebServer:
         """Setup web routes."""
 
         # Serve static files
-        self.app.mount("/static", StaticFiles(directory=str(self.static_dir)), name="static")
+        self.app.mount(
+            "/static",
+            StaticFiles(
+                directory=str(
+                    self.static_dir)),
+            name="static")
 
         # Main routes
         self.app.get("/")(self.home)
         self.app.get("/tutorials")(self.tutorial_list)
         self.app.get("/tutorial/{tutorial_id}")(self.tutorial_detail)
-        self.app.get("/tutorial/{tutorial_id}/step/{step_id}")(self.tutorial_step)
+        self.app.get(
+            "/tutorial/{tutorial_id}/step/{step_id}")(self.tutorial_step)
         self.app.post("/api/tutorial/{tutorial_id}/start")(self.start_tutorial)
-        self.app.post("/api/tutorial/{tutorial_id}/step/{step_id}/complete")(self.complete_step)
+        self.app.post(
+            "/api/tutorial/{tutorial_id}/step/{step_id}/complete")(self.complete_step)
         self.app.get("/api/progress")(self.get_progress)
         self.app.get("/api/achievements")(self.get_achievements)
         self.app.websocket("/ws/{session_id}")(self.websocket_endpoint)
 
         # Tutorial content API
         self.app.get("/api/tutorials")(self.api_get_tutorials)
-        self.app.get("/api/tutorial/{tutorial_id}/content")(self.api_get_tutorial_content)
+        self.app.get(
+            "/api/tutorial/{tutorial_id}/content")(self.api_get_tutorial_content)
 
     async def home(self, request: Request):
         """Home page with learning dashboard."""
@@ -161,13 +169,18 @@ class TutorialWebServer:
             },
         )
 
-    async def tutorial_step(self, request: Request, tutorial_id: str, step_id: str):
+    async def tutorial_step(
+            self,
+            request: Request,
+            tutorial_id: str,
+            step_id: str):
         """Individual tutorial step page."""
         tutorial_content = self.get_tutorial_content(tutorial_id)
         if not tutorial_content:
             raise HTTPException(status_code=404, detail="Tutorial not found")
 
-        step = next((s for s in tutorial_content["steps"] if s["id"] == step_id), None)
+        step = next(
+            (s for s in tutorial_content["steps"] if s["id"] == step_id), None)
         if not step:
             raise HTTPException(status_code=404, detail="Step not found")
 
@@ -193,7 +206,8 @@ class TutorialWebServer:
             current_step=0,
             start_time=datetime.now(),
             last_activity=datetime.now(),
-            progress_data={"steps_completed": [], "quiz_scores": {}, "time_spent": 0},
+            progress_data={"steps_completed": [],
+                           "quiz_scores": {}, "time_spent": 0},
             achievements_earned=[],
         )
 
@@ -203,7 +217,11 @@ class TutorialWebServer:
             {"session_id": session_id, "tutorial_id": tutorial_id, "status": "started"}
         )
 
-    async def complete_step(self, tutorial_id: str, step_id: str, request: Request):
+    async def complete_step(
+            self,
+            tutorial_id: str,
+            step_id: str,
+            request: Request):
         """Mark a step as completed."""
         body = await request.json()
         session_id = body.get("session_id")
@@ -222,7 +240,8 @@ class TutorialWebServer:
         achievements = self.check_step_achievements(session, step_id)
 
         return JSONResponse(
-            {"status": "completed", "achievements": achievements, "progress": session.progress_data}
+            {"status": "completed", "achievements": achievements,
+                "progress": session.progress_data}
         )
 
     async def get_progress(self, request: Request):
@@ -233,12 +252,13 @@ class TutorialWebServer:
         """Get user achievements."""
         return JSONResponse(
             {
-                "achievements": self.tutorial_manager.user_progress.get("achievements", []),
+                "achievements": self.tutorial_manager.user_progress.get(
+                    "achievements",
+                    []),
                 "experience_points": self.tutorial_manager.user_progress.get(
-                    "experience_points", 0
-                ),
-            }
-        )
+                    "experience_points",
+                    0),
+            })
 
     async def api_get_tutorials(self):
         """API endpoint for tutorial list."""
@@ -273,7 +293,11 @@ class TutorialWebServer:
             if session_id in self.websocket_connections:
                 del self.websocket_connections[session_id]
 
-    async def handle_step_progress(self, session_id: str, message: Dict, websocket: WebSocket):
+    async def handle_step_progress(
+            self,
+            session_id: str,
+            message: Dict,
+            websocket: WebSocket):
         """Handle step progress updates via WebSocket."""
         if session_id in self.active_sessions:
             session = self.active_sessions[session_id]
@@ -281,10 +305,15 @@ class TutorialWebServer:
 
             # Send progress update
             await websocket.send_text(
-                json.dumps({"type": "progress_update", "progress": session.progress_data})
+                json.dumps({"type": "progress_update",
+                           "progress": session.progress_data})
             )
 
-    async def send_hint(self, session_id: str, message: Dict, websocket: WebSocket):
+    async def send_hint(
+            self,
+            session_id: str,
+            message: Dict,
+            websocket: WebSocket):
         """Send contextual hints via WebSocket."""
         step_id = message.get("step_id")
         hints = self.get_step_hints(step_id)
@@ -312,7 +341,8 @@ class TutorialWebServer:
 
         return enhanced_tutorials
 
-    def get_tutorial_content(self, tutorial_id: str) -> Optional[Dict[str, Any]]:
+    def get_tutorial_content(
+            self, tutorial_id: str) -> Optional[Dict[str, Any]]:
         """Get comprehensive tutorial content with enhanced steps."""
         enhanced_tutorials = {
             "network_security_basics": {
@@ -344,7 +374,7 @@ class TutorialWebServer:
                                 <li>🛠️ How security tools protect networks</li>
                             </ul>
                             <div class="info-box">
-                                <strong>💡 Did you know?</strong> Every second, millions of data packets flow across networks worldwide. 
+                                <strong>💡 Did you know?</strong> Every second, millions of data packets flow across networks worldwide.
                                 Security professionals monitor this traffic to protect against cyber threats!
                             </div>
                         </div>
@@ -367,7 +397,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>🌐 How Network Communication Works</h3>
                             <p>Every time you browse the web, send an email, or use an app, your device sends <strong>packets</strong> of data across the network.</p>
-                            
+
                             <div class="concept-explanation">
                                 <h4>What's in a Network Packet?</h4>
                                 <div class="packet-diagram">
@@ -378,7 +408,7 @@ class TutorialWebServer:
                                 </div>
                                 <p>Think of packets like postal mail - each has sender/receiver addresses and contains your message!</p>
                             </div>
-                            
+
                             <div class="interactive-demo" id="traffic-simulator">
                                 <h4>🎮 Interactive Network Traffic Simulator</h4>
                                 <p>Click the button below to see live network traffic:</p>
@@ -412,7 +442,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>🛠️ Security Tools Overview</h3>
                             <p>This platform uses three powerful security tools working together:</p>
-                            
+
                             <div class="tools-grid">
                                 <div class="tool-card zeek">
                                     <h4>🔍 Zeek</h4>
@@ -425,7 +455,7 @@ class TutorialWebServer:
                                     </ul>
                                     <div class="tool-analogy">Like a security camera for your network! 📹</div>
                                 </div>
-                                
+
                                 <div class="tool-card yara">
                                     <h4>🚨 YARA</h4>
                                     <div class="tool-role">Malware Detection Engine</div>
@@ -437,7 +467,7 @@ class TutorialWebServer:
                                     </ul>
                                     <div class="tool-analogy">Like a virus scanner on steroids! 🦠</div>
                                 </div>
-                                
+
                                 <div class="tool-card suricata">
                                     <h4>🛡️ Suricata</h4>
                                     <div class="tool-role">Intrusion Detection System</div>
@@ -450,7 +480,7 @@ class TutorialWebServer:
                                     <div class="tool-analogy">Like a security guard at the network gate! 🚪</div>
                                 </div>
                             </div>
-                            
+
                             <div class="teamwork-section">
                                 <h4>🤝 How They Work Together</h4>
                                 <div class="workflow-diagram">
@@ -476,7 +506,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>⚠️ Types of Network Threats</h3>
                             <p>Understanding threats helps you recognize and defend against them:</p>
-                            
+
                             <div class="threats-accordion">
                                 <div class="threat-category" data-threat="malware">
                                     <h4>🦠 Malware - Malicious Software</h4>
@@ -490,7 +520,7 @@ class TutorialWebServer:
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="threat-category" data-threat="intrusion">
                                     <h4>🚪 Network Intrusions - Unauthorized Access</h4>
                                     <div class="threat-details">
@@ -503,7 +533,7 @@ class TutorialWebServer:
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="threat-category" data-threat="exfiltration">
                                     <h4>📤 Data Exfiltration - Information Theft</h4>
                                     <div class="threat-details">
@@ -516,7 +546,7 @@ class TutorialWebServer:
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="threat-category" data-threat="command_control">
                                     <h4>📡 Command & Control - Remote Malware Communication</h4>
                                     <div class="threat-details">
@@ -552,7 +582,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>🎯 Hands-On Exercise: Spot the Threat</h3>
                             <p>Now it's time to practice! Below is simulated network traffic data. Can you identify the security threats?</p>
-                            
+
                             <div class="exercise-container">
                                 <div class="traffic-log">
                                     <h4>📊 Network Traffic Log</h4>
@@ -563,7 +593,7 @@ class TutorialWebServer:
                                         <span class="protocol">HTTPS</span>
                                         <span class="info">Web browsing</span>
                                     </div>
-                                    
+
                                     <div class="log-entry normal" data-threat="false">
                                         <span class="timestamp">10:30:22</span>
                                         <span class="source">192.168.1.100</span>
@@ -571,7 +601,7 @@ class TutorialWebServer:
                                         <span class="protocol">SMTP</span>
                                         <span class="info">Sending email</span>
                                     </div>
-                                    
+
                                     <div class="log-entry suspicious" data-threat="true" data-threat-type="port_scan">
                                         <span class="timestamp">10:30:45</span>
                                         <span class="source">203.0.113.15</span>
@@ -579,7 +609,7 @@ class TutorialWebServer:
                                         <span class="protocol">TCP</span>
                                         <span class="info">Scanning ports 1-1000</span>
                                     </div>
-                                    
+
                                     <div class="log-entry normal" data-threat="false">
                                         <span class="timestamp">10:31:03</span>
                                         <span class="source">192.168.1.100</span>
@@ -587,7 +617,7 @@ class TutorialWebServer:
                                         <span class="protocol">HTTPS</span>
                                         <span class="info">Downloading update</span>
                                     </div>
-                                    
+
                                     <div class="log-entry suspicious" data-threat="true" data-threat-type="data_exfiltration">
                                         <span class="timestamp">10:31:15</span>
                                         <span class="source">192.168.1.100</span>
@@ -595,7 +625,7 @@ class TutorialWebServer:
                                         <span class="protocol">HTTPS</span>
                                         <span class="info">Uploading 500MB encrypted file</span>
                                     </div>
-                                    
+
                                     <div class="log-entry normal" data-threat="false">
                                         <span class="timestamp">10:31:45</span>
                                         <span class="source">192.168.1.100</span>
@@ -604,7 +634,7 @@ class TutorialWebServer:
                                         <span class="info">Windows update</span>
                                     </div>
                                 </div>
-                                
+
                                 <div class="exercise-instructions">
                                     <h4>🔍 Your Mission:</h4>
                                     <p>Click on any log entries that look suspicious or threatening. Think about:</p>
@@ -634,7 +664,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>🎯 Knowledge Check</h3>
                             <p>Let's test what you've learned about network security fundamentals!</p>
-                            
+
                             <div class="quiz-container">
                                 <div class="quiz-question" data-question="1">
                                     <h4>Question 1 of 3</h4>
@@ -646,7 +676,7 @@ class TutorialWebServer:
                                         <label><input type="radio" name="q1" value="d"> All three equally</label>
                                     </div>
                                 </div>
-                                
+
                                 <div class="quiz-question" data-question="2" style="display:none;">
                                     <h4>Question 2 of 3</h4>
                                     <p>What makes network packet analysis effective for security monitoring?</p>
@@ -657,7 +687,7 @@ class TutorialWebServer:
                                         <label><input type="radio" name="q2" value="d"> It requires special hardware</label>
                                     </div>
                                 </div>
-                                
+
                                 <div class="quiz-question" data-question="3" style="display:none;">
                                     <h4>Question 3 of 3</h4>
                                     <p>Which type of threat involves an infected computer regularly communicating with an attacker's server?</p>
@@ -668,19 +698,19 @@ class TutorialWebServer:
                                         <label><input type="radio" name="q3" value="d"> Network intrusion</label>
                                     </div>
                                 </div>
-                                
+
                                 <div class="quiz-results" style="display:none;">
                                     <h4>🎉 Quiz Complete!</h4>
                                     <div id="quiz-score"></div>
                                     <div id="quiz-feedback"></div>
                                 </div>
-                                
+
                                 <div class="quiz-navigation">
                                     <button id="quiz-next" onclick="nextQuestion()" disabled>Next Question</button>
                                     <button id="quiz-submit" onclick="submitQuiz()" style="display:none;">Submit Quiz</button>
                                 </div>
                             </div>
-                            
+
                             <div class="next-steps" id="completion-section" style="display:none;">
                                 <h3>🚀 Congratulations!</h3>
                                 <p>You've completed the Network Security Fundamentals tutorial! You now understand:</p>
@@ -690,7 +720,7 @@ class TutorialWebServer:
                                     <li>✅ Common types of network threats</li>
                                     <li>✅ How to spot suspicious network activity</li>
                                 </ul>
-                                
+
                                 <div class="recommended-next">
                                     <h4>🎯 Recommended Next Steps:</h4>
                                     <div class="next-tutorial-cards">
@@ -768,7 +798,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>🧪 Safe Malware Testing with EICAR</h3>
                             <p>Before we work with real threats, let's learn about safe testing methods!</p>
-                            
+
                             <div class="eicar-explanation">
                                 <h4>What is EICAR?</h4>
                                 <p>The <strong>European Institute for Computer Antivirus Research (EICAR)</strong> created a special test file that:</p>
@@ -779,7 +809,7 @@ class TutorialWebServer:
                                     <li>✅ Behaves exactly like real malware for testing</li>
                                 </ul>
                             </div>
-                            
+
                             <div class="safety-notice">
                                 <h4>🛡️ Why Use Test Files?</h4>
                                 <p>Security professionals never use real malware for learning because:</p>
@@ -790,7 +820,7 @@ class TutorialWebServer:
                                     <li>✅ Test files provide the same learning experience safely</li>
                                 </ul>
                             </div>
-                            
+
                             <div class="eicar-content">
                                 <h4>📝 The EICAR String</h4>
                                 <p>The EICAR test file contains this harmless text:</p>
@@ -812,7 +842,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>🔍 How YARA Rules Work</h3>
                             <p>YARA rules are like fingerprints for malware - they describe patterns that identify specific threats.</p>
-                            
+
                             <div class="yara-explanation">
                                 <h4>YARA Rule Structure</h4>
                                 <div class="rule-anatomy">
@@ -821,15 +851,15 @@ class TutorialWebServer:
     meta:
         description = "Detects EICAR test file"
         author = "Security Education"
-        
+
     strings:
         $eicar = "X5O!P%@AP[4\\\\PZX54(P^)7CC)7}"
-        
+
     condition:
         $eicar
 }</code></pre>
                                     </div>
-                                    
+
                                     <div class="rule-breakdown">
                                         <div class="rule-section">
                                             <h5>📝 Meta Section</h5>
@@ -846,7 +876,7 @@ class TutorialWebServer:
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="pattern-matching">
                                 <h4>🎯 How Pattern Matching Works</h4>
                                 <div class="matching-demo">
@@ -859,7 +889,7 @@ class TutorialWebServer:
                                     </ol>
                                 </div>
                             </div>
-                            
+
                             <div class="rule-types">
                                 <h4>🏷️ Types of Detection Rules</h4>
                                 <div class="rule-grid">
@@ -897,7 +927,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>🎯 Hands-On Detection Exercise</h3>
                             <p>Now let's create an EICAR file and watch our security system detect it!</p>
-                            
+
                             <div class="exercise-steps">
                                 <div class="step-card" data-step="1">
                                     <h4>Step 1: Create Test File</h4>
@@ -905,7 +935,7 @@ class TutorialWebServer:
                                     <button class="action-button" onclick="createEicarFile()">Create EICAR Test File</button>
                                     <div class="step-status" id="create-status">Waiting...</div>
                                 </div>
-                                
+
                                 <div class="step-card" data-step="2">
                                     <h4>Step 2: Monitor Detection</h4>
                                     <p>Watch the real-time detection results:</p>
@@ -913,7 +943,7 @@ class TutorialWebServer:
                                         <div class="scanning-status">🔍 Waiting for file creation...</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="step-card" data-step="3">
                                     <h4>Step 3: Analyze Results</h4>
                                     <p>Review the detection details:</p>
@@ -922,7 +952,7 @@ class TutorialWebServer:
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="learning-notes">
                                 <h4>💡 What to Observe</h4>
                                 <ul>
@@ -951,7 +981,7 @@ class TutorialWebServer:
                         <div class="lesson-content">
                             <h3>📊 Analyzing Security Alerts</h3>
                             <p>Great! You just triggered your first security detection. Let's understand what happened.</p>
-                            
+
                             <div class="alert-breakdown">
                                 <h4>🚨 Anatomy of a Security Alert</h4>
                                 <div class="sample-alert">
@@ -981,7 +1011,7 @@ class TutorialWebServer:
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="alert-components">
                                 <h4>🔍 Key Alert Components</h4>
                                 <div class="components-grid">
@@ -1011,7 +1041,7 @@ class TutorialWebServer:
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="response-workflow">
                                 <h4>🔄 Typical Response Workflow</h4>
                                 <div class="workflow-steps">
@@ -1057,7 +1087,10 @@ class TutorialWebServer:
         }
         return base_xp.get(tutorial_id, 100)
 
-    def check_step_achievements(self, session: LearningSession, step_id: str) -> List[str]:
+    def check_step_achievements(
+            self,
+            session: LearningSession,
+            step_id: str) -> List[str]:
         """Check for achievements earned by completing a step."""
         achievements = []
 
@@ -1065,7 +1098,8 @@ class TutorialWebServer:
         if len(session.progress_data["steps_completed"]) == 1:
             achievements.append("first_step")
 
-        if step_id.endswith("_quiz") and "quiz_master" not in session.achievements_earned:
+        if step_id.endswith(
+                "_quiz") and "quiz_master" not in session.achievements_earned:
             achievements.append("quiz_master")
 
         # Add achievements to session
@@ -1120,11 +1154,11 @@ class TutorialWebServer:
             </div>
         </div>
     </nav>
-    
+
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
-    
+
     <script src="/static/js/main.js"></script>
     {% block scripts %}{% endblock %}
 </body>
@@ -1139,7 +1173,7 @@ class TutorialWebServer:
         <h1>🎓 Welcome to Your Security Learning Journey!</h1>
         <p>Track your progress, explore tutorials, and build your cybersecurity skills.</p>
     </div>
-    
+
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-number">{{ user_progress.experience_points }}</div>
@@ -1158,7 +1192,7 @@ class TutorialWebServer:
             <div class="stat-label">Minutes Learned</div>
         </div>
     </div>
-    
+
     <div class="tutorial-recommendations">
         <h2>🚀 Recommended Tutorials</h2>
         <div class="tutorial-grid">
@@ -1178,7 +1212,7 @@ class TutorialWebServer:
             {% endfor %}
         </div>
     </div>
-    
+
     {% if user_progress.achievements %}
     <div class="achievements-section">
         <h2>🏆 Recent Achievements</h2>
@@ -1201,7 +1235,7 @@ class TutorialWebServer:
         <h1>📚 Interactive Security Tutorials</h1>
         <p>Choose your learning path and build cybersecurity expertise step by step.</p>
     </div>
-    
+
     <div class="tutorials-container">
         {% for tutorial in tutorials %}
         <div class="tutorial-item">
@@ -1215,9 +1249,9 @@ class TutorialWebServer:
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <p>{{ tutorial.description }}</p>
-                
+
                 <div class="tutorial-details">
                     <div class="detail-item">
                         <span class="label">⏱️ Duration:</span>
@@ -1236,14 +1270,14 @@ class TutorialWebServer:
                         <span class="value">{{ tutorial.interactive_features|join(", ") }}</span>
                     </div>
                 </div>
-                
+
                 <div class="tutorial-topics">
                     {% for topic in tutorial.topics %}
                     <span class="topic-tag">{{ topic }}</span>
                     {% endfor %}
                 </div>
             </div>
-            
+
             <div class="tutorial-actions">
                 <a href="/tutorial/{{ tutorial.id }}" class="btn-primary">
                     {% if tutorial.id in user_progress.tutorials_completed %}
@@ -1268,10 +1302,10 @@ class TutorialWebServer:
         <div class="hero-content">
             <h1>{{ tutorial.title }}</h1>
             <p class="tutorial-description">{{ tutorial.description }}</p>
-            
+
             <div class="tutorial-meta">
                 <span class="meta-item">
-                    <strong>Difficulty:</strong> 
+                    <strong>Difficulty:</strong>
                     <span class="difficulty-badge {{ tutorial.difficulty.lower() }}">{{ tutorial.difficulty }}</span>
                 </span>
                 <span class="meta-item">
@@ -1281,7 +1315,7 @@ class TutorialWebServer:
                     <strong>Steps:</strong> {{ tutorial.steps|length }}
                 </span>
             </div>
-            
+
             <div class="learning-objectives">
                 <h3>🎯 What You'll Learn</h3>
                 <ul>
@@ -1290,7 +1324,7 @@ class TutorialWebServer:
                     {% endfor %}
                 </ul>
             </div>
-            
+
             <div class="tutorial-actions">
                 <button onclick="startTutorial('{{ tutorial.id }}')" class="btn-primary btn-large">
                     🚀 Start Tutorial
@@ -1298,7 +1332,7 @@ class TutorialWebServer:
             </div>
         </div>
     </div>
-    
+
     <div class="tutorial-outline">
         <h2>📋 Tutorial Outline</h2>
         <div class="steps-list">
@@ -1324,7 +1358,7 @@ async function startTutorial(tutorialId) {
             body: JSON.stringify({})
         });
         const data = await response.json();
-        
+
         if (data.session_id) {
             // Start with first step
             window.location.href = `/tutorial/${tutorialId}/step/${data.session_id}`;
@@ -1348,23 +1382,23 @@ async function startTutorial(tutorialId) {
             </div>
             <span class="progress-text">Step {{ loop.index }} of {{ tutorial.steps|length }}</span>
         </div>
-        
+
         <h1>{{ step.title }}</h1>
         <div class="step-meta">
             <span class="step-type">{{ step.step_type.title() }}</span>
             <span class="duration">⏱️ {{ step.duration_estimate }}</span>
         </div>
     </div>
-    
+
     <div class="step-content">
         {{ step.content|safe }}
     </div>
-    
+
     <div class="step-navigation">
         <button onclick="previousStep()" class="btn-secondary">← Previous</button>
         <button onclick="completeStep()" class="btn-primary">Complete Step →</button>
     </div>
-    
+
     <div class="help-panel">
         <button onclick="requestHint()" class="btn-help">💡 Need a Hint?</button>
         <div id="hint-display" class="hint-container" style="display: none;"></div>
@@ -1382,11 +1416,11 @@ async function completeStep() {
             body: JSON.stringify({session_id: currentSession})
         });
         const data = await response.json();
-        
+
         if (data.achievements && data.achievements.length > 0) {
             showAchievements(data.achievements);
         }
-        
+
         // Navigate to next step or completion
         // Implementation depends on step navigation logic
     } catch (error) {
@@ -1408,7 +1442,7 @@ function showAchievements(achievements) {
         notification.className = 'achievement-notification';
         notification.innerHTML = `🏆 Achievement Unlocked: ${achievement}`;
         document.body.appendChild(notification);
-        
+
         setTimeout(() => notification.remove(), 5000);
     });
 }
@@ -1803,19 +1837,19 @@ body {
     .nav-container {
         padding: 0 1rem;
     }
-    
+
     .main-content {
         padding: 1rem;
     }
-    
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .tutorial-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .tools-grid {
         grid-template-columns: 1fr;
     }
@@ -1838,20 +1872,20 @@ function initWebSocket(sessionId) {
     if (ws) {
         ws.close();
     }
-    
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     ws = new WebSocket(`${protocol}//${window.location.host}/ws/${sessionId}`);
-    
+
     ws.onopen = function() {
         console.log('WebSocket connected');
         currentSession = sessionId;
     };
-    
+
     ws.onmessage = function(event) {
         const data = JSON.parse(event.data);
         handleWebSocketMessage(data);
     };
-    
+
     ws.onclose = function() {
         console.log('WebSocket disconnected');
         // Attempt to reconnect after 5 seconds
@@ -1882,9 +1916,9 @@ function handleWebSocketMessage(data) {
 function startTrafficDemo() {
     const display = document.getElementById('traffic-display');
     if (!display) return;
-    
+
     display.innerHTML = '<div class="traffic-header">Live Network Traffic Simulation</div>';
-    
+
     const packets = [
         {time: '10:30:15', src: '192.168.1.100', dst: 'google.com', proto: 'HTTPS', info: 'Web browsing'},
         {time: '10:30:16', src: '192.168.1.100', dst: 'mail.company.com', proto: 'SMTP', info: 'Sending email'},
@@ -1892,7 +1926,7 @@ function startTrafficDemo() {
         {time: '10:30:18', src: '203.0.113.15', dst: '192.168.1.100', proto: 'TCP', info: 'Port scan attempt', threat: true},
         {time: '10:30:19', src: '192.168.1.100', dst: 'update.microsoft.com', proto: 'HTTPS', info: 'Windows update'}
     ];
-    
+
     packets.forEach((packet, index) => {
         setTimeout(() => {
             const packetDiv = document.createElement('div');
@@ -1906,7 +1940,7 @@ function startTrafficDemo() {
                 ${packet.threat ? '<span class="threat-indicator">🚨</span>' : ''}
             `;
             display.appendChild(packetDiv);
-            
+
             if (packet.threat) {
                 packetDiv.style.background = '#fee2e2';
                 packetDiv.style.border = '2px solid #ef4444';
@@ -1920,17 +1954,17 @@ async function createEicarFile() {
     const statusEl = document.getElementById('create-status');
     const detectionEl = document.getElementById('detection-display');
     const resultsEl = document.getElementById('results-panel');
-    
+
     if (!statusEl) return;
-    
+
     // Step 1: Creating file
     statusEl.innerHTML = '🔄 Creating EICAR test file...';
     statusEl.className = 'step-status creating';
-    
+
     setTimeout(() => {
         statusEl.innerHTML = '✅ EICAR test file created!';
         statusEl.className = 'step-status success';
-        
+
         // Step 2: Detection simulation
         if (detectionEl) {
             detectionEl.innerHTML = `
@@ -1942,7 +1976,7 @@ async function createEicarFile() {
                 </div>
             `;
         }
-        
+
         // Step 3: Show detection results
         setTimeout(() => {
             if (detectionEl) {
@@ -1957,7 +1991,7 @@ async function createEicarFile() {
                     </div>
                 `;
             }
-            
+
             if (resultsEl) {
                 resultsEl.innerHTML = `
                     <div class="detection-results">
@@ -1991,18 +2025,18 @@ let quizAnswers = {};
 function nextQuestion() {
     const currentQ = document.querySelector(`[data-question="${currentQuestion}"]`);
     const selectedAnswer = document.querySelector(`input[name="q${currentQuestion}"]:checked`);
-    
+
     if (!selectedAnswer) {
         alert('Please select an answer before continuing.');
         return;
     }
-    
+
     quizAnswers[`q${currentQuestion}`] = selectedAnswer.value;
     currentQ.style.display = 'none';
-    
+
     currentQuestion++;
     const nextQ = document.querySelector(`[data-question="${currentQuestion}"]`);
-    
+
     if (nextQ) {
         nextQ.style.display = 'block';
         document.getElementById('quiz-next').disabled = true;
@@ -2016,35 +2050,35 @@ function nextQuestion() {
 function submitQuiz() {
     const lastQuestion = document.querySelector(`[data-question="${currentQuestion}"]`);
     const selectedAnswer = document.querySelector(`input[name="q${currentQuestion}"]:checked`);
-    
+
     if (!selectedAnswer) {
         alert('Please select an answer before submitting.');
         return;
     }
-    
+
     quizAnswers[`q${currentQuestion}`] = selectedAnswer.value;
-    
+
     // Hide last question
     lastQuestion.style.display = 'none';
-    
+
     // Calculate score (simplified)
     const correctAnswers = {q1: 'b', q2: 'b', q3: 'c'};
     let score = 0;
-    
+
     Object.keys(correctAnswers).forEach(question => {
         if (quizAnswers[question] === correctAnswers[question]) {
             score++;
         }
     });
-    
+
     // Show results
     const resultsDiv = document.querySelector('.quiz-results');
     const scoreDiv = document.getElementById('quiz-score');
     const feedbackDiv = document.getElementById('quiz-feedback');
-    
+
     resultsDiv.style.display = 'block';
     scoreDiv.innerHTML = `Your Score: ${score}/3 (${Math.round(score/3*100)}%)`;
-    
+
     if (score === 3) {
         feedbackDiv.innerHTML = '<p class="excellent">🎉 Excellent! Perfect score!</p>';
     } else if (score >= 2) {
@@ -2052,7 +2086,7 @@ function submitQuiz() {
     } else {
         feedbackDiv.innerHTML = '<p class="needs-improvement">📚 Keep learning! Review the material and try again.</p>';
     }
-    
+
     // Show completion section
     const completionSection = document.getElementById('completion-section');
     if (completionSection) {
@@ -2075,9 +2109,9 @@ document.addEventListener('click', function(e) {
         const entry = e.target.closest('.log-entry');
         const isThreat = entry.dataset.threat === 'true';
         const feedbackEl = document.getElementById('exercise-feedback');
-        
+
         entry.classList.add('selected');
-        
+
         if (isThreat) {
             entry.classList.add('correct-selection');
             feedbackEl.innerHTML += `<div class="feedback-item correct">✅ Correct! This is suspicious activity.</div>`;
@@ -2085,7 +2119,7 @@ document.addEventListener('click', function(e) {
             entry.classList.add('incorrect-selection');
             feedbackEl.innerHTML += `<div class="feedback-item incorrect">❌ This is normal network activity.</div>`;
         }
-        
+
         // Disable further clicks on this entry
         entry.style.pointerEvents = 'none';
     }
@@ -2125,11 +2159,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
     </nav>
-    
+
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
-    
+
     <script src="/static/js/main.js"></script>
     {% block scripts %}{% endblock %}
 </body>

@@ -7,6 +7,7 @@ This module contains tests for the file analyzer utility, including performance 
 for the optimizations implemented in Phase 2.
 """
 
+from utils.file_utils import FileAnalyzer, FileTypeCategories, performance_track
 import os
 import shutil
 import sys
@@ -17,9 +18,8 @@ from pathlib import Path
 import pytest
 
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from utils.file_utils import FileAnalyzer, FileTypeCategories, performance_track
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
 
 # Unit tests for FileAnalyzer
@@ -59,7 +59,8 @@ class TestFileAnalyzer:
             assert len(mime_type) > 0
 
         # Specific checks
-        assert file_analyzer.get_mime_type(test_files["paths"]["text.txt"]).startswith("text/")
+        assert file_analyzer.get_mime_type(
+            test_files["paths"]["text.txt"]).startswith("text/")
         assert (
             file_analyzer.get_mime_type(test_files["paths"]["binary.bin"])
             == "application/octet-stream"
@@ -77,7 +78,8 @@ class TestFileAnalyzer:
     def test_metadata_extraction(self, file_analyzer, test_files):
         """Test metadata extraction"""
         # Test text file
-        metadata = file_analyzer.get_file_metadata(test_files["paths"]["text.txt"])
+        metadata = file_analyzer.get_file_metadata(
+            test_files["paths"]["text.txt"])
         assert metadata is not None
         assert isinstance(metadata, dict)
 
@@ -153,13 +155,17 @@ class TestFileAnalyzerPerformance:
 
         # Calculate improvement percentage
         improvement = (1 - (cached_time / uncached_time)) * 100
-        print(f"LRU Cache Performance: Uncached: {uncached_time:.6f}s, Cached: {cached_time:.6f}s")
+        print(
+            f"LRU Cache Performance: Uncached: {
+                uncached_time:.6f}s, Cached: {
+                cached_time:.6f}s")
         print(f"Performance improvement: {improvement:.2f}%")
 
         # Should see significant improvement (at least 50%)
         assert improvement > 50
 
-    def test_metadata_extraction_performance(self, file_analyzer, test_files, timer):
+    def test_metadata_extraction_performance(
+            self, file_analyzer, test_files, timer):
         """Test performance of metadata extraction"""
         # Measure performance of extracting metadata from all files
         timer.start()
@@ -171,7 +177,10 @@ class TestFileAnalyzerPerformance:
 
         # Calculate per-file time
         per_file_time = duration / (5 * len(test_files["files"]))
-        print(f"Metadata extraction: {duration:.6f}s total, {per_file_time:.6f}s per file")
+        print(
+            f"Metadata extraction: {
+                duration:.6f}s total, {
+                per_file_time:.6f}s per file")
 
         # Should be reasonably fast (<50ms per file)
         assert per_file_time < 0.05

@@ -9,6 +9,11 @@ It implements multi-level testing including unit tests, integration tests, and
 performance tests with detailed reporting.
 """
 
+from utils.yara_utils import RuleManager, YaraMatcher
+from utils.file_utils import FileAnalyzer
+from core.scanner import MultiThreadScanner, SingleThreadScanner
+from core.database import DatabaseManager
+from config.config import Config
 import datetime
 import json
 import logging
@@ -23,19 +28,16 @@ import coverage
 import pytest
 
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../..")))
 
-from config.config import Config
-from core.database import DatabaseManager
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from utils.file_utils import FileAnalyzer
-from utils.yara_utils import RuleManager, YaraMatcher
 
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(os.path.join("logs", "tests.log")), logging.StreamHandler()],
+    handlers=[logging.FileHandler(os.path.join(
+        "logs", "tests.log")), logging.StreamHandler()],
 )
 
 logger = logging.getLogger("zeek_yara.test_framework")
@@ -151,7 +153,8 @@ class CustomTestCase:
             self.logger.info(f"Test {self.name} skipped")
         except Exception as e:
             result.complete(passed=False, error=str(e))
-            self.logger.error(f"Test {self.name} failed: {str(e)}", exc_info=True)
+            self.logger.error(
+                f"Test {self.name} failed: {str(e)}", exc_info=True)
         finally:
             try:
                 self.teardown()
@@ -325,7 +328,8 @@ class CustomTestRunner:
             results (Dict[str, Any]): Test results
         """
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        result_file = os.path.join(self.output_dir, f"test_results_{timestamp}.json")
+        result_file = os.path.join(
+            self.output_dir, f"test_results_{timestamp}.json")
 
         with open(result_file, "w") as f:
             json.dump(results, f, indent=2)

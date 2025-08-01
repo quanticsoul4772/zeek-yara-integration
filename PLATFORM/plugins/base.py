@@ -318,7 +318,10 @@ class AnalysisPlugin(BasePlugin):
         Returns:
             Dict containing correlation results
         """
-        return {"correlations_found": 0, "patterns": [], "confidence_score": 0.0}
+        return {
+            "correlations_found": 0,
+            "patterns": [],
+            "confidence_score": 0.0}
 
     def enrich_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Enrich data with additional context or intelligence
@@ -340,7 +343,8 @@ class VisualizationPlugin(BasePlugin):
     """
 
     @abstractmethod
-    def generate_visualization(self, data: Dict[str, Any], viz_type: str) -> Dict[str, Any]:
+    def generate_visualization(
+            self, data: Dict[str, Any], viz_type: str) -> Dict[str, Any]:
         """Generate a visualization from provided data
 
         Args:
@@ -360,7 +364,8 @@ class VisualizationPlugin(BasePlugin):
         """
         return []
 
-    def generate_report(self, data: Dict[str, Any], report_format: str = "html") -> str:
+    def generate_report(
+            self, data: Dict[str, Any], report_format: str = "html") -> str:
         """Generate a formatted report from data
 
         Args:
