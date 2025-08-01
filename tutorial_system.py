@@ -188,11 +188,7 @@ class TutorialManager:
                     if tutorial["id"] in self.user_progress["tutorials_completed"]
                     else "📝 Available"
                 )
-                print(
-                    f"{i}. {
-                        tutorial['title']} ({
-                        tutorial['duration']}) - {status}"
-                )
+                print(f"{i}. {tutorial['title']} ({tutorial['duration']}) - {status}")
             print("0. Return to main menu")
 
             choice = input("Select a tutorial: ").strip()
