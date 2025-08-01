@@ -1,0 +1,81 @@
+{% set name = "zeek-yara-educational" %}
+{% set version = "1.0.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ../../
+
+build:
+  number: 0
+  script: {{ PYTHON }} -m pip install . -vv
+  noarch: python
+  entry_points:
+    - zeek-yara-educational = main:main
+    - zye = main:main
+    - zeek-yara-setup = setup_wizard:main
+    - zye-setup = setup_wizard:main
+
+requirements:
+  host:
+    - python >=3.8
+    - pip
+    - setuptools >=45
+    - wheel
+  run:
+    - python >=3.8
+    - yara-python >=4.2.0
+    - watchdog >=2.1.0
+    - python-magic >=0.4.24
+    - fastapi >=0.89.0
+    - uvicorn >=0.20.0
+    - pydantic >=1.10.0
+    - typing-extensions >=4.4.0
+    - sqlalchemy >=2.0.0
+    - requests >=2.28.0
+    - rich >=12.0.0
+    - typer >=0.7.0
+
+test:
+  imports:
+    - main
+    - setup_wizard
+    - core
+    - api
+    - suricata
+    - utils
+  commands:
+    - zeek-yara-educational --help
+    - zye --help
+    - zeek-yara-setup --help
+  requires:
+    - pytest
+    - pytest-cov
+
+about:
+  home: https://github.com/your-org/zeek_yara_integration
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  summary: Educational network security monitoring platform
+  description: |
+    Zeek-YARA Educational Platform transforms enterprise security tools 
+    (Zeek, YARA, Suricata) into a beginner-friendly learning environment 
+    with tutorials, guided setup, and web interface.
+    
+    Features:
+    - Beginner-friendly interface with guided tutorials
+    - Integrated security tools (Zeek, YARA, Suricata)
+    - Web-based dashboard for real-time monitoring
+    - Educational content and progressive learning
+    - Cross-platform support (Windows, macOS, Linux)
+    - Zero-dependency installation experience
+    
+  doc_url: https://your-org.github.io/zeek_yara_integration
+  dev_url: https://github.com/your-org/zeek_yara_integration
+
+extra:
+  recipe-maintainers:
+    - zeek-yara-educational-team

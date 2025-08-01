@@ -1,0 +1,128 @@
+name: Question
+description: Ask a question about the project
+title: "[QUESTION] "
+labels: ["question", "needs-response"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your question! This helps us understand what might need better documentation or clarification.
+        
+        Please search existing issues and discussions before asking to see if your question has already been answered.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What type of question is this?
+      options:
+        - Installation/Setup
+        - Configuration
+        - Usage/How-to
+        - Troubleshooting
+        - Educational Content
+        - Project Roadmap
+        - Contributing
+        - Architecture/Design
+        - Performance
+        - Security
+        - Integration
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is this question?
+      options:
+        - High (Blocking my work)
+        - Medium (Would like to know soon)
+        - Low (Whenever convenient)
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Please ask your question clearly and provide context
+      placeholder: What would you like to know?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and Background
+      description: Provide any relevant context that might help us answer your question
+      placeholder: |
+        What are you trying to accomplish?
+        What have you tried so far?
+        What documentation have you consulted?
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment (if relevant)
+      description: Include environment details if they're relevant to your question
+      value: |
+        - OS: [e.g., Ubuntu 20.04, Windows 10, macOS 12]
+        - Python Version: [e.g., 3.9.7]
+        - Project Version: [e.g., v1.0.0 or commit hash]
+
+  - type: textarea
+    id: research
+    attributes:
+      label: Research Done
+      description: What have you already tried or researched?
+      placeholder: |
+        - Searched documentation at...
+        - Tried following tutorial at...
+        - Found related issue #...
+        - Consulted external resources...
+
+  - type: checkboxes
+    id: learning_goal
+    attributes:
+      label: Learning Goals
+      description: What are you hoping to learn? (Check all that apply)
+      options:
+        - label: Network security fundamentals
+        - label: Malware analysis techniques
+        - label: YARA rule writing
+        - label: Suricata configuration
+        - label: Zeek usage
+        - label: Python development
+        - label: System integration
+        - label: Testing methodologies
+        - label: Other (please specify in question)
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Potential Contribution
+      description: How might you contribute back based on the answer?
+      options:
+        - label: I could help improve documentation
+        - label: I could create a tutorial based on the answer
+        - label: I could help others with similar questions
+        - label: I could contribute code improvements
+        - label: I could provide feedback on the answer
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and discussions
+          required: true
+        - label: I have consulted the available documentation
+          required: true
+        - label: I have provided sufficient context
+          required: true
+        - label: I am willing to help improve documentation based on the answer
+          required: false

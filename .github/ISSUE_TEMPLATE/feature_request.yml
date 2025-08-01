@@ -1,0 +1,191 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for the Zeek-YARA Integration platform
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature! Community input drives platform development.
+        
+        Before submitting, please:
+        1. Check if a similar feature request already exists
+        2. Consider if this aligns with our educational mission
+        3. Think about how this would benefit the learning community
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: A clear and concise description of the feature you'd like to see
+      placeholder: Briefly describe the feature in 1-2 sentences
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What use case does it address?
+      placeholder: |
+        Describe the problem or need this feature addresses:
+        - What challenges do users currently face?
+        - What learning objectives would this support?
+        - How does this improve the educational experience?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed solution in detail
+      placeholder: |
+        Explain your proposed solution:
+        - How would this feature work?
+        - What would the user interface look like?
+        - How would users interact with it?
+        - What would be the expected behavior?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: |
+        Describe any alternative solutions you've considered:
+        - Other ways to solve the same problem
+        - Existing workarounds
+        - Similar features in other tools
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: What type of feature is this?
+      options:
+        - Educational Content (tutorials, exercises)
+        - User Interface/Experience
+        - Core Functionality (scanning, analysis)
+        - Integration (Zeek, YARA, external tools)
+        - Community Features (collaboration, sharing)
+        - Documentation and Help
+        - Performance and Optimization
+        - Accessibility and Localization
+        - API and Extensibility
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to you?
+      options:
+        - Low (nice to have)
+        - Medium (would improve experience)
+        - High (significantly impacts usability)
+        - Critical (blocking learning objectives)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Target Audience
+      description: Who would primarily benefit from this feature?
+      options:
+        - Beginner learners
+        - Intermediate users
+        - Advanced practitioners
+        - Educators and instructors
+        - Contributors and developers
+        - All users
+        - Specific group (please specify in additional context)
+    validations:
+      required: true
+
+  - type: textarea
+    id: educational-value
+    attributes:
+      label: Educational Value
+      description: How does this feature support learning and skill development?
+      placeholder: |
+        Explain the educational benefits:
+        - What skills would this help develop?
+        - How does it enhance the learning experience?
+        - What learning outcomes would it support?
+        - How does it align with cybersecurity education goals?
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Ideas
+      description: Do you have ideas about how this could be implemented?
+      placeholder: |
+        Share any implementation thoughts (optional):
+        - Technical approaches
+        - Integration points
+        - Required dependencies
+        - Potential challenges
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples and References
+      description: Any examples, mockups, or references that illustrate your idea?
+      placeholder: |
+        Provide examples if available:
+        - Links to similar features in other tools
+        - Mockups or wireframes
+        - Screenshots or descriptions
+        - Academic papers or research
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, requirements, or considerations?
+      placeholder: |
+        Add any additional information:
+        - Special requirements or constraints
+        - Compatibility considerations
+        - Integration with existing features
+        - Future expansion possibilities
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution Willingness
+      description: Would you be interested in contributing to this feature?
+      options:
+        - label: I would be willing to help implement this feature
+          required: false
+        - label: I would be willing to test this feature
+          required: false
+        - label: I would be willing to help with documentation
+          required: false
+        - label: I would be willing to provide feedback during development
+          required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Submission Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched for existing feature requests
+          required: true
+        - label: This feature aligns with the educational mission of the platform
+          required: true
+        - label: I have provided clear and detailed information
+          required: true
+        - label: I understand this is a community-driven project and development takes time
+          required: true

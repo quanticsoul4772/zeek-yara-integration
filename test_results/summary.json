@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-04-25T16:39:51.619374",
+  "total": 39,
+  "passed": 38,
+  "failures": 1,
+  "errors": 0,
+  "skipped": 0,
+  "success_rate": 97.44,
+  "test_type": "all"
+}

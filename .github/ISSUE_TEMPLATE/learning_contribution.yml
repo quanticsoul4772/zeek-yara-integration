@@ -1,0 +1,181 @@
+name: Learning Contribution
+description: Share what you've learned or ask for learning guidance
+title: "[LEARNING] "
+labels: ["learning", "educational", "community"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Welcome to our learning community! This template helps you share knowledge or seek learning guidance.
+        
+        Whether you're sharing a discovery, asking for learning resources, or proposing educational content, we're here to help.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Contribution Type
+      description: What type of learning contribution is this?
+      options:
+        - Knowledge Sharing (I learned something new)
+        - Learning Request (I need learning guidance)
+        - Educational Content Proposal (I want to create learning materials)
+        - Study Group (Let's learn together)
+        - Resource Recommendation (Found a great resource)
+        - Learning Feedback (Feedback on existing educational content)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Learning Topic
+      description: What topic does this relate to?
+      options:
+        - Network Security Fundamentals
+        - Malware Analysis
+        - YARA Rule Writing
+        - Suricata Configuration
+        - Zeek Network Monitoring
+        - Python Development
+        - System Integration
+        - Testing and QA
+        - DevOps and Deployment
+        - Open Source Contribution
+        - Project Management
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: level
+    attributes:
+      label: Skill Level
+      description: What skill level is this contribution aimed at?
+      options:
+        - Beginner (New to the topic)
+        - Intermediate (Some experience)
+        - Advanced (Significant experience)
+        - Expert (Deep expertise)
+        - Mixed (Multiple levels)
+    validations:
+      required: true
+
+  - type: textarea
+    id: content
+    attributes:
+      label: Learning Content
+      description: Share your knowledge, question, or proposal
+      placeholder: |
+        If sharing knowledge: What did you learn? How did you learn it?
+        If requesting guidance: What do you want to learn? What's your current level?
+        If proposing content: What educational material do you want to create?
+    validations:
+      required: true
+
+  - type: textarea
+    id: practical_application
+    attributes:
+      label: Practical Application
+      description: How can this knowledge be applied to the project?
+      placeholder: How does this relate to Zeek YARA Integration? What problems does it solve?
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Learning Resources
+      description: Include any resources that helped you learn or that others might find useful
+      placeholder: |
+        - Documentation links
+        - Tutorials
+        - Videos
+        - Books
+        - Tools
+        - Example code
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or Demos
+      description: Provide concrete examples, code snippets, or demo ideas
+      render: markdown
+
+  - type: checkboxes
+    id: delivery_format
+    attributes:
+      label: Preferred Learning Format
+      description: How would you like to share or receive this knowledge? (Check all that apply)
+      options:
+        - label: Written tutorial/guide
+        - label: Video walkthrough
+        - label: Live session/workshop
+        - label: Hands-on lab exercise
+        - label: Code examples
+        - label: Interactive demo
+        - label: Q&A discussion
+        - label: Study group
+
+  - type: checkboxes
+    id: collaboration
+    attributes:
+      label: Collaboration
+      description: How would you like to collaborate? (Check all that apply)
+      options:
+        - label: I can mentor others on this topic
+        - label: I'd like a mentor for this topic
+        - label: I want to collaborate with peers
+        - label: I can help create educational materials
+        - label: I can review educational content
+        - label: I can provide real-world examples
+        - label: I can help with testing/validation
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Timeline and Availability
+      description: When are you available for this learning activity?
+      placeholder: |
+        - Available times
+        - Preferred duration
+        - Frequency (if ongoing)
+        - Deadlines (if any)
+
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: What background knowledge or setup is needed?
+      placeholder: |
+        - Required prior knowledge
+        - Software/tools needed
+        - Environment setup
+        - Time commitment
+
+  - type: checkboxes
+    id: integration
+    attributes:
+      label: Integration Opportunities
+      description: How could this learning be integrated into the project? (Check all that apply)
+      options:
+        - label: Add to documentation
+        - label: Create tutorial in docs/tutorials/
+        - label: Develop hands-on exercise
+        - label: Include in onboarding process
+        - label: Create reference material
+        - label: Build interactive demo
+        - label: Develop certification content
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have checked for similar learning contributions
+          required: true
+        - label: I have considered the educational value
+          required: true
+        - label: I am committed to following through
+          required: true
+        - label: I am open to feedback and collaboration
+          required: true

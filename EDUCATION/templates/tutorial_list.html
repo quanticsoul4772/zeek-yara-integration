@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Tutorials - Security Learning Platform{% endblock %}
+
+{% block content %}
+<div class="tutorial-list-page">
+    <div class="page-header">
+        <h1>📚 Interactive Security Tutorials</h1>
+        <p>Choose your learning path and build cybersecurity expertise step by step.</p>
+    </div>
+    
+    <div class="tutorials-container">
+        {% for tutorial in tutorials %}
+        <div class="tutorial-item">
+            <div class="tutorial-content">
+                <div class="tutorial-header">
+                    <h3>{{ tutorial.title }}</h3>
+                    <div class="tutorial-badges">
+                        <span class="difficulty-badge {{ tutorial.difficulty.lower() }}">{{ tutorial.difficulty }}</span>
+                        {% if tutorial.id in user_progress.tutorials_completed %}
+                        <span class="completion-badge">✅ Completed</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <p>{{ tutorial.description }}</p>
+                
+                <div class="tutorial-details">
+                    <div class="detail-item">
+                        <span class="label">⏱️ Duration:</span>
+                        <span class="value">{{ tutorial.duration }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">📋 Steps:</span>
+                        <span class="value">{{ tutorial.steps_count }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">🌟 XP:</span>
+                        <span class="value">{{ tutorial.estimated_xp }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">✨ Features:</span>
+                        <span class="value">{{ tutorial.interactive_features|join(", ") }}</span>
+                    </div>
+                </div>
+                
+                <div class="tutorial-topics">
+                    {% for topic in tutorial.topics %}
+                    <span class="topic-tag">{{ topic }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="tutorial-actions">
+                <a href="/tutorial/{{ tutorial.id }}" class="btn-primary">
+                    {% if tutorial.id in user_progress.tutorials_completed %}
+                    Review Tutorial
+                    {% else %}
+                    Start Learning
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

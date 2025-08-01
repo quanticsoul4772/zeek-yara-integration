@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="39" time="15.916" timestamp="2025-04-25T16:39:19.485295-07:00" hostname="Russells-MacBook-Pro.local"><testcase classname="tests.integration_tests.test_suricata_integration.TestSuricataIntegration" name="test_pcap_analysis" time="0.079" /><testcase classname="tests.integration_tests.test_suricata_integration.TestSuricataIntegration" name="test_rule_management" time="3.053" /><testcase classname="tests.integration_tests.test_suricata_integration.TestSuricataIntegration" name="test_alert_storage_and_retrieval" time="0.003" /><testcase classname="tests.integration_tests.test_suricata_integration.TestSuricataIntegration" name="test_integration_with_correlation" time="0.005" /><testcase classname="tests.performance_tests.test_suricata_performance.TestSuricataPerformance" name="test_alert_retrieval_performance" time="0.015" /><testcase classname="tests.performance_tests.test_suricata_performance.TestSuricataPerformance" name="test_alert_filtering_performance" time="0.013" /><testcase classname="tests.performance_tests.test_suricata_performance.TestSuricataPerformance" name="test_correlation_performance" time="0.042" /><testcase classname="tests.performance_tests.test_suricata_performance.TestSuricataPerformance" name="test_database_write_performance" time="0.006" /><testcase classname="tests.performance_tests.test_suricata_performance.TestSuricataPerformance" name="test_process_alerts_performance" time="0.008" /><testcase classname="tests.test_database.TestDatabaseManager" name="test_initialization" time="0.001" /><testcase classname="tests.test_database.TestDatabaseManager" name="test_add_alert" time="0.001" /><testcase classname="tests.test_database.TestDatabaseManager" name="test_bulk_insert_alerts" time="0.001" /><testcase classname="tests.test_database.TestDatabaseManager" name="test_get_alerts_with_limit" time="0.001" /><testcase classname="tests.test_database.TestDatabaseManager" name="test_connection_pool" time="0.000" /><testcase classname="tests.test_database.TestDatabasePerformance" name="test_single_vs_bulk_insert_performance" time="0.016" /><testcase classname="tests.test_database.TestDatabasePerformance" name="test_query_performance" time="0.013" /><testcase classname="tests.test_database.TestDatabasePerformance" name="test_performance_tracking_decorator" time="0.107" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzer" name="test_initialization" time="0.000" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzer" name="test_file_size_check" time="0.002" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzer" name="test_mime_type_detection" time="0.006" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzer" name="test_file_type_detection" time="0.005" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzer" name="test_metadata_extraction" time="0.002" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzer" name="test_file_categorization" time="0.000" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzerPerformance" name="test_lru_cache_performance" time="0.002" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzerPerformance" name="test_metadata_extraction_performance" time="0.003" /><testcase classname="tests.test_file_analyzer.TestFileAnalyzerPerformance" name="test_performance_tracking_decorator" time="0.003" /><testcase classname="tests.test_scanner.TestScanner" name="test_single_thread_scanner_initialization" time="0.010" /><testcase classname="tests.test_scanner.TestScanner" name="test_multi_thread_scanner_initialization" time="0.008" /><testcase classname="tests.test_scanner.TestScanner" name="test_scan_file" time="0.009" /><testcase classname="tests.test_scanner.TestScanner" name="test_scan_directory" time="0.011" /><testcase classname="tests.test_scanner.TestScanner" name="test_file_event_handler" time="1.020" /><testcase classname="tests.test_scanner.TestScannerIntegration" name="test_monitoring_workflow" time="5.096" /><testcase classname="tests.test_scanner.TestScannerIntegration" name="test_eicar_detection" time="0.026" /><testcase classname="tests.test_scanner.TestScannerPerformance" name="test_single_vs_multi_thread_performance" time="6.138" /><testcase classname="tests.test_scanner.TestScannerPerformance" name="test_file_type_filtering_performance" time="0.102" /><testcase classname="tests.test_scanner.TestScannerPerformance" name="test_rule_optimization_performance" time="0.019" /><testcase classname="tests.unit_tests.test_alert_correlation.TestAlertCorrelator" name="test_initialization" time="0.002" /><testcase classname="tests.unit_tests.test_alert_correlation.TestAlertCorrelator" name="test_database_initialization" time="0.001" /><testcase classname="tests.unit_tests.test_alert_correlation.TestAlertCorrelator" name="test_correlate_alerts_ip_based" time="0.002"><failure message="AttributeError: &lt;class 'suricata.alert_correlation.orchestrator.AlertCorrelator'&gt; does not have the attribute '_get_connection_info'">args = (&lt;test_alert_correlation.TestAlertCorrelator object at 0x10594c770&gt;,)
+keywargs = {'alert_correlator': &lt;suricata.alert_correlation.orchestrator.AlertCorrelator object at 0x105a53890&gt;}
+
+    @wraps(func)
+    def patched(*args, **keywargs):
+&gt;       with self.decoration_helper(patched,
+                                    args,
+                                    keywargs) as (newargs, newkeywargs):
+
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:1423: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py:141: in __enter__
+    return next(self.gen)
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:1405: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/contextlib.py:530: in enter_context
+    result = _enter(cm)
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:1497: in __enter__
+    original, local = self.get_original()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;unittest.mock._patch object at 0x105973cb0&gt;
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+&gt;           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: &lt;class 'suricata.alert_correlation.orchestrator.AlertCorrelator'&gt; does not have the attribute '_get_connection_info'
+
+/opt/homebrew/Cellar/python@3.13/3.13.3/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/mock.py:1467: AttributeError</failure></testcase></testsuite></testsuites>

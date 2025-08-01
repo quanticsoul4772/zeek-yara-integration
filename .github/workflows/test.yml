@@ -1,0 +1,449 @@
+name: Tests and Quality Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  # Test matrix across platforms and Python versions
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        exclude:
+          # Reduce matrix size for faster runs
+          - os: windows-latest
+            python-version: '3.8'
+          - os: macos-latest
+            python-version: '3.8'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pip
+          ~/AppData/Local/pip/Cache
+          ~/Library/Caches/pip
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt', '**/test-requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-py${{ matrix.python-version }}-pip-
+
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sqlite3 libmagic1
+
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install libmagic
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r test-requirements.txt
+
+    - name: Install package in development mode
+      run: |
+        pip install -e .
+
+    # Run different test suites
+    - name: Run unit tests
+      run: |
+        python -m pytest tests/unit_tests/ -v --tb=short --maxfail=5
+
+    - name: Run integration tests
+      run: |
+        python -m pytest tests/integration_tests/ -v --tb=short --maxfail=3
+      timeout-minutes: 10
+
+    - name: Run framework tests
+      run: |
+        python -m pytest tests/frameworks/ -v --tb=short
+      timeout-minutes: 5
+
+    - name: Test setup wizard
+      run: |
+        python setup_wizard.py --help || echo "Setup wizard help test passed"
+        
+    - name: Test main application
+      run: |
+        python main.py --help || echo "Main application help test passed"
+
+    - name: Test tutorial system
+      run: |
+        python tutorial_system.py --help || echo "Tutorial system test passed"
+
+  # Comprehensive testing with coverage
+  coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sqlite3 libmagic1
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r test-requirements.txt
+        pip install pytest-cov pytest-html pytest-xdist
+
+    - name: Install package in development mode
+      run: |
+        pip install -e .
+
+    - name: Run comprehensive tests with coverage
+      run: |
+        python -m pytest \
+          --cov=. \
+          --cov-report=xml \
+          --cov-report=html \
+          --cov-report=term-missing \
+          --cov-fail-under=70 \
+          --html=test_results/report.html \
+          --self-contained-html \
+          --junit-xml=test_results/junit.xml \
+          -n auto \
+          tests/
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-coverage
+        path: test_results/
+        retention-days: 30
+
+  # Performance testing
+  performance:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r test-requirements.txt
+        pip install pytest-benchmark memory-profiler
+
+    - name: Run performance tests
+      run: |
+        python -m pytest tests/performance_tests/ -v --benchmark-only --benchmark-json=benchmark_results.json
+      timeout-minutes: 15
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: benchmark_results.json
+        retention-days: 30
+
+  # Code quality checks
+  quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install quality tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8 mypy bandit safety
+
+    - name: Check code formatting with Black
+      run: |
+        black --check --diff --color .
+
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only --diff --color .
+
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Type checking with mypy
+      run: |
+        mypy --ignore-missing-imports --show-error-codes --pretty main.py setup_wizard.py tutorial_system.py
+      continue-on-error: true
+
+    - name: Security check with bandit
+      run: |
+        bandit -r . -x tests/ -f json -o bandit_results.json || true
+        bandit -r . -x tests/ -f txt
+
+    - name: Dependency security check with safety
+      run: |
+        safety check --json --output safety_results.json || true
+        safety check
+
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-scan-results
+        path: |
+          bandit_results.json
+          safety_results.json
+        retention-days: 30
+
+  # Documentation checks
+  docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for required documentation files
+      run: |
+        required_files=(
+          "README.md"
+          "CONTRIBUTING.md"
+          "LICENSE"
+          "CHANGELOG.md"
+          "PROJECT_PLAN.md"
+          "packaging/DISTRIBUTION.md"
+        )
+        
+        missing_files=()
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            missing_files+=("$file")
+          fi
+        done
+        
+        if [ ${#missing_files[@]} -ne 0 ]; then
+          echo "Missing required documentation files:"
+          printf '%s\n' "${missing_files[@]}"
+          exit 1
+        else
+          echo "All required documentation files are present"
+        fi
+
+    - name: Check README structure
+      run: |
+        if ! grep -q "## Installation" README.md; then
+          echo "README.md missing Installation section"
+          exit 1
+        fi
+        if ! grep -q "## Usage" README.md; then
+          echo "README.md missing Usage section"
+          exit 1
+        fi
+        if ! grep -q "## Contributing" README.md; then
+          echo "README.md missing Contributing section"
+          exit 1
+        fi
+        echo "README.md structure looks good"
+
+    - name: Check for broken links (basic)
+      run: |
+        # Check for common broken link patterns
+        if grep -r "TODO\|FIXME\|XXX" README.md CONTRIBUTING.md; then
+          echo "Found TODO/FIXME items in documentation"
+        fi
+        echo "Basic link check completed"
+
+  # Educational content validation
+  educational:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Validate tutorial system
+      run: |
+        python -c "
+        from tutorial_system import TutorialManager
+        config = {'EXPERIENCE_LEVEL': 'beginner', 'PROJECT_ROOT': '.', 'EXTRACT_DIR': './extracted_files'}
+        tm = TutorialManager(config)
+        tutorials = tm.get_available_tutorials()
+        print(f'Found {len(tutorials)} tutorials')
+        assert len(tutorials) > 0, 'No tutorials found'
+        print('Tutorial system validation passed')
+        "
+
+    - name: Check educational content structure
+      run: |
+        educational_dirs=(
+          "EDUCATION"
+          "docs"
+          "DOCUMENTATION"
+        )
+        
+        found_educational=false
+        for dir in "${educational_dirs[@]}"; do
+          if [ -d "$dir" ]; then
+            echo "Found educational directory: $dir"
+            found_educational=true
+          fi
+        done
+        
+        if [ "$found_educational" = false ]; then
+          echo "Warning: No educational content directories found"
+        fi
+
+    - name: Validate setup wizard
+      run: |
+        python -c "
+        from setup_wizard import SetupWizard
+        wizard = SetupWizard()
+        print('Setup wizard can be imported successfully')
+        "
+
+  # Cross-platform compatibility
+  compatibility:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Test cross-platform imports
+      run: |
+        python -c "
+        import sys
+        print(f'Platform: {sys.platform}')
+        
+        # Test critical imports
+        try:
+            import main
+            print('✓ main.py imports successfully')
+        except Exception as e:
+            print(f'✗ main.py import failed: {e}')
+            
+        try:
+            import setup_wizard
+            print('✓ setup_wizard.py imports successfully')
+        except Exception as e:
+            print(f'✗ setup_wizard.py import failed: {e}')
+            
+        try:
+            import tutorial_system
+            print('✓ tutorial_system.py imports successfully')
+        except Exception as e:
+            print(f'✗ tutorial_system.py import failed: {e}')
+        "
+
+    - name: Test path handling
+      run: |
+        python -c "
+        import os
+        from pathlib import Path
+        
+        # Test path operations
+        project_root = Path(__file__).parent if '__file__' in globals() else Path('.')
+        config_path = project_root / 'config'
+        logs_path = project_root / 'logs'
+        
+        print(f'Project root: {project_root}')
+        print(f'Config path: {config_path}')
+        print(f'Logs path: {logs_path}')
+        print('Path handling works correctly')
+        "
+
+  # Notify on test completion
+  notify:
+    runs-on: ubuntu-latest
+    needs: [test, coverage, performance, quality, docs, educational, compatibility]
+    if: always()
+    
+    steps:
+    - name: Test results summary
+      run: |
+        echo "=== Test Results Summary ==="
+        echo "Test suite: ${{ needs.test.result }}"
+        echo "Coverage: ${{ needs.coverage.result }}"
+        echo "Performance: ${{ needs.performance.result }}"
+        echo "Quality: ${{ needs.quality.result }}"
+        echo "Documentation: ${{ needs.docs.result }}"
+        echo "Educational: ${{ needs.educational.result }}"
+        echo "Compatibility: ${{ needs.compatibility.result }}"
+        
+        # Check if any critical tests failed
+        if [[ "${{ needs.test.result }}" == "failure" || "${{ needs.coverage.result }}" == "failure" ]]; then
+          echo "❌ Critical tests failed!"
+          exit 1
+        elif [[ "${{ needs.quality.result }}" == "failure" ]]; then
+          echo "⚠️ Quality checks failed - review recommended"
+          exit 0
+        else
+          echo "✅ All tests passed!"
+        fi

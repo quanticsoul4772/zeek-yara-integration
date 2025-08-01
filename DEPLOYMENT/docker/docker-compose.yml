@@ -1,0 +1,222 @@
+version: '3.8'
+
+services:
+  # Educational Environment - Default for learning
+  zyi-education:
+    build:
+      context: ../..
+      dockerfile: DEPLOYMENT/docker/Dockerfile
+      target: education
+    container_name: zyi-education
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+    volumes:
+      - educational_data:/app/DATA
+      - ./../../EDUCATION:/app/EDUCATION:ro
+      - ./../../CONFIGURATION/defaults/education.json:/app/config.json:ro
+    environment:
+      - ZYI_ENV=education
+      - ZYI_CONFIG=/app/config.json
+      - ZYI_SAFE_MODE=true
+      - ZYI_DEMO_MODE=true
+    networks:
+      - zyi-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "./TOOLS/cli/zyi", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development Environment
+  zyi-development:
+    build:
+      context: ../..
+      dockerfile: DEPLOYMENT/docker/Dockerfile
+      target: development
+    container_name: zyi-development
+    ports:
+      - "8001:8000"
+      - "8081:8080"
+    volumes:
+      - development_data:/app/DATA
+      - ./../../:/app:delegated  # Full source mount for development
+    environment:
+      - ZYI_ENV=development
+      - ZYI_DEBUG=true
+      - PYTHONPATH=/app/PLATFORM
+    networks:
+      - zyi-network
+    restart: unless-stopped
+    command: ["./TOOLS/cli/zyi", "dev", "start", "--reload", "--port", "8000"]
+
+  # Production Environment (commented out by default)
+  # zyi-production:
+  #   build:
+  #     context: ../..
+  #     dockerfile: DEPLOYMENT/docker/Dockerfile
+  #     target: production
+  #   container_name: zyi-production
+  #   ports:
+  #     - "80:8000"
+  #   volumes:
+  #     - production_data:/app/DATA
+  #     - production_config:/app/CONFIGURATION
+  #   environment:
+  #     - ZYI_ENV=production
+  #     - ZYI_SAFE_MODE=false
+  #     - DATABASE_URL=postgresql://zyi:password@postgres:5432/zyi
+  #     - REDIS_URL=redis://redis:6379/0
+  #   networks:
+  #     - zyi-network
+  #     - zyi-backend
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - postgres
+  #     - redis
+
+  # Database for production (commented out by default)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: zyi-postgres
+  #   environment:
+  #     POSTGRES_DB: zyi
+  #     POSTGRES_USER: zyi
+  #     POSTGRES_PASSWORD: password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./postgres-init:/docker-entrypoint-initdb.d:ro
+  #   networks:
+  #     - zyi-backend
+  #   restart: unless-stopped
+
+  # Redis for production caching (commented out by default)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: zyi-redis
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - zyi-backend
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+
+  # Monitoring and observability
+  zyi-monitor:
+    image: prom/prometheus:latest
+    container_name: zyi-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - zyi-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: zyi-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - zyi-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Log aggregation
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: zyi-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - zyi-network
+    restart: unless-stopped
+    profiles:
+      - logging
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: zyi-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - zyi-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+    profiles:
+      - logging
+
+  # Jupyter notebook for educational data analysis
+  zyi-jupyter:
+    build:
+      context: ../..
+      dockerfile: DEPLOYMENT/docker/Dockerfile.jupyter
+    container_name: zyi-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - educational_data:/app/DATA:ro
+      - ./../../EDUCATION/examples:/app/notebooks:ro
+      - jupyter_notebooks:/app/work
+    environment:
+      - JUPYTER_TOKEN=zyi-education
+      - GRANT_SUDO=yes
+    networks:
+      - zyi-network
+    restart: unless-stopped
+    profiles:
+      - jupyter
+
+networks:
+  zyi-network:
+    driver: bridge
+    name: zyi-network
+  zyi-backend:
+    driver: bridge
+    name: zyi-backend
+    internal: true
+
+volumes:
+  educational_data:
+    name: zyi-educational-data
+  development_data:
+    name: zyi-development-data
+  production_data:
+    name: zyi-production-data
+  production_config:
+    name: zyi-production-config
+  postgres_data:
+    name: zyi-postgres-data
+  redis_data:
+    name: zyi-redis-data
+  prometheus_data:
+    name: zyi-prometheus-data
+  grafana_data:
+    name: zyi-grafana-data
+  elasticsearch_data:
+    name: zyi-elasticsearch-data
+  jupyter_notebooks:
+    name: zyi-jupyter-notebooks

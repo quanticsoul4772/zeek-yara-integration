@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tutorial.title }} - Security Learning Platform{% endblock %}
+
+{% block content %}
+<div class="tutorial-detail-page">
+    <div class="tutorial-hero">
+        <div class="hero-content">
+            <h1>{{ tutorial.title }}</h1>
+            <p class="tutorial-description">{{ tutorial.description }}</p>
+            
+            <div class="tutorial-meta">
+                <span class="meta-item">
+                    <strong>Difficulty:</strong> 
+                    <span class="difficulty-badge {{ tutorial.difficulty.lower() }}">{{ tutorial.difficulty }}</span>
+                </span>
+                <span class="meta-item">
+                    <strong>Duration:</strong> {{ tutorial.duration }}
+                </span>
+                <span class="meta-item">
+                    <strong>Steps:</strong> {{ tutorial.steps|length }}
+                </span>
+            </div>
+            
+            <div class="learning-objectives">
+                <h3>🎯 What You'll Learn</h3>
+                <ul>
+                    {% for objective in tutorial.learning_objectives %}
+                    <li>{{ objective }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="tutorial-actions">
+                <button onclick="startTutorial('{{ tutorial.id }}')" class="btn-primary btn-large">
+                    🚀 Start Tutorial
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tutorial-outline">
+        <h2>📋 Tutorial Outline</h2>
+        <div class="steps-list">
+            {% for step in tutorial.steps %}
+            <div class="step-outline-item">
+                <div class="step-number">{{ loop.index }}</div>
+                <div class="step-content">
+                    <h4>{{ step.title }}</h4>
+                    <p>{{ step.step_type.title() }} • {{ step.duration_estimate }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+async function startTutorial(tutorialId) {
+    try {
+        const response = await fetch(`/api/tutorial/${tutorialId}/start`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        
+        if (data.session_id) {
+            // Start with first step
+            window.location.href = `/tutorial/${tutorialId}/step/intro`;
+        }
+    } catch (error) {
+        console.error('Failed to start tutorial:', error);
+    }
+}
+</script>
+{% endblock %}

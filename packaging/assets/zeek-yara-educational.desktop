@@ -1,0 +1,30 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Zeek-YARA Educational Platform
+GenericName=Network Security Educational Platform
+Comment=Learn network security through hands-on experience with Zeek, YARA, and Suricata
+Exec=zeek-yara-educational
+Icon=zeek-yara-educational
+Terminal=false
+StartupNotify=true
+Categories=Education;Security;Development;Network;
+Keywords=security;network;yara;zeek;suricata;education;cybersecurity;ids;nids;malware;
+MimeType=application/x-yara;application/x-suricata-rules;
+StartupWMClass=ZeekYARAEducational
+Actions=Setup;WebInterface;Tutorial;
+
+[Desktop Action Setup]
+Name=Run Setup Wizard
+Exec=zeek-yara-setup
+Icon=zeek-yara-educational
+
+[Desktop Action WebInterface]
+Name=Open Web Interface
+Exec=sh -c "zeek-yara-educational --web-only & sleep 2 && xdg-open http://localhost:8000"
+Icon=zeek-yara-educational
+
+[Desktop Action Tutorial]
+Name=Start Tutorial
+Exec=zeek-yara-educational --tutorial
+Icon=zeek-yara-educational

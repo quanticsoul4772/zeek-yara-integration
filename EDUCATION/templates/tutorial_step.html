@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}{{ step.title }} - {{ tutorial.title }}{% endblock %}
+
+{% block content %}
+<div class="tutorial-step-page">
+    <div class="step-header">
+        <div class="step-progress">
+            <div class="progress-bar">
+                {% set step_index = tutorial.steps|map(attribute='id')|list|index(step.id) + 1 %}
+                <div class="progress-fill" style="width: {{ (step_index / tutorial.steps|length * 100) }}%"></div>
+            </div>
+            <span class="progress-text">Step {{ step_index }} of {{ tutorial.steps|length }}</span>
+        </div>
+        
+        <h1>{{ step.title }}</h1>
+        <div class="step-meta">
+            <span class="step-type">{{ step.step_type.title() }}</span>
+            <span class="duration">⏱️ {{ step.duration_estimate }}</span>
+        </div>
+    </div>
+    
+    <div class="step-content">
+        {{ step.content|safe }}
+    </div>
+    
+    <div class="step-navigation">
+        {% set step_index = tutorial.steps|map(attribute='id')|list|index(step.id) %}
+        {% if step_index > 0 %}
+        {% set prev_step = tutorial.steps[step_index - 1] %}
+        <a href="/tutorial/{{ tutorial.id }}/step/{{ prev_step.id }}" class="btn-secondary">← Previous</a>
+        {% endif %}
+        
+        {% if step_index < tutorial.steps|length - 1 %}
+        {% set next_step = tutorial.steps[step_index + 1] %}
+        <a href="/tutorial/{{ tutorial.id }}/step/{{ next_step.id }}" class="btn-primary">Next Step →</a>
+        {% else %}
+        <button onclick="completeTutorial()" class="btn-primary">🎉 Complete Tutorial</button>
+        {% endif %}
+    </div>
+    
+    <div class="help-panel">
+        <button onclick="requestHint()" class="btn-help">💡 Need a Hint?</button>
+        <div id="hint-display" class="hint-container" style="display: none;"></div>
+    </div>
+</div>
+
+<script>
+let currentSession = localStorage.getItem('tutorial_session_{{ tutorial.id }}');
+
+async function completeStep() {
+    try {
+        const response = await fetch(`/api/tutorial/{{ tutorial.id }}/step/{{ step.id }}/complete`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({session_id: currentSession})
+        });
+        const data = await response.json();
+        
+        if (data.achievements && data.achievements.length > 0) {
+            showAchievements(data.achievements);
+        }
+    } catch (error) {
+        console.error('Failed to complete step:', error);
+    }
+}
+
+async function completeTutorial() {
+    await completeStep();
+    alert('🎉 Congratulations! You have completed this tutorial!');
+    window.location.href = '/tutorials';
+}
+
+async function requestHint() {
+    const hintDisplay = document.getElementById('hint-display');
+    hintDisplay.style.display = 'block';
+    
+    const hints = [
+        '💡 Take your time to understand each concept',
+        '🔍 Try the interactive elements to enhance learning',
+        '📚 Review the learning objectives if you get stuck',
+        '🎯 Focus on the key concepts highlighted in the content'
+    ];
+    
+    const randomHint = hints[Math.floor(Math.random() * hints.length)];
+    hintDisplay.innerHTML = `<p>${randomHint}</p>`;
+}
+
+function showAchievements(achievements) {
+    achievements.forEach(achievement => {
+        const notification = document.createElement('div');
+        notification.className = 'achievement-notification';
+        notification.innerHTML = `🏆 Achievement Unlocked: ${achievement}`;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 5000);
+    });
+}
+
+// Auto-complete step after some interaction
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        completeStep();
+    }, 5000); // Auto-complete after 5 seconds of viewing
+});
+</script>
+{% endblock %}

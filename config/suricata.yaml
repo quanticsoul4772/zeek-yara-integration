@@ -1,0 +1,85 @@
+%YAML 1.1
+---
+# Suricata Configuration for Zeek-YARA Integration
+
+# Network Variables
+vars:
+  # Network Definitions
+  HOME-NET: "[192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, 127.0.0.0/8]"
+  EXTERNAL-NET: "!$HOME-NET"
+  
+  # Specific Server Definitions
+  HTTP-SERVERS: "$HOME-NET"
+  DNS-SERVERS: "$HOME-NET"
+  SMTP-SERVERS: "$HOME-NET"
+  SQL-SERVERS: "$HOME-NET"
+
+  # Specific IP Groups
+  KNOWN-MALICIOUS: "[192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24]"
+  MULTICAST-NET: "[224.0.0.0/4, ff00::/8]"
+  
+  # Traffic Classifications
+  WINDOWS-HOST: "[$HOME-NET, 172.16.0.0/12, 10.0.0.0/8]"
+  LINUX-HOST: "[$HOME-NET, 192.168.0.0/16]"
+  INTERNET: "0.0.0.0/0"
+
+# Global settings
+default-log-dir: /Users/russellsmith/zeek_yara_integration/logs/suricata
+
+# Network interface to monitor (adjust as needed)
+af-packet:
+  - interface: en0  # Common macOS interface, verify with ifconfig
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+
+# Logging configuration
+outputs:
+  - fast:
+      enabled: yes
+      filename: fast.log
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert
+        - http
+        - dns
+        - tls
+        - files
+        - ssh
+
+# Rule configuration
+default-rule-path: /Users/russellsmith/zeek_yara_integration/rules/suricata
+rule-files:
+  - "*.rules"
+
+# Performance settings
+max-pending-packets: 1024
+detect-engine-max-list-size: 15000
+
+# Logging and Performance Tuning
+logging:
+  default-log-level: info
+  outputs:
+    - file:
+        enabled: yes
+        filename: suricata.log
+        level: info
+
+# Detect Engine Configuration
+detect:
+  profile: medium
+  custom-detect-proto-layer: yes
+  grouping:
+    timeout: 100
+  prefilter:
+    default: mpm
+
+# Performance Profiling
+profiling:
+  enable: yes
+  json: yes
+  modules:
+    - detect

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Security Learning Platform{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="welcome-section">
+        <h1>🎓 Welcome to Your Security Learning Journey!</h1>
+        <p>Track your progress, explore tutorials, and build your cybersecurity skills.</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ user_progress.experience_points }}</div>
+            <div class="stat-label">Experience Points</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ user_progress.tutorials_completed|length }}</div>
+            <div class="stat-label">Tutorials Completed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ user_progress.achievements|length }}</div>
+            <div class="stat-label">Achievements Earned</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ "%.1f"|format(user_progress.total_time_spent / 60) }}</div>
+            <div class="stat-label">Minutes Learned</div>
+        </div>
+    </div>
+    
+    <div class="tutorial-recommendations">
+        <h2>🚀 Recommended Tutorials</h2>
+        <div class="tutorial-grid">
+            {% for tutorial in available_tutorials[:3] %}
+            <div class="tutorial-card">
+                <div class="tutorial-header">
+                    <h3>{{ tutorial.title }}</h3>
+                    <span class="difficulty-badge {{ tutorial.difficulty.lower() }}">{{ tutorial.difficulty }}</span>
+                </div>
+                <p>{{ tutorial.description }}</p>
+                <div class="tutorial-meta">
+                    <span class="duration">⏱️ {{ tutorial.duration }}</span>
+                    <span class="xp">🌟 {{ tutorial.estimated_xp }} XP</span>
+                </div>
+                <a href="/tutorial/{{ tutorial.id }}" class="btn-primary">Start Tutorial</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    {% if user_progress.achievements %}
+    <div class="achievements-section">
+        <h2>🏆 Recent Achievements</h2>
+        <div class="achievements-list">
+            {% for achievement in user_progress.achievements[-3:] %}
+            <div class="achievement-badge">{{ achievement }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

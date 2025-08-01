@@ -1,0 +1,372 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., v1.0.0)'
+        required: false
+        default: ''
+
+env:
+  PYTHON_VERSION: '3.9'
+  
+jobs:
+  # Quality checks and tests
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/test-requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r test-requirements.txt
+        pip install pytest-cov bandit safety black flake8 mypy
+    
+    - name: Code quality checks
+      run: |
+        # Code formatting
+        black --check --diff .
+        
+        # Linting
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        
+        # Type checking
+        mypy --ignore-missing-imports main.py setup_wizard.py tutorial_system.py
+        
+        # Security scanning
+        bandit -r . -x tests/
+        safety check
+    
+    - name: Run tests
+      run: |
+        pytest tests/ --cov=. --cov-report=xml --cov-report=html --junit-xml=test-results.xml
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+  # Build packages for each platform
+  build:
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            artifact_pattern: "packaging/windows/*.msi,packaging/windows/*.zip"
+          - os: macos-latest
+            platform: macos
+            artifact_pattern: "packaging/macos/*.dmg"
+          - os: ubuntu-latest
+            platform: linux
+            artifact_pattern: "packaging/linux/*.deb,packaging/linux/*.rpm,packaging/linux/*.AppImage,packaging/linux/*.tar.gz"
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pip
+          ~/AppData/Local/pip/Cache
+          ~/Library/Caches/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+    
+    # Windows-specific setup
+    - name: Install Windows dependencies
+      if: matrix.platform == 'windows'
+      run: |
+        # Install WiX Toolset
+        choco install wixtoolset
+        # Add WiX to PATH
+        echo "C:\\Program Files (x86)\\WiX Toolset v3.11\\bin" >> $GITHUB_PATH
+    
+    # macOS-specific setup
+    - name: Install macOS dependencies
+      if: matrix.platform == 'macos'
+      run: |
+        brew install create-dmg
+    
+    # Linux-specific setup
+    - name: Install Linux dependencies
+      if: matrix.platform == 'linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential dpkg-dev rpm fakeroot alien
+        
+        # Download AppImageTool
+        wget -O appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool
+        sudo mv appimagetool /usr/local/bin/
+    
+    # Build PyInstaller executable
+    - name: Build PyInstaller executable
+      run: |
+        python packaging/pyinstaller_config.py
+        pyinstaller --clean --noconfirm packaging/ZeekYARAEducational.spec
+    
+    # Create platform packages
+    - name: Create Windows packages
+      if: matrix.platform == 'windows'
+      run: |
+        python packaging/windows/create_installer.py
+    
+    - name: Create macOS packages
+      if: matrix.platform == 'macos'
+      env:
+        CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APP_SPECIFIC_PASSWORD: ${{ secrets.APP_SPECIFIC_PASSWORD }}
+        TEAM_ID: ${{ secrets.TEAM_ID }}
+      run: |
+        # Import certificates if available
+        if [ -n "${{ secrets.MACOS_CERTIFICATE }}" ]; then
+          echo "${{ secrets.MACOS_CERTIFICATE }}" | base64 --decode > certificate.p12
+          security create-keychain -p "${{ secrets.MACOS_KEYCHAIN_PASSWORD }}" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "${{ secrets.MACOS_KEYCHAIN_PASSWORD }}" build.keychain
+          security import certificate.p12 -k build.keychain -P "${{ secrets.MACOS_CERTIFICATE_PASSWORD }}" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${{ secrets.MACOS_KEYCHAIN_PASSWORD }}" build.keychain
+        fi
+        
+        python packaging/macos/create_dmg.py
+    
+    - name: Create Linux packages
+      if: matrix.platform == 'linux'
+      run: |
+        python packaging/linux/create_packages.py
+    
+    # Upload build artifacts
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.platform }}-packages
+        path: ${{ matrix.artifact_pattern }}
+        retention-days: 90
+
+  # Create Python packages
+  build-python:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build Python packages
+      run: |
+        python packaging/setup_distribution.py sdist bdist_wheel
+    
+    - name: Check package quality
+      run: |
+        twine check packaging/dist/*
+    
+    - name: Upload Python packages
+      uses: actions/upload-artifact@v3
+      with:
+        name: python-packages
+        path: packaging/dist/*
+        retention-days: 90
+
+  # Create release on tag push
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test, build, build-python]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    # Download all artifacts
+    - name: Download Windows packages
+      uses: actions/download-artifact@v3
+      with:
+        name: windows-packages
+        path: release-assets/
+    
+    - name: Download macOS packages
+      uses: actions/download-artifact@v3
+      with:
+        name: macos-packages
+        path: release-assets/
+    
+    - name: Download Linux packages
+      uses: actions/download-artifact@v3
+      with:
+        name: linux-packages
+        path: release-assets/
+    
+    - name: Download Python packages
+      uses: actions/download-artifact@v3
+      with:
+        name: python-packages
+        path: release-assets/
+    
+    # Generate checksums
+    - name: Generate checksums
+      run: |
+        cd release-assets
+        find . -type f \( -name "*.msi" -o -name "*.dmg" -o -name "*.deb" -o -name "*.rpm" -o -name "*.AppImage" -o -name "*.tar.gz" -o -name "*.whl" \) -exec sha256sum {} \; > checksums.txt
+    
+    # Extract release notes from CHANGELOG
+    - name: Extract release notes
+      id: changelog
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        # Extract changelog section for this version
+        awk "/^## \\[$VERSION\\]/{flag=1; next} /^## \\[/{flag=0} flag" CHANGELOG.md > release_notes.txt || echo "No changelog found" > release_notes.txt
+    
+    # Create GitHub release
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: "Zeek-YARA Educational Platform ${{ steps.changelog.outputs.version }}"
+        body_path: release_notes.txt
+        files: release-assets/*
+        draft: false
+        prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish to package repositories
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc')
+    needs: release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Download Python packages
+      uses: actions/download-artifact@v3
+      with:
+        name: python-packages
+        path: packaging/dist/
+    
+    # Publish to PyPI
+    - name: Publish to PyPI
+      if: secrets.PYPI_API_TOKEN
+      run: |
+        pip install twine
+        twine upload packaging/dist/* --username __token__ --password ${{ secrets.PYPI_API_TOKEN }}
+    
+    # Publish to Conda
+    - name: Publish to Conda
+      if: secrets.CONDA_TOKEN
+      run: |
+        # Install conda-build
+        pip install conda-build anaconda-client
+        
+        # Build conda package
+        conda build packaging/conda/
+        
+        # Upload to conda-forge (requires manual setup)
+        # anaconda -t ${{ secrets.CONDA_TOKEN }} upload conda-bld/noarch/*.tar.bz2
+
+  # Update package manager repositories
+  update-repos:
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc')
+    needs: publish
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Update Homebrew formula
+      run: |
+        # Extract version and download URL
+        VERSION=${GITHUB_REF#refs/tags/v}
+        DOWNLOAD_URL="https://github.com/${{ github.repository }}/archive/refs/tags/v${VERSION}.tar.gz"
+        
+        # Calculate SHA256 of source archive
+        SHA256=$(curl -sL "$DOWNLOAD_URL" | sha256sum | cut -d' ' -f1)
+        
+        # Update formula with new version and SHA
+        sed -i "s/version \".*\"/version \"$VERSION\"/" packaging/homebrew/zeek-yara-educational.rb
+        sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/" packaging/homebrew/zeek-yara-educational.rb
+        
+        echo "Updated Homebrew formula for version $VERSION"
+        echo "Manual step required: Submit PR to homebrew-core or custom tap"
+
+  # Security scanning
+  security-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
