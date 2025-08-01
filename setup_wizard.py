@@ -57,7 +57,10 @@ class SystemDetector:
         path = shutil.which(command)
         return path is not None, path or ""
 
-    def get_command_version(self, command: str, version_arg: str = "--version") -> str:
+    def get_command_version(
+            self,
+            command: str,
+            version_arg: str = "--version") -> str:
         """Get version of a command."""
         try:
             result = subprocess.run(
@@ -66,7 +69,7 @@ class SystemDetector:
             if result.returncode == 0:
                 return result.stdout.strip().split("\n")[0]
             return "Unknown version"
-        except:
+        except BaseException:
             return "Version unavailable"
 
     def detect_zeek(self) -> Dict[str, any]:
@@ -81,7 +84,11 @@ class SystemDetector:
         if available:
             version = self.get_command_version(os.path.basename(path))
             self.log(f"Found Zeek at {path}", "success")
-            return {"available": True, "path": path, "version": version, "ready": True}
+            return {
+                "available": True,
+                "path": path,
+                "version": version,
+                "ready": True}
         else:
             self.log("Zeek not found in PATH", "warning")
             return {
@@ -110,7 +117,10 @@ class SystemDetector:
             version = ""
 
         if available or python_yara:
-            self.log(f"Found YARA {'and Python module' if python_yara else ''}", "success")
+            self.log(
+                f"Found YARA {
+                    'and Python module' if python_yara else ''}",
+                "success")
             return {
                 "available": True,
                 "path": path,
@@ -138,7 +148,11 @@ class SystemDetector:
         if available:
             version = self.get_command_version("suricata", "-V")
             self.log(f"Found Suricata at {path}", "success")
-            return {"available": True, "path": path, "version": version, "ready": True}
+            return {
+                "available": True,
+                "path": path,
+                "version": version,
+                "ready": True}
         else:
             self.log("Suricata not found in PATH", "warning")
             return {
@@ -166,7 +180,8 @@ class SystemDetector:
                 if ipv4_addrs:
                     ip = ipv4_addrs[0].get("addr", "Unknown")
                     interfaces.append(
-                        {"name": interface, "ip": ip, "description": f"{interface} ({ip})"}
+                        {"name": interface, "ip": ip,
+                            "description": f"{interface} ({ip})"}
                     )
         except Exception as e:
             self.log(f"Error detecting interfaces: {e}", "warning")
@@ -196,11 +211,12 @@ class SystemDetector:
                 ["ip", "link", "show", interface], capture_output=True, timeout=2
             )
             return result.returncode == 0
-        except:
+        except BaseException:
             try:
-                result = subprocess.run(["ifconfig", interface], capture_output=True, timeout=2)
+                result = subprocess.run(
+                    ["ifconfig", interface], capture_output=True, timeout=2)
                 return result.returncode == 0
-            except:
+            except BaseException:
                 return False
 
     def get_zeek_install_help(self) -> str:
@@ -245,7 +261,7 @@ class SetupWizard:
 
 This wizard will:
 • Detect your system capabilities
-• Configure security tools automatically  
+• Configure security tools automatically
 • Set up beginner-friendly defaults
 • Guide you through first-time configuration
 
@@ -254,8 +270,12 @@ Let's transform this enterprise toolkit into your learning platform!
             """
 
             panel = Panel(
-                welcome_text.strip(), title="Setup Wizard", border_style="blue", padding=(1, 2)
-            )
+                welcome_text.strip(),
+                title="Setup Wizard",
+                border_style="blue",
+                padding=(
+                    1,
+                    2))
             self.console.print(panel)
         else:
             print("=" * 60)
@@ -273,7 +293,8 @@ Let's transform this enterprise toolkit into your learning platform!
                 TextColumn("[progress.description]{task.description}"),
                 console=self.console,
             ) as progress:
-                task = progress.add_task("Detecting system capabilities...", total=4)
+                task = progress.add_task(
+                    "Detecting system capabilities...", total=4)
 
                 # Detect each tool
                 zeek_info = self.detector.detect_zeek()
@@ -314,7 +335,8 @@ Let's transform this enterprise toolkit into your learning platform!
                 if tool_name == "interfaces":
                     continue
 
-                status = "✅ Ready" if info.get("ready", False) else "❌ Not Available"
+                status = "✅ Ready" if info.get(
+                    "ready", False) else "❌ Not Available"
                 version = info.get("version", "N/A")
                 table.add_row(tool_name.upper(), status, version)
 
@@ -323,7 +345,8 @@ Let's transform this enterprise toolkit into your learning platform!
                 iface_info = f"{len(results['interfaces'])} available"
                 table.add_row("Network Interfaces", "✅ Detected", iface_info)
             else:
-                table.add_row("Network Interfaces", "❌ None Found", "Manual setup required")
+                table.add_row("Network Interfaces",
+                              "❌ None Found", "Manual setup required")
 
             self.console.print(table)
         else:
@@ -332,11 +355,13 @@ Let's transform this enterprise toolkit into your learning platform!
             for tool_name, info in results.items():
                 if tool_name == "interfaces":
                     continue
-                status = "Ready" if info.get("ready", False) else "Not Available"
+                status = "Ready" if info.get(
+                    "ready", False) else "Not Available"
                 print(f"{tool_name.upper()}: {status}")
 
             if results["interfaces"]:
-                print(f"Network Interfaces: {len(results['interfaces'])} available")
+                print(
+                    f"Network Interfaces: {len(results['interfaces'])} available")
             else:
                 print("Network Interfaces: None found")
 
@@ -346,7 +371,8 @@ Let's transform this enterprise toolkit into your learning platform!
 
         # Experience level
         if self.console:
-            self.console.print("\n🎯 Configuration Questions", style="bold blue")
+            self.console.print(
+                "\n🎯 Configuration Questions", style="bold blue")
         else:
             print("\nConfiguration Questions:")
 
@@ -358,7 +384,8 @@ Let's transform this enterprise toolkit into your learning platform!
             )
         else:
             experience = (
-                input("Experience level (beginner/intermediate/advanced) [beginner]: ").strip()
+                input(
+                    "Experience level (beginner/intermediate/advanced) [beginner]: ").strip()
                 or "beginner"
             )
 
@@ -381,10 +408,11 @@ What do you want to learn about? (Select primary focus)
 
         if RICH_AVAILABLE:
             goal = Prompt.ask(
-                "Choose your primary learning goal", choices=["1", "2", "3", "4", "5"], default="5"
-            )
+                "Choose your primary learning goal", choices=[
+                    "1", "2", "3", "4", "5"], default="5")
         else:
-            goal = input("Choose your primary learning goal (1-5) [5]: ").strip() or "5"
+            goal = input(
+                "Choose your primary learning goal (1-5) [5]: ").strip() or "5"
 
         goal_mapping = {
             "1": "network_analysis",
@@ -401,10 +429,12 @@ What do you want to learn about? (Select primary focus)
                 preferences["network_interface"] = results["interfaces"][0]["name"]
                 if self.console:
                     self.console.print(
-                        f"Using network interface: {results['interfaces'][0]['description']}"
-                    )
+                        f"Using network interface: {
+                            results['interfaces'][0]['description']}")
                 else:
-                    print(f"Using network interface: {results['interfaces'][0]['description']}")
+                    print(
+                        f"Using network interface: {
+                            results['interfaces'][0]['description']}")
             else:
                 if self.console:
                     self.console.print("\nAvailable network interfaces:")
@@ -413,7 +443,8 @@ What do you want to learn about? (Select primary focus)
 
                     choice = Prompt.ask(
                         "Select network interface",
-                        choices=[str(i) for i in range(1, len(results["interfaces"]) + 1)],
+                        choices=[str(i) for i in range(
+                            1, len(results["interfaces"]) + 1)],
                         default="1",
                     )
                 else:
@@ -421,14 +452,14 @@ What do you want to learn about? (Select primary focus)
                     for i, iface in enumerate(results["interfaces"], 1):
                         print(f"{i}. {iface['description']}")
                     choice = (
-                        input(f"Select interface (1-{len(results['interfaces'])}) [1]: ").strip()
+                        input(
+                            f"Select interface (1-{len(results['interfaces'])}) [1]: ").strip()
                         or "1"
                     )
 
                 try:
-                    preferences["network_interface"] = results["interfaces"][int(choice) - 1][
-                        "name"
-                    ]
+                    preferences["network_interface"] = results["interfaces"][int(
+                        choice) - 1]["name"]
                 except (ValueError, IndexError):
                     preferences["network_interface"] = results["interfaces"][0]["name"]
         else:
@@ -437,19 +468,22 @@ What do you want to learn about? (Select primary focus)
         # Tutorial mode
         if RICH_AVAILABLE:
             tutorial_mode = Confirm.ask(
-                "Enable interactive tutorials and guided learning?", default=True
-            )
+                "Enable interactive tutorials and guided learning?",
+                default=True)
         else:
-            response = input("Enable interactive tutorials? (y/n) [y]: ").strip().lower()
+            response = input(
+                "Enable interactive tutorials? (y/n) [y]: ").strip().lower()
             tutorial_mode = response != "n"
 
         preferences["tutorial_mode"] = tutorial_mode
 
         # Web interface
         if RICH_AVAILABLE:
-            web_interface = Confirm.ask("Enable web-based dashboard?", default=True)
+            web_interface = Confirm.ask(
+                "Enable web-based dashboard?", default=True)
         else:
-            response = input("Enable web dashboard? (y/n) [y]: ").strip().lower()
+            response = input(
+                "Enable web dashboard? (y/n) [y]: ").strip().lower()
             web_interface = response != "n"
 
         preferences["web_interface"] = web_interface
@@ -524,14 +558,16 @@ What do you want to learn about? (Select primary focus)
                 json.dump(config, f, indent=4)
 
             if self.console:
-                self.console.print(f"✅ Configuration saved to {config_path}", style="green")
+                self.console.print(
+                    f"✅ Configuration saved to {config_path}", style="green")
             else:
                 print(f"Configuration saved to {config_path}")
 
             return True
         except Exception as e:
             if self.console:
-                self.console.print(f"❌ Failed to save configuration: {e}", style="red")
+                self.console.print(
+                    f"❌ Failed to save configuration: {e}", style="red")
             else:
                 print(f"Error saving configuration: {e}")
             return False
@@ -560,17 +596,28 @@ Happy learning! 🛡️
             """
 
             panel = Panel(
-                summary_text.strip(), title="Setup Complete", border_style="green", padding=(1, 2)
-            )
+                summary_text.strip(),
+                title="Setup Complete",
+                border_style="green",
+                padding=(
+                    1,
+                    2))
             self.console.print(panel)
         else:
             print("\n" + "=" * 60)
             print("🎉 SETUP COMPLETE!")
             print("=" * 60)
             print(f"Experience Level: {config['EXPERIENCE_LEVEL'].title()}")
-            print(f"Learning Goal: {config['LEARNING_GOAL'].replace('_', ' ').title()}")
-            print(f"Tutorial Mode: {'Enabled' if config['TUTORIAL_MODE'] else 'Disabled'}")
-            print(f"Web Interface: {'Enabled' if config['WEB_INTERFACE'] else 'Disabled'}")
+            print(
+                f"Learning Goal: {
+                    config['LEARNING_GOAL'].replace(
+                        '_', ' ').title()}")
+            print(
+                f"Tutorial Mode: {
+                    'Enabled' if config['TUTORIAL_MODE'] else 'Disabled'}")
+            print(
+                f"Web Interface: {
+                    'Enabled' if config['WEB_INTERFACE'] else 'Disabled'}")
             print("\nNext steps:")
             print("1. Run: python main.py")
             print("2. Open: http://localhost:8000")
@@ -599,13 +646,16 @@ Happy learning! 🛡️
             return
 
         if self.console:
-            self.console.print("\n⚠️ Missing Tools Installation Help", style="yellow bold")
+            self.console.print(
+                "\n⚠️ Missing Tools Installation Help", style="yellow bold")
         else:
             print("\nMissing Tools Installation Help:")
             print("-" * 40)
 
         for tool_name, info in missing_tools:
-            help_text = info.get("install_help", "Visit tool website for installation instructions")
+            help_text = info.get(
+                "install_help",
+                "Visit tool website for installation instructions")
             if self.console:
                 self.console.print(f"{tool_name.upper()}: {help_text}")
             else:
@@ -638,7 +688,8 @@ Happy learning! 🛡️
 
         except KeyboardInterrupt:
             if self.console:
-                self.console.print("\n\n⏹️ Setup cancelled by user", style="yellow")
+                self.console.print(
+                    "\n\n⏹️ Setup cancelled by user", style="yellow")
             else:
                 print("\nSetup cancelled by user")
             return False
@@ -662,10 +713,11 @@ if __name__ == "__main__":
     if not RICH_AVAILABLE:
         print("Installing rich for better user experience...")
         try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "rich", "netifaces"])
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "rich", "netifaces"])
             print("Please run the setup wizard again for the best experience.")
             sys.exit(0)
-        except:
+        except BaseException:
             print("Continuing with basic interface...")
 
     sys.exit(main())

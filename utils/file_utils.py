@@ -38,7 +38,7 @@ def performance_track(logger=None, level=logging.DEBUG):
                 if logger:
                     logger.log(
                         level,
-                        f"Method {func.__name__} executed in {(end_time - start_time)*1000:.2f} ms",
+                        f"Method {func.__name__} executed in {(end_time - start_time) * 1000:.2f} ms",
                     )
 
                 return result
@@ -64,14 +64,23 @@ class FileTypeCategories:
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         ],
-        "image": ["image/jpeg", "image/png", "image/gif", "image/webp"],
-        "executable": ["application/x-executable", "application/x-msdownload"],
+        "image": [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp"],
+        "executable": [
+            "application/x-executable",
+            "application/x-msdownload"],
         "archive": [
             "application/zip",
             "application/x-rar-compressed",
             "application/x-7z-compressed",
         ],
-        "script": ["text/x-python", "text/x-shellscript", "application/x-perl"],
+        "script": [
+            "text/x-python",
+            "text/x-shellscript",
+            "application/x-perl"],
     }
 
     @classmethod
@@ -107,9 +116,9 @@ class FileAnalyzer:
     Enhanced file analysis class with performance optimization
     """
 
-    def __init__(
-        self, max_file_size: Optional[int] = None, logger: Optional[logging.Logger] = None
-    ):
+    def __init__(self,
+                 max_file_size: Optional[int] = None,
+                 logger: Optional[logging.Logger] = None):
         """
         Initialize the file analyzer.
 
@@ -121,8 +130,10 @@ class FileAnalyzer:
         self.logger = logger or logging.getLogger("zeek_yara.file_utils")
 
         # Configure performance tracking
-        self.get_mime_type = performance_track(logger=self.logger)(self._get_mime_type)
-        self.get_file_type = performance_track(logger=self.logger)(self._get_file_type)
+        self.get_mime_type = performance_track(
+            logger=self.logger)(self._get_mime_type)
+        self.get_file_type = performance_track(
+            logger=self.logger)(self._get_file_type)
 
     def is_file_too_large(self, file_path: str) -> bool:
         """
@@ -233,7 +244,8 @@ class FileAnalyzer:
             metadata["zeek_uid"] = self.extract_zeek_uid(metadata["name"])
 
         except Exception as e:
-            self.logger.error(f"Error processing file metadata for {file_path}: {e}")
+            self.logger.error(
+                f"Error processing file metadata for {file_path}: {e}")
 
         return metadata
 
@@ -284,7 +296,10 @@ class FileAnalyzer:
 
         return "unknown_uid"
 
-    def filter_file_by_mime(self, file_path: str, allowed_mime_types: list) -> bool:
+    def filter_file_by_mime(
+            self,
+            file_path: str,
+            allowed_mime_types: list) -> bool:
         """
         Filter file by MIME type.
 
@@ -307,7 +322,10 @@ class FileAnalyzer:
 
         return False
 
-    def filter_file_by_extension(self, file_path: str, allowed_extensions: list) -> bool:
+    def filter_file_by_extension(
+            self,
+            file_path: str,
+            allowed_extensions: list) -> bool:
         """
         Filter file by extension.
 

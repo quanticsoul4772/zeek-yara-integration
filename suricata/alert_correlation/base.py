@@ -14,7 +14,8 @@ class AlertRetriever(ABC):
     """Abstract base class for alert retrieval"""
 
     @abstractmethod
-    def get_alerts(self, conn: sqlite3.Connection, start_time: str) -> List[Dict[str, Any]]:
+    def get_alerts(self, conn: sqlite3.Connection,
+                   start_time: str) -> List[Dict[str, Any]]:
         """
         Retrieve alerts from a specific source
 
@@ -128,8 +129,10 @@ class AlertDatabaseManager:
                 c.execute(
                     "CREATE INDEX IF NOT EXISTS idx_alert_type ON correlated_alerts(alert_type)"
                 )
-                c.execute("CREATE INDEX IF NOT EXISTS idx_yara_timestamp ON yara_alerts(timestamp)")
-                c.execute("CREATE INDEX IF NOT EXISTS idx_yara_rule_name ON yara_alerts(rule_name)")
+                c.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_yara_timestamp ON yara_alerts(timestamp)")
+                c.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_yara_rule_name ON yara_alerts(rule_name)")
 
                 conn.commit()
 
@@ -178,18 +181,15 @@ class AlertDatabaseManager:
                         (timestamp, correlation_id, alert_type, alert_id, correlation_confidence,
                          correlation_rationale, correlated_alerts, summary)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                        (
-                            group.get("timestamp", datetime.now().isoformat()),
-                            group.get("correlation_id", f"corr_{int(datetime.now().timestamp())}"),
-                            primary_alert.get("source", "unknown"),
-                            primary_id,
-                            group.get("confidence", 0),
-                            group.get("rationale", ""),
-                            related_alerts_json,
-                            group.get("summary", ""),
-                        ),
-                    )
+                    """, (group.get(
+                            "timestamp", datetime.now().isoformat()), group.get(
+                            "correlation_id", f"corr_{
+                                int(
+                                    datetime.now().timestamp())}"), primary_alert.get(
+                            "source", "unknown"), primary_id, group.get(
+                            "confidence", 0), group.get(
+                                "rationale", ""), related_alerts_json, group.get(
+                                    "summary", ""), ), )
 
                 conn.commit()
 
@@ -207,15 +207,33 @@ class AlertDatabaseManager:
             str: Alert summary
         """
         if alert.get("source") == "yara":
-            return f"YARA match: {alert.get('rule_name', 'Unknown rule')} on file {alert.get('file_name', 'Unknown file')}"
+            return f"YARA match: {
+                alert.get(
+                    'rule_name',
+                    'Unknown rule')} on file {
+                alert.get(
+                    'file_name',
+                    'Unknown file')}"
         elif alert.get("source") == "suricata":
-            return f"Suricata alert: {alert.get('signature', 'Unknown signature')} from {alert.get('src_ip', 'Unknown')} to {alert.get('dest_ip', 'Unknown')}"
+            return f"Suricata alert: {
+                alert.get(
+                    'signature',
+                    'Unknown signature')} from {
+                alert.get(
+                    'src_ip',
+                    'Unknown')} to {
+                alert.get(
+                    'dest_ip',
+                    'Unknown')}"
         else:
             return f"Unknown alert type: {alert.get('source', 'unknown')}"
 
-    def get_correlated_alerts(
-        self, filters: Optional[Dict[str, Any]] = None, limit: Optional[int] = None, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    def get_correlated_alerts(self,
+                              filters: Optional[Dict[str,
+                                                     Any]] = None,
+                              limit: Optional[int] = None,
+                              offset: int = 0) -> List[Dict[str,
+                                                            Any]]:
         """
         Retrieve correlated alerts from database
 
@@ -263,19 +281,22 @@ class AlertDatabaseManager:
                 results = []
                 for row in c.fetchall():
                     # Convert row to dictionary
-                    alert = dict(zip([column[0] for column in c.description], row))
+                    alert = dict(zip([column[0]
+                                 for column in c.description], row))
 
                     # Parse JSON fields
                     try:
-                        alert["correlated_alerts"] = json.loads(alert["correlated_alerts"])
-                    except:
+                        alert["correlated_alerts"] = json.loads(
+                            alert["correlated_alerts"])
+                    except BaseException:
                         alert["correlated_alerts"] = []
 
                     try:
                         alert["threat_intel"] = (
-                            json.loads(alert["threat_intel"]) if alert["threat_intel"] else {}
+                            json.loads(alert["threat_intel"]
+                                       ) if alert["threat_intel"] else {}
                         )
-                    except:
+                    except BaseException:
                         alert["threat_intel"] = {}
 
                     results.append(alert)

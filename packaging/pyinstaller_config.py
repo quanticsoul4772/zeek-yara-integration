@@ -4,6 +4,7 @@ PyInstaller configuration for Zeek-YARA Educational Platform
 Creates portable, self-contained executables for all platforms
 """
 
+from packaging.version import VERSION_INFO
 import os
 import platform
 import sys
@@ -15,7 +16,6 @@ PLATFORM = platform.system().lower()
 ARCH = platform.machine().lower()
 
 # Application metadata
-from packaging.version import VERSION_INFO
 
 # PyInstaller spec configuration
 PYINSTALLER_CONFIG = {
@@ -72,11 +72,14 @@ def get_platform_specific_config():
     elif PLATFORM == "darwin":
         config.update(
             {
-                "icon": str(PROJECT_ROOT / "packaging" / "assets" / "icon.icns"),
+                "icon": str(
+                    PROJECT_ROOT /
+                    "packaging" /
+                    "assets" /
+                    "icon.icns"),
                 "bundle_identifier": "edu.security.zeek-yara",
                 "codesign_identity": os.environ.get("CODESIGN_IDENTITY"),
-            }
-        )
+            })
     elif PLATFORM == "linux":
         config.update(
             {

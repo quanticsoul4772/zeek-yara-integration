@@ -6,6 +6,9 @@ Author: Security Team
 This module contains integration tests for the Suricata integration.
 """
 
+from suricata.suricata_integration import SuricataRunner
+from suricata.alert_correlation import AlertCorrelator
+from config.config import Config
 import json
 import os
 import shutil
@@ -19,12 +22,10 @@ from pathlib import Path
 import pytest
 
 # Ensure project root is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../..")))
 
 # Import application components
-from config.config import Config
-from suricata.alert_correlation import AlertCorrelator
-from suricata.suricata_integration import SuricataRunner
 
 # Check if suricata is installed
 suricata_installed = shutil.which("suricata") is not None
@@ -45,10 +46,12 @@ def test_pcap():
 
             # Try to capture a few packets
             try:
-                subprocess.run(["tcpdump", "-c", "10", "-w", pcap_path], timeout=5, check=False)
+                subprocess.run(["tcpdump", "-c", "10", "-w",
+                               pcap_path], timeout=5, check=False)
 
                 # Check if PCAP was created
-                if os.path.exists(pcap_path) and os.path.getsize(pcap_path) > 0:
+                if os.path.exists(pcap_path) and os.path.getsize(
+                        pcap_path) > 0:
                     yield pcap_path
                     return
             except (subprocess.SubprocessError, subprocess.TimeoutExpired):
@@ -63,7 +66,8 @@ def test_pcap():
                 b"\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x01\x00\x00\x00"
             )
             # Add some dummy packet data
-            f.write(b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00")
+            f.write(
+                b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00")
             f.write(
                 b"\x45\x00\x00\x1c\x00\x01\x00\x00\x40\x11\x7a\x83\xc0\xa8\x01\x01\xc0\xa8\x01\x02"
             )
@@ -74,7 +78,7 @@ def test_pcap():
         # Cleanup
         try:
             shutil.rmtree(pcap_dir)
-        except:
+        except BaseException:
             pass
 
 
@@ -175,7 +179,7 @@ alert tcp any any -> any 443 (msg:"TEST-3 HTTPS Traffic"; flow:established,to_se
     # Cleanup
     try:
         shutil.rmtree(test_dir)
-    except:
+    except BaseException:
         pass
 
 
@@ -202,11 +206,13 @@ class TestSuricataIntegration:
         # Check if eve.json was created (regardless of alerts)
         eve_json = os.path.join(
             integrated_test_env["config"]["SURICATA_LOG_DIR"],
-            "pcap_" + os.path.basename(test_pcap) + "_" + str(int(time.time()))[:10],
+            "pcap_" + os.path.basename(test_pcap) +
+            "_" + str(int(time.time()))[:10],
             "eve.json",
         )
 
-        # Allow some flexibility in the directory name since there's a timestamp
+        # Allow some flexibility in the directory name since there's a
+        # timestamp
         eve_dir = os.path.dirname(eve_json)
         parent_dir = os.path.dirname(eve_dir)
 
@@ -391,7 +397,7 @@ class TestSuricataIntegration:
         c.execute(
             """
             INSERT INTO yara_alerts
-            (timestamp, file_path, file_name, file_size, file_type, md5, sha256, zeek_uid, 
+            (timestamp, file_path, file_name, file_size, file_type, md5, sha256, zeek_uid,
              rule_name, rule_namespace, rule_meta, strings_matched, severity)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
@@ -412,5 +418,6 @@ class TestSuricataIntegration:
         # Retrieve correlated alerts
         correlated_alerts = alert_correlator.get_correlated_alerts()
 
-        # Check that we got some structure back (may be empty depending on correlation config)
+        # Check that we got some structure back (may be empty depending on
+        # correlation config)
         assert isinstance(correlated_alerts, list)

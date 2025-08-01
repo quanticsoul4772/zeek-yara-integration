@@ -36,12 +36,14 @@ class BaseScanner:
         self.logger = logging.getLogger("zeek_yara.scanner")
 
         # Initialize components
-        self.file_analyzer = FileAnalyzer(max_file_size=config.get("MAX_FILE_SIZE"))
+        self.file_analyzer = FileAnalyzer(
+            max_file_size=config.get("MAX_FILE_SIZE"))
         self.rule_manager = RuleManager(
-            rules_dir=config.get("RULES_DIR"), rules_index=config.get("RULES_INDEX")
-        )
+            rules_dir=config.get("RULES_DIR"),
+            rules_index=config.get("RULES_INDEX"))
         self.yara_matcher = YaraMatcher(
-            rule_manager=self.rule_manager, timeout=config.get("SCAN_TIMEOUT", 60)
+            rule_manager=self.rule_manager, timeout=config.get(
+                "SCAN_TIMEOUT", 60)
         )
         self.db_manager = DatabaseManager(db_file=config.get("DB_FILE"))
 
@@ -77,22 +79,24 @@ class BaseScanner:
             self.logger.debug(f"File metadata: {file_metadata}")
         except Exception as e:
             self.logger.error(f"Error getting file metadata: {e}")
-            file_metadata = {"file_path": file_path, "name": os.path.basename(file_path)}
+            file_metadata = {"file_path": file_path,
+                             "name": os.path.basename(file_path)}
 
         # Log basic file info
-        self.logger.info(f"Scanning: {file_path} ({file_metadata.get('size', 0)} bytes)")
+        self.logger.info(
+            f"Scanning: {file_path} ({file_metadata.get('size', 0)} bytes)")
 
         # Apply mime-type or extension filtering if configured
         if self.config.get("SCAN_MIME_TYPES") and not self.file_analyzer.filter_file_by_mime(
-            file_path, self.config.get("SCAN_MIME_TYPES")
-        ):
-            self.logger.info(f"Skipping file with excluded MIME type: {file_path}")
+                file_path, self.config.get("SCAN_MIME_TYPES")):
+            self.logger.info(
+                f"Skipping file with excluded MIME type: {file_path}")
             return {"matched": False, "error": "Excluded MIME type"}
 
         if self.config.get("SCAN_EXTENSIONS") and not self.file_analyzer.filter_file_by_extension(
-            file_path, self.config.get("SCAN_EXTENSIONS")
-        ):
-            self.logger.info(f"Skipping file with excluded extension: {file_path}")
+                file_path, self.config.get("SCAN_EXTENSIONS")):
+            self.logger.info(
+                f"Skipping file with excluded extension: {file_path}")
             return {"matched": False, "error": "Excluded extension"}
 
         # Scan file with YARA
@@ -100,7 +104,8 @@ class BaseScanner:
 
         # Process and store results
         if scan_result.get("matched", False):
-            self.logger.info(f"YARA match found in {file_metadata.get('name', '')}")
+            self.logger.info(
+                f"YARA match found in {file_metadata.get('name', '')}")
 
             # Log match details
             for match in scan_result.get("matches", []):
@@ -115,20 +120,24 @@ class BaseScanner:
 
             # Add to database
             try:
-                add_result = self.db_manager.add_alert(file_metadata, scan_result)
+                add_result = self.db_manager.add_alert(
+                    file_metadata, scan_result)
                 if add_result:
                     self.logger.info(
-                        f"Added alert to database for file: {file_metadata.get('name', '')}"
-                    )
+                        f"Added alert to database for file: {
+                            file_metadata.get(
+                                'name', '')}")
                 else:
                     self.logger.error(
-                        f"Failed to add alert to database for file: {file_metadata.get('name', '')}"
-                    )
+                        f"Failed to add alert to database for file: {
+                            file_metadata.get(
+                                'name', '')}")
             except Exception as e:
                 self.logger.error(f"Exception adding alert to database: {e}")
         else:
             if scan_result.get("error"):
-                self.logger.warning(f"Error scanning {file_path}: {scan_result.get('error')}")
+                self.logger.warning(
+                    f"Error scanning {file_path}: {scan_result.get('error')}")
             else:
                 self.logger.info(f"No matches for file: {file_path}")
 
@@ -197,17 +206,19 @@ class BaseScanner:
                     results["errors"] += 1
 
         except Exception as e:
-            self.logger.error(f"Error scanning directory {directory}: {str(e)}")
+            self.logger.error(
+                f"Error scanning directory {directory}: {str(e)}")
             results["error"] = str(e)
 
         # Calculate duration
         results["duration"] = time.time() - results["start_time"]
 
         self.logger.info(
-            f"Directory scan complete: {results['scanned']} files scanned, "
-            f"{results['skipped']} files skipped, "
-            f"{results['matched']} matches found in {results['duration']:.2f} seconds"
-        )
+            f"Directory scan complete: {
+                results['scanned']} files scanned, " f"{
+                results['skipped']} files skipped, " f"{
+                results['matched']} matches found in {
+                    results['duration']:.2f} seconds")
 
         return results
 
@@ -237,11 +248,13 @@ class SingleThreadScanner(BaseScanner):
             # Set up file watching
             event_handler = FileEventHandler(self)
             self.observer = Observer()
-            self.observer.schedule(event_handler, self.extract_dir, recursive=False)
+            self.observer.schedule(
+                event_handler, self.extract_dir, recursive=False)
             self.observer.start()
 
             self.running = True
-            self.logger.info(f"Started monitoring directory: {self.extract_dir}")
+            self.logger.info(
+                f"Started monitoring directory: {self.extract_dir}")
 
             # Scan existing files in the directory
             self.scan_directory()
@@ -321,21 +334,24 @@ class MultiThreadScanner(BaseScanner):
 
             # Start worker threads
             for i in range(self.num_threads):
-                thread = threading.Thread(target=self._worker_thread, args=(i + 1,), daemon=True)
+                thread = threading.Thread(
+                    target=self._worker_thread, args=(i + 1,), daemon=True)
                 thread.start()
                 self.worker_threads.append(thread)
-                self.logger.info(f"Started scanner thread {i+1}")
+                self.logger.info(f"Started scanner thread {i + 1}")
 
             # Set up file watching
             event_handler = FileEventHandler(self)
             self.observer = Observer()
-            self.observer.schedule(event_handler, self.extract_dir, recursive=False)
+            self.observer.schedule(
+                event_handler, self.extract_dir, recursive=False)
             self.observer.start()
 
             self.running = True
             self.logger.info(
-                f"Started monitoring directory with {self.num_threads} threads: {self.extract_dir}"
-            )
+                f"Started monitoring directory with {
+                    self.num_threads} threads: {
+                    self.extract_dir}")
 
             # Queue existing files for scanning
             for filename in os.listdir(self.extract_dir):
@@ -437,7 +453,9 @@ class MultiThreadScanner(BaseScanner):
                 try:
                     self.scan_file(file_path)
                 except Exception as e:
-                    self.logger.error(f"Thread {thread_id} error scanning {file_path}: {str(e)}")
+                    self.logger.error(
+                        f"Thread {thread_id} error scanning {file_path}: {
+                            str(e)}")
 
                 # Mark task as done
                 self.file_queue.task_done()

@@ -111,14 +111,16 @@ def setup_logging(config, logger_name="zeek_yara"):
         if config.get("LOG_JSON", False):
             file_handler.setFormatter(JsonFormatter())
         else:
-            file_handler.setFormatter(logging.Formatter(config.get("LOG_FORMAT")))
+            file_handler.setFormatter(
+                logging.Formatter(config.get("LOG_FORMAT")))
 
         handlers.append(file_handler)
 
     # Console handler
     if config.get("LOG_CONSOLE", True):
         console_handler = logging.StreamHandler()
-        console_handler.setFormatter(logging.Formatter(config.get("LOG_FORMAT")))
+        console_handler.setFormatter(
+            logging.Formatter(config.get("LOG_FORMAT")))
         handlers.append(console_handler)
 
     # Add all handlers to logger

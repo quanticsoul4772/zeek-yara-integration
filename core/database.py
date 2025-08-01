@@ -40,7 +40,7 @@ def performance_track(logger=None, level=logging.DEBUG):
                 if logger:
                     logger.log(
                         level,
-                        f"Method {func.__name__} executed in {(end_time - start_time)*1000:.2f} ms",
+                        f"Method {func.__name__} executed in {(end_time - start_time) * 1000:.2f} ms",
                     )
 
                 return result
@@ -229,10 +229,12 @@ class DatabaseManager:
 
                 # Prepare alert data
                 # Get file path from the correct field in file_data
-                file_path = file_data.get("path", file_data.get("file_path", ""))
+                file_path = file_data.get(
+                    "path", file_data.get("file_path", ""))
 
                 # Get file name, either from metadata or from path
-                file_name = file_data.get("name", file_data.get("file_name", ""))
+                file_name = file_data.get(
+                    "name", file_data.get("file_name", ""))
                 if not file_name and file_path:
                     file_name = os.path.basename(file_path)
 
@@ -256,8 +258,7 @@ class DatabaseManager:
                     "severity": 0,
                 }
                 self.logger.debug(
-                    f"Alert record: file_path={alert_record['file_path']}, file_name={alert_record['file_name']}, metadata={file_data}"
-                )
+                    f"Alert record: file_path={alert_record['file_path']}, file_name={alert_record['file_name']}, metadata={file_data}")
 
                 # Process match data if present
                 if match_data and match_data.get("matched", False):
@@ -266,19 +267,21 @@ class DatabaseManager:
                         first_match = matches[0]
                         alert_record.update(
                             {
-                                "rule_name": first_match.get("rule", "unknown"),
-                                "rule_namespace": first_match.get("namespace", "unknown"),
-                                "rule_meta": json.dumps(first_match.get("meta", {})),
-                                "strings_matched": json.dumps(first_match.get("strings", [])),
-                                "severity": first_match.get("meta", {}).get("severity", 0),
-                            }
-                        )
+                                "rule_name": first_match.get(
+                                    "rule", "unknown"), "rule_namespace": first_match.get(
+                                    "namespace", "unknown"), "rule_meta": json.dumps(
+                                    first_match.get(
+                                        "meta", {})), "strings_matched": json.dumps(
+                                    first_match.get(
+                                        "strings", [])), "severity": first_match.get(
+                                    "meta", {}).get(
+                                        "severity", 0), })
 
                 # Prepare insert query
                 insert_query = """
                     INSERT INTO yara_alerts
-                    (timestamp, file_path, file_name, file_size, file_type, 
-                    md5, sha256, zeek_uid, rule_name, rule_namespace, 
+                    (timestamp, file_path, file_name, file_size, file_type,
+                    md5, sha256, zeek_uid, rule_name, rule_namespace,
                     rule_meta, strings_matched, severity)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """
@@ -329,8 +332,8 @@ class DatabaseManager:
                 # Prepare bulk insert
                 insert_query = """
                     INSERT INTO yara_alerts
-                    (timestamp, file_path, file_name, file_size, file_type, 
-                    md5, sha256, zeek_uid, rule_name, rule_namespace, 
+                    (timestamp, file_path, file_name, file_size, file_type,
+                    md5, sha256, zeek_uid, rule_name, rule_namespace,
                     rule_meta, strings_matched, severity)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """
@@ -342,7 +345,8 @@ class DatabaseManager:
                         c.execute(
                             insert_query,
                             (
-                                alert.get("timestamp", datetime.datetime.now().isoformat()),
+                                alert.get(
+                                    "timestamp", datetime.datetime.now().isoformat()),
                                 alert.get("file_path", ""),
                                 alert.get("file_name", ""),
                                 alert.get("file_size", 0),

@@ -69,6 +69,14 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
+        sudo apt-get install -y curl gnupg software-properties-common
+        
+        # Add Zeek repository
+        curl -fsSL https://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/Release.key | sudo gpg --dearmor -o /usr/share/keyrings/zeek-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/zeek-keyring.gpg] https://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /" | sudo tee /etc/apt/sources.list.d/zeek.list
+        
+        # Update and install packages
+        sudo apt-get update
         sudo apt-get install -y zeek yara suricata
 
     - name: Install system dependencies (macOS)
@@ -98,7 +106,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        python -m pytest TESTING/unit/ -v --cov=PLATFORM --cov-report=xml --cov-report=html
+        python -m pytest tests/unit_tests/ -v --cov=PLATFORM --cov-report=xml --cov-report=html
       env:
         PYTHONPATH: ${{ github.workspace }}/PLATFORM
 
@@ -127,6 +135,14 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install -y curl gnupg software-properties-common
+        
+        # Add Zeek repository
+        curl -fsSL https://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/Release.key | sudo gpg --dearmor -o /usr/share/keyrings/zeek-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/zeek-keyring.gpg] https://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /" | sudo tee /etc/apt/sources.list.d/zeek.list
+        
+        # Update and install packages
+        sudo apt-get update
         sudo apt-get install -y zeek yara suricata
 
     - name: Install Python dependencies
@@ -148,7 +164,7 @@ jobs:
 
     - name: Run integration tests
       run: |
-        python -m pytest TESTING/integration/ -v --tb=short
+        python -m pytest tests/integration_tests/ -v --tb=short
       env:
         PYTHONPATH: ${{ github.workspace }}/PLATFORM
 
@@ -305,7 +321,7 @@ jobs:
 
     - name: Run performance benchmarks
       run: |
-        python -m pytest TESTING/performance/ -v --benchmark-only --benchmark-json=benchmark.json
+        python -m pytest tests/performance_tests/ -v --benchmark-only --benchmark-json=benchmark.json
       env:
         PYTHONPATH: ${{ github.workspace }}/PLATFORM
 
