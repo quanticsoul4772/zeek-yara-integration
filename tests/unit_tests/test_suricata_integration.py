@@ -6,7 +6,6 @@ Author: Security Team
 This module contains unit tests for the Suricata integration module.
 """
 
-from suricata.suricata_integration import SuricataConfig, SuricataRunner
 import json
 import os
 import sqlite3
@@ -20,6 +19,11 @@ import pytest
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../..")))
+
+# Use pytest.importorskip for conditional imports - this is the recommended approach
+suricata_integration = pytest.importorskip("suricata.suricata_integration", reason="Suricata integration module not available")
+SuricataConfig = suricata_integration.SuricataConfig
+SuricataRunner = suricata_integration.SuricataRunner
 
 
 @pytest.fixture

@@ -6,14 +6,6 @@ Author: Security Team
 This module contains performance tests for the Suricata integration.
 """
 
-try:
-    from suricata.suricata_integration import SuricataRunner
-    from suricata.alert_correlation import AlertCorrelator  
-    from config.config import Config
-except ImportError as e:
-    print(f"Warning: Could not import required modules: {e}")
-    print("Skipping performance tests due to missing dependencies")
-    pytest.skip("Required modules not available", allow_module_level=True)
 import json
 import os
 import shutil
@@ -25,6 +17,11 @@ import time
 from pathlib import Path
 
 import pytest
+
+# Use pytest.importorskip for conditional imports - this is the recommended approach
+SuricataRunner = pytest.importorskip("suricata.suricata_integration", reason="Suricata integration module not available").SuricataRunner
+AlertCorrelator = pytest.importorskip("suricata.alert_correlation", reason="Alert correlation module not available").AlertCorrelator
+Config = pytest.importorskip("config.config", reason="Config module not available").Config
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(
