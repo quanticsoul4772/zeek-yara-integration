@@ -7,10 +7,6 @@ Author: Security Team
 This script performs an end-to-end test of the Zeek-YARA integration.
 """
 
-from utils.logging_utils import setup_logging
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from core.database import DatabaseManager
-from config.config import get_config
 import argparse
 import logging
 import os
@@ -19,9 +15,15 @@ import subprocess
 import sys
 import time
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+# Ensure project root is in path BEFORE importing any local modules
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from utils.logging_utils import setup_logging
+from core.scanner import MultiThreadScanner, SingleThreadScanner
+from core.database import DatabaseManager
+from config.config import get_config
 
 
 def parse_args():

@@ -6,20 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Running Tests
 ```bash
-# Run all tests with pytest
-bin/run_tests.sh --all
+# Cross-platform test runner (recommended - works on Windows, macOS, Linux)
+python run_tests.py --all                    # Run all tests
+python run_tests.py --unit                   # Unit tests only
+python run_tests.py --integration            # Integration tests only
+python run_tests.py --performance            # Performance tests only
+python run_tests.py --suricata               # Suricata-specific tests
+python run_tests.py --all --verbose          # Run with verbose output
+python run_tests.py --all --output-dir results  # Custom output directory
 
-# Run specific test categories (marked with pytest markers)
+# Legacy bash script (Unix/Linux/macOS only)
+bin/run_tests.sh --all
 bin/run_tests.sh --unit          # Unit tests only
 bin/run_tests.sh --integration   # Integration tests only
 bin/run_tests.sh --performance   # Performance tests only
 bin/run_tests.sh --suricata      # Suricata-specific tests
-
-# Generate comprehensive coverage reports
-bin/run_tests.sh --all --coverage
-
-# Run tests with verbose output
-bin/run_tests.sh --all --verbose
 
 # Direct pytest usage (from project root)
 python -m pytest tests/ -v

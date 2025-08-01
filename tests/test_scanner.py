@@ -7,10 +7,6 @@ This module contains tests for the scanner functionality, including performance 
 for the optimizations implemented in Phase 2.
 """
 
-from utils.yara_utils import RuleManager, YaraMatcher
-from utils.file_utils import FileAnalyzer
-from core.scanner import FileEventHandler, MultiThreadScanner, SingleThreadScanner
-from core.database import DatabaseManager
 import logging
 import os
 import shutil
@@ -22,9 +18,16 @@ from queue import Queue
 
 import pytest
 
-# Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+# Ensure project root is in path BEFORE importing any local modules
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+# Now import application components
+from utils.yara_utils import RuleManager, YaraMatcher
+from utils.file_utils import FileAnalyzer
+from core.scanner import FileEventHandler, MultiThreadScanner, SingleThreadScanner
+from core.database import DatabaseManager
 
 
 # Unit tests for the Scanner

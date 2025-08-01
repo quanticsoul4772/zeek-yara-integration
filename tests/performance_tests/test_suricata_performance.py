@@ -6,9 +6,6 @@ Author: Security Team
 This module contains performance tests for the Suricata integration.
 """
 
-from suricata.suricata_integration import SuricataRunner
-from suricata.alert_correlation import AlertCorrelator
-from config.config import Config
 import json
 import os
 import shutil
@@ -21,15 +18,16 @@ from pathlib import Path
 
 import pytest
 
-# Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../..")))
+# Ensure project root is in path BEFORE importing any local modules
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-# Import application components
+from suricata.suricata_integration import SuricataRunner
+from suricata.alert_correlation import AlertCorrelator
+from config.config import Config
 
 # Import benchmarking utilities
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
 try:
     from conftest import benchmark, timer
 except ImportError:

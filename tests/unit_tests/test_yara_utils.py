@@ -6,11 +6,17 @@ Comprehensive unit tests for YARA utilities module to maximize coverage.
 import logging
 import os
 import shutil
+import sys
 import tempfile
 import time
 
 import pytest
 import yara
+
+# Ensure project root is in path BEFORE importing any local modules
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from utils.yara_utils import RuleManager, YaraMatcher
 

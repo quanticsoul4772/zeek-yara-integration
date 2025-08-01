@@ -7,7 +7,6 @@ This module contains tests for the file analyzer utility, including performance 
 for the optimizations implemented in Phase 2.
 """
 
-from utils.file_utils import FileAnalyzer, FileTypeCategories, performance_track
 import os
 import shutil
 import sys
@@ -17,9 +16,12 @@ from pathlib import Path
 
 import pytest
 
-# Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")))
+# Ensure project root is in path BEFORE importing any local modules
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from utils.file_utils import FileAnalyzer, FileTypeCategories, performance_track
 
 
 # Unit tests for FileAnalyzer

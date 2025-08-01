@@ -6,7 +6,6 @@ Author: Security Team
 This module contains unit tests for the alert correlation functionality.
 """
 
-from suricata.alert_correlation import AlertCorrelator
 import datetime
 import json
 import os
@@ -19,9 +18,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../..")))
+# Ensure project root is in path BEFORE importing any local modules
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from suricata.alert_correlation import AlertCorrelator
 
 
 @pytest.fixture

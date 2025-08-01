@@ -6,7 +6,6 @@ Author: Security Team
 This module contains unit tests for the Suricata integration module.
 """
 
-from suricata.suricata_integration import SuricataConfig, SuricataRunner
 import json
 import os
 import sqlite3
@@ -17,9 +16,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Ensure project root is in path
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../..")))
+# Ensure project root is in path BEFORE importing any local modules
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from suricata.suricata_integration import SuricataConfig, SuricataRunner
+
 
 
 @pytest.fixture

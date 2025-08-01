@@ -6,9 +6,15 @@ Unit tests for logging utilities module.
 import json
 import logging
 import os
+import sys
 import tempfile
 
 import pytest
+
+# Ensure project root is in path BEFORE importing any local modules
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from utils.logging_utils import JsonFormatter, add_scan_context, setup_logging
 
