@@ -25,6 +25,15 @@ bin/run_tests.sh --all --verbose
 python -m pytest tests/ -v
 python -m pytest tests/ -m "unit" -v
 python -m pytest tests/ --cov=core --cov=utils --cov=suricata
+
+# Run performance benchmarks
+python -m pytest tests/performance_tests/ -v --benchmark-only --benchmark-json=benchmark_results.json
+
+# Compare benchmarks with baseline
+python -m pytest tests/performance_tests/ -v --benchmark-only --benchmark-compare=tests/benchmarks/baseline.json
+
+# Update benchmark baseline (use with caution)
+python tests/benchmarks/update_baseline.py --run-benchmarks --update-baseline
 ```
 
 ### Development Environment Setup
