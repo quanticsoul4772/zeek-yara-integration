@@ -1,0 +1,145 @@
+{
+  "machine_info": {
+    "node": "github-runner",
+    "processor": "GitHub Actions",
+    "machine": "linux",
+    "python_compiler": "GCC",
+    "python_implementation": "CPython",
+    "python_version": "3.x",
+    "release": "Unknown"
+  },
+  "commit_info": {
+    "id": "baseline",
+    "time": "2025-08-01T20:50:00",
+    "author_time": "2025-08-01T20:50:00",
+    "branch": "main",
+    "message": "Initial performance baseline"
+  },
+  "benchmarks": [
+    {
+      "group": "suricata_performance",
+      "name": "test_alert_retrieval_performance",
+      "fullname": "tests/performance_tests/test_suricata_performance.py::TestSuricataPerformance::test_alert_retrieval_performance",
+      "params": null,
+      "stats": {
+        "min": 0.001,
+        "max": 0.01,
+        "mean": 0.005,
+        "stddev": 0.002,
+        "rounds": 5,
+        "median": 0.005,
+        "iqr": 0.002,
+        "q1": 0.004,
+        "q3": 0.006,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 0.004,
+        "hd15iqr": 0.006,
+        "ops": 200.0,
+        "total": 0.025,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "suricata_performance", 
+      "name": "test_alert_filtering_performance",
+      "fullname": "tests/performance_tests/test_suricata_performance.py::TestSuricataPerformance::test_alert_filtering_performance",
+      "params": null,
+      "stats": {
+        "min": 0.0005,
+        "max": 0.005,
+        "mean": 0.002,
+        "stddev": 0.001,
+        "rounds": 5,
+        "median": 0.002,
+        "iqr": 0.001,
+        "q1": 0.0015,
+        "q3": 0.0025,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 0.0015,
+        "hd15iqr": 0.0025,
+        "ops": 500.0,
+        "total": 0.01,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "suricata_performance",
+      "name": "test_correlation_performance", 
+      "fullname": "tests/performance_tests/test_suricata_performance.py::TestSuricataPerformance::test_correlation_performance",
+      "params": null,
+      "stats": {
+        "min": 0.01,
+        "max": 0.1,
+        "mean": 0.05,
+        "stddev": 0.02,
+        "rounds": 5,
+        "median": 0.05,
+        "iqr": 0.02,
+        "q1": 0.04,
+        "q3": 0.06,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 0.04,
+        "hd15iqr": 0.06,
+        "ops": 20.0,
+        "total": 0.25,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "suricata_performance",
+      "name": "test_database_write_performance",
+      "fullname": "tests/performance_tests/test_suricata_performance.py::TestSuricataPerformance::test_database_write_performance", 
+      "params": null,
+      "stats": {
+        "min": 0.02,
+        "max": 0.2,
+        "mean": 0.1,
+        "stddev": 0.05,
+        "rounds": 5,
+        "median": 0.1,
+        "iqr": 0.05,
+        "q1": 0.075,
+        "q3": 0.125,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0",
+        "ld15iqr": 0.075,
+        "hd15iqr": 0.125,
+        "ops": 10.0,
+        "total": 0.5,
+        "iterations": 1
+      }
+    },
+    {
+      "group": "suricata_performance",
+      "name": "test_process_alerts_performance",
+      "fullname": "tests/performance_tests/test_suricata_performance.py::TestSuricataPerformance::test_process_alerts_performance",
+      "params": null,
+      "stats": {
+        "min": 0.05,
+        "max": 0.5,
+        "mean": 0.2,
+        "stddev": 0.1,
+        "rounds": 5,
+        "median": 0.2,
+        "iqr": 0.1,
+        "q1": 0.15,
+        "q3": 0.25,
+        "iqr_outliers": 0,
+        "stddev_outliers": 0,
+        "outliers": "0;0", 
+        "ld15iqr": 0.15,
+        "hd15iqr": 0.25,
+        "ops": 5.0,
+        "total": 1.0,
+        "iterations": 1
+      }
+    }
+  ]
+}

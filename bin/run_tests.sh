@@ -36,6 +36,10 @@ while [[ $# -gt 0 ]]; do
         TEST_TYPE="performance"
         shift
         ;;
+        --benchmark)
+        TEST_TYPE="benchmark"
+        shift
+        ;;
         --suricata)
         TEST_TYPE="suricata"
         shift
@@ -59,6 +63,7 @@ while [[ $# -gt 0 ]]; do
         echo "  --unit                Run only unit tests"
         echo "  --integration         Run only integration tests"
         echo "  --performance         Run only performance tests"
+        echo "  --benchmark           Run performance benchmarks with pytest-benchmark"
         echo "  --suricata            Run only Suricata integration tests"
         echo "  --all                 Run all tests (default)"
         echo "  --verbose             Enable verbose output"
@@ -99,6 +104,18 @@ case $TEST_TYPE in
     performance)
     echo "Running performance tests..."
     PYTEST_ARGS="-xvs tests/ -m performance"
+    ;;
+    benchmark)
+    echo "Running performance benchmarks with pytest-benchmark..."
+    # Check if pytest-benchmark is available
+    if ! python -c "import pytest_benchmark" 2>/dev/null; then
+        echo "Warning: pytest-benchmark not installed. Installing..."
+        pip install pytest-benchmark || {
+            echo "Error: Failed to install pytest-benchmark"
+            exit 1
+        }
+    fi
+    PYTEST_ARGS="tests/performance_tests/ -v --benchmark-only --benchmark-json=$TEST_OUTPUT_DIR/benchmark_results.json --benchmark-min-rounds=5"
     ;;
     suricata)
     echo "Running Suricata integration tests..."
