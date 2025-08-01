@@ -353,7 +353,7 @@ def create_unit_test_case(
             super().__init__(name, "unit")
             self._test_func = test_func
 
-        def execute(self, result: TestResult) -> None:
+        def execute(self, result: CustomTestResult) -> None:
             self._test_func(result)
 
     return CustomUnitTest()
@@ -378,7 +378,7 @@ def create_integration_test_case(
             super().__init__(name, "integration")
             self._test_func = test_func
 
-        def execute(self, result: TestResult) -> None:
+        def execute(self, result: CustomTestResult) -> None:
             self._test_func(result)
 
     return CustomIntegrationTest()
@@ -403,7 +403,7 @@ def create_performance_test_case(
             super().__init__(name, "performance")
             self._test_func = test_func
 
-        def execute(self, result: TestResult) -> None:
+        def execute(self, result: CustomTestResult) -> None:
             self._test_func(result)
 
     return CustomPerformanceTest()
@@ -418,7 +418,7 @@ def run_tests() -> int:
         int: Exit code (0 for success, 1 for failure)
     """
     try:
-        runner = TestRunner()
+        runner = CustomTestRunner()
 
         # Create and add test suites
         # This would be populated with actual test cases
