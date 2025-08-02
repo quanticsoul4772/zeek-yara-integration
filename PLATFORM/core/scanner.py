@@ -118,15 +118,11 @@ class BaseScanner:
                 add_result = self.db_manager.add_alert(file_metadata, scan_result)
                 if add_result:
                     self.logger.info(
-                        f"Added alert to database for file: {
-                            file_metadata.get(
-                                'name', '')}"
+                        f"Added alert to database for file: {file_metadata.get('name', '')}"
                     )
                 else:
                     self.logger.error(
-                        f"Failed to add alert to database for file: {
-                            file_metadata.get(
-                                'name', '')}"
+                        f"Failed to add alert to database for file: {file_metadata.get('name', '')}"
                     )
             except Exception as e:
                 self.logger.error(f"Exception adding alert to database: {e}")
@@ -338,9 +334,7 @@ class MultiThreadScanner(BaseScanner):
 
             self.running = True
             self.logger.info(
-                f"Started monitoring directory with {
-                    self.num_threads} threads: {
-                    self.extract_dir}"
+                f"Started monitoring directory with {self.num_threads} threads: {self.extract_dir}"
             )
 
             # Queue existing files for scanning
@@ -444,8 +438,7 @@ class MultiThreadScanner(BaseScanner):
                     self.scan_file(file_path)
                 except Exception as e:
                     self.logger.error(
-                        f"Thread {thread_id} error scanning {file_path}: {
-                            str(e)}"
+                        f"Thread {thread_id} error scanning {file_path}: {str(e)}"
                     )
 
                 # Mark task as done
