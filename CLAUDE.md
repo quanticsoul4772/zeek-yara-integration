@@ -38,11 +38,11 @@ pip install -r requirements.txt
 pip install -r test-requirements.txt
 
 # Run platform setup wizard (creates configs, directories)
-python setup.py install
+python install_platform.py
 python setup_wizard.py
 
 # Initialize with simplified educational config
-python setup.py  # Creates educational platform setup
+python install_platform.py  # Creates educational platform setup
 ```
 
 ### Starting the System
@@ -166,7 +166,8 @@ This is a **network security monitoring toolkit** that integrates three main com
 - `PLATFORM/core/database.py` - SQLite database manager with connection pooling and performance optimization
 - `PLATFORM/api/api_server.py` - FastAPI-based REST API server with comprehensive endpoints
 - `TOOLS/cli/zyi` - Primary CLI tool for all platform operations
-- `setup.py` - Cross-platform installer with educational platform setup
+- `setup.py` - setuptools package configuration for pip installation
+- `install_platform.py` - Cross-platform installer with educational platform setup
 - `config/default_config.json` - Legacy configuration (still used)
 - `CONFIGURATION/defaults/` - New modular configuration system
 
