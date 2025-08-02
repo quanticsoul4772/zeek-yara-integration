@@ -4,6 +4,9 @@
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 
+# Async framework (pin to avoid ConnectedUDPSocket ImportError)
+anyio>=3.6.0,<4.0.0
+
 # Template Engine
 jinja2>=3.1.2
 
