@@ -326,16 +326,13 @@ class TestSuricataPerformance:
         # Log performance metrics
         print(f"Retrieved {len(all_alerts)} alerts in {duration:.6f} seconds")
         print(
-            f"Average time per alert: {
-                duration /
-                len(all_alerts):.6f} seconds"
+            f"Average time per alert: {duration / len(all_alerts):.6f} seconds"
         )
 
         # Test should run in reasonable time (adjust threshold as needed)
         assert (
             duration < 5.0
-        ), f"Alert retrieval took {
-            duration:.6f} seconds, which exceeds the 5-second threshold"
+        ), f"Alert retrieval took {duration:.6f} seconds, which exceeds the 5-second threshold"
 
     def test_alert_filtering_performance(self, performance_test_env, timer):
         """Test performance of filtered alert retrieval"""
@@ -361,16 +358,13 @@ class TestSuricataPerformance:
 
             # Log performance metrics
             print(
-                f"Filter {filter_dict}: Retrieved {
-                    len(filtered_alerts)} alerts in {
-                    duration:.6f} seconds"
+                f"Filter {filter_dict}: Retrieved {len(filtered_alerts)} alerts in {duration:.6f} seconds"
             )
 
             # Test should run in reasonable time
             assert (
                 duration < 1.0
-            ), f"Filtered retrieval took {
-                duration:.6f} seconds, which exceeds the 1-second threshold"
+            ), f"Filtered retrieval took {duration:.6f} seconds, which exceeds the 1-second threshold"
 
     @benchmark(iterations=5)
     def test_correlation_performance(self, performance_test_env):
@@ -399,10 +393,7 @@ class TestSuricataPerformance:
 
             # Log performance metrics
             print(
-                f"Correlated {
-                    alert_counts['yara_count']} YARA and {
-                    alert_counts['suricata_count']} Suricata alerts in {
-                    duration:.6f} seconds"
+                f"Correlated {alert_counts['yara_count']} YARA and {alert_counts['suricata_count']} Suricata alerts in {duration:.6f} seconds"
             )
             print(f"Found {len(correlated_groups)} correlation groups")
 
@@ -463,14 +454,10 @@ class TestSuricataPerformance:
 
         # Log performance metrics
         print(
-            f"Stored {
-                len(correlation_groups)} correlation groups in {
-                duration:.6f} seconds"
+            f"Stored {len(correlation_groups)} correlation groups in {duration:.6f} seconds"
         )
         print(
-            f"Average time per group: {
-                duration /
-                len(correlation_groups):.6f} seconds"
+            f"Average time per group: {duration / len(correlation_groups):.6f} seconds"
         )
 
         # Verify correlations were stored
@@ -485,8 +472,7 @@ class TestSuricataPerformance:
         # Test should run in reasonable time
         assert (
             duration < 10.0
-        ), f"Correlation storage took {
-            duration:.6f} seconds, which exceeds the 10-second threshold"
+        ), f"Correlation storage took {duration:.6f} seconds, which exceeds the 10-second threshold"
 
     def test_process_alerts_performance(self, performance_test_env, timer):
         """Test performance of alert processing"""
@@ -544,5 +530,4 @@ class TestSuricataPerformance:
         # Test should run in reasonable time
         assert (
             duration < 10.0
-        ), f"Alert processing took {
-            duration:.6f} seconds, which exceeds the 10-second threshold"
+        ), f"Alert processing took {duration:.6f} seconds, which exceeds the 10-second threshold"
