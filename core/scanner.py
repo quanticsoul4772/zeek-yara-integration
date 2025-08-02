@@ -204,13 +204,9 @@ class BaseScanner:
         results["duration"] = time.time() - results["start_time"]
 
         self.logger.info(
-            f"Directory scan complete: {
-                results['scanned']} files scanned, "
-            f"{
-                results['skipped']} files skipped, "
-            f"{
-                results['matched']} matches found in {
-                    results['duration']:.2f} seconds"
+            f"Directory scan complete: {results['scanned']} files scanned, "
+            f"{results['skipped']} files skipped, "
+            f"{results['matched']} matches found in {results['duration']:.2f} seconds"
         )
 
         return results
@@ -338,9 +334,7 @@ class MultiThreadScanner(BaseScanner):
 
             self.running = True
             self.logger.info(
-                f"Started monitoring directory with {
-                    self.num_threads} threads: {
-                    self.extract_dir}"
+                f"Started monitoring directory with {self.num_threads} threads: {self.extract_dir}"
             )
 
             # Queue existing files for scanning
@@ -444,8 +438,7 @@ class MultiThreadScanner(BaseScanner):
                     self.scan_file(file_path)
                 except Exception as e:
                     self.logger.error(
-                        f"Thread {thread_id} error scanning {file_path}: {
-                            str(e)}"
+                        f"Thread {thread_id} error scanning {file_path}: {str(e)}"
                     )
 
                 # Mark task as done
