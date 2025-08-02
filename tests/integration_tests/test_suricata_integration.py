@@ -14,11 +14,9 @@ import subprocess
 import sys
 import tempfile
 import time
-from pathlib import Path
 
 import pytest
 
-from config.config import Config
 from suricata.alert_correlation import AlertCorrelator
 from suricata.suricata_integration import SuricataRunner
 

@@ -9,7 +9,6 @@ Command-line interface for the Zeek-YARA scanner.
 
 import argparse
 import json
-import logging
 import os
 import sys
 import time

@@ -10,15 +10,12 @@ import json
 import os
 import shutil
 import sqlite3
-import subprocess
 import sys
 import tempfile
 import time
-from pathlib import Path
 
 import pytest
 
-from config.config import Config
 from suricata.alert_correlation import AlertCorrelator
 from suricata.suricata_integration import SuricataRunner
 
@@ -30,7 +27,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 # Import benchmarking utilities
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
-    from conftest import benchmark, timer
+    from conftest import benchmark
 except ImportError:
     # Define fallback benchmark decorator
     def benchmark(iterations=1):

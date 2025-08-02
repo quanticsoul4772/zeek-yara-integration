@@ -4,7 +4,6 @@ Windows MSI installer creation for Zeek-YARA Educational Platform
 Uses WiX Toolset for professional Windows installers
 """
 
-import os
 import platform
 import subprocess
 import sys

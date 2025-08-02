@@ -5,21 +5,14 @@ Provides step-by-step guided learning experiences
 """
 
 import json
-import os
-import subprocess
-import sys
 import time
-import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 try:
     from rich.console import Console
-    from rich.layout import Layout
-    from rich.live import Live
     from rich.panel import Panel
-    from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
     from rich.prompt import Confirm, Prompt
     from rich.table import Table
     from rich.text import Text

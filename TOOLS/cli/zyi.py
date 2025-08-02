@@ -7,7 +7,6 @@ platform functionality including scanning, demos, and development tools.
 """
 
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -41,7 +40,6 @@ def cli(config, verbose):
 @cli.group()
 def demo():
     """Run educational demonstrations and tutorials"""
-    pass
 
 
 @demo.command()
@@ -118,7 +116,6 @@ def demo_eicar_detection():
 @cli.group()
 def scan():
     """File and directory scanning operations"""
-    pass
 
 
 @scan.command()
@@ -183,7 +180,6 @@ def file(target, output, output_format):
 @cli.group()
 def dev():
     """Development tools and utilities"""
-    pass
 
 
 @dev.command()
@@ -226,7 +222,6 @@ def test():
 @cli.group()
 def api():
     """API server management"""
-    pass
 
 
 @api.command()
@@ -252,7 +247,6 @@ def start(dev, reload, port, host):
 @cli.group()
 def config():
     """Configuration management"""
-    pass
 
 
 @config.command()

@@ -4,7 +4,6 @@ Tutorial Server Startup Script
 Simplified script to start the interactive tutorial web server
 """
 
-import os
 import sys
 from pathlib import Path
 

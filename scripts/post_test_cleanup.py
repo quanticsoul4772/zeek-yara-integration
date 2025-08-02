@@ -17,7 +17,6 @@ import sqlite3
 import subprocess
 import sys
 import time
-from datetime import datetime
 
 # Configure logging
 logging.basicConfig(

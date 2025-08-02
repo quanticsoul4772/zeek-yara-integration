@@ -6,7 +6,6 @@ Creates portable, self-contained executables for all platforms
 
 import os
 import platform
-import sys
 from pathlib import Path
 
 from packaging.version import VERSION_INFO

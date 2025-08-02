@@ -16,17 +16,7 @@ import os
 import sys
 import time
 import unittest
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
-
-import coverage
-import pytest
-
-from config.config import Config
-from core.database import DatabaseManager
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from utils.file_utils import FileAnalyzer
-from utils.yara_utils import RuleManager, YaraMatcher
+from typing import Any, Callable, Dict, List, Optional
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -128,11 +118,9 @@ class CustomTestCase:
 
     def setup(self) -> None:
         """Set up test environment"""
-        pass
 
     def teardown(self) -> None:
         """Clean up test environment"""
-        pass
 
     def run(self) -> CustomTestResult:
         """

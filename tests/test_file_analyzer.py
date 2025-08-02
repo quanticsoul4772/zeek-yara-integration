@@ -8,15 +8,11 @@ for the optimizations implemented in Phase 2.
 """
 
 import os
-import shutil
 import sys
-import tempfile
-import time
-from pathlib import Path
 
 import pytest
 
-from utils.file_utils import FileAnalyzer, FileTypeCategories, performance_track
+from utils.file_utils import FileAnalyzer, FileTypeCategories
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

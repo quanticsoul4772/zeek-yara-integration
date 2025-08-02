@@ -7,7 +7,6 @@ User-friendly interface for security learning platform
 import argparse
 import asyncio
 import json
-import os
 import sys
 import threading
 import webbrowser
@@ -24,15 +23,9 @@ if sys.platform.startswith("win"):
         pass
 
 try:
-    from rich.align import Align
     from rich.console import Console
-    from rich.layout import Layout
-    from rich.live import Live
     from rich.panel import Panel
-    from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
-    from rich.prompt import Confirm, Prompt
     from rich.table import Table
-    from rich.text import Text
 
     RICH_AVAILABLE = True
 except ImportError:
@@ -45,7 +38,6 @@ except ImportError:
 
 try:
     import uvicorn
-    from fastapi import FastAPI
 
     WEB_AVAILABLE = True
 except ImportError:

@@ -3,11 +3,8 @@
 Comprehensive unit tests for YARA utilities module to maximize coverage.
 """
 
-import logging
 import os
-import shutil
 import tempfile
-import time
 
 import pytest
 import yara

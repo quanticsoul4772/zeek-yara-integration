@@ -1,0 +1,5 @@
+site_name: Zeek-YARA Integration
+theme:
+  name: material
+nav:
+  - Home: index.md

@@ -4,14 +4,9 @@ Linux package creation for Zeek-YARA Educational Platform
 Creates DEB, RPM, and AppImage packages for Linux distributions
 """
 
-import os
 import platform
 import shutil
-import subprocess
 import sys
-import tarfile
-import tempfile
-import textwrap
 from pathlib import Path
 
 from packaging.version import VERSION_INFO

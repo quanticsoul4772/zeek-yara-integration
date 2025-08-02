@@ -5,7 +5,6 @@ Comprehensive CI fix script - fixes most common CI issues automatically
 
 import os
 import subprocess
-import sys
 from pathlib import Path
 
 

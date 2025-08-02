@@ -13,18 +13,12 @@ import logging
 import os
 import sys
 import time
-from pathlib import Path
 
 from config.config import Config
 from tests.frameworks.test_cases import (
-    DatabasePerformanceTestCase,
-    FileUtilsTestCase,
-    ScannerIntegrationTestCase,
-    ScannerPerformanceTestCase,
-    YaraRulesTestCase,
     create_test_suites,
 )
-from tests.frameworks.test_framework import CustomTestRunner, CustomTestSuite
+from tests.frameworks.test_framework import CustomTestRunner
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

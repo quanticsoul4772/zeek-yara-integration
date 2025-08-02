@@ -7,14 +7,12 @@ Author: Russell Smith
 This module contains predefined test cases for the Zeek-YARA integration testing framework.
 """
 
-import json
 import os
 import shutil
 import sys
 import tempfile
 import time
-import unittest
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from config.config import Config
 from core.database import DatabaseManager
@@ -24,9 +22,6 @@ from tests.frameworks.test_framework import (
     CustomTestResult,
     CustomTestRunner,
     CustomTestSuite,
-    create_integration_test_case,
-    create_performance_test_case,
-    create_unit_test_case,
 )
 from utils.file_utils import FileAnalyzer, FileTypeCategories
 from utils.yara_utils import RuleManager, YaraMatcher

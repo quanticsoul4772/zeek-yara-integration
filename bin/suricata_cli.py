@@ -8,12 +8,10 @@ This script provides a command-line interface for Suricata management.
 """
 
 import argparse
-import json
 import logging
 import os
 import sys
 import time
-from pathlib import Path
 
 from config.config import Config
 from suricata.alert_correlation import AlertCorrelator

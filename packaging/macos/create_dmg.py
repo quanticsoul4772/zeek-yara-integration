@@ -4,13 +4,10 @@ macOS DMG creation for Zeek-YARA Educational Platform
 Creates DMG installer packages for macOS systems
 """
 
-import os
 import platform
 import plistlib
 import shutil
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 from packaging.version import VERSION_INFO

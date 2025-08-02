@@ -7,7 +7,6 @@ Author: Security Team
 This module contains utilities for YARA rule management and scanning.
 """
 
-import json
 import logging
 import os
 import time

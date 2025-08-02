@@ -6,7 +6,7 @@ Base classes and interfaces for alert correlation
 import json
 import sqlite3
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 
@@ -25,7 +25,6 @@ class AlertRetriever(ABC):
         Returns:
             List of alerts
         """
-        pass
 
 
 class CorrelationStrategy(ABC):
@@ -45,7 +44,6 @@ class CorrelationStrategy(ABC):
         Returns:
             List of correlated alert groups
         """
-        pass
 
 
 class AlertDatabaseManager:

@@ -5,18 +5,15 @@ Handles version checking, downloading, and installing updates
 """
 
 import asyncio
-import hashlib
 import json
 import os
 import platform
 import subprocess
-import sys
 import tarfile
-import tempfile
 import time
 import zipfile
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 from urllib.parse import urlparse
 
 try:

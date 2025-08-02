@@ -5,15 +5,13 @@ This module tests the validate_examples.py script that validates code blocks
 in educational markdown files for syntax errors and security patterns.
 """
 
-import json
 import os
 import shutil
 
 # Add the TOOLS directory to path to import the validation script
 import sys
 import tempfile
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 

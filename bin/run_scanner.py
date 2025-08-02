@@ -12,7 +12,6 @@ import logging
 import os
 import sys
 import time
-from pathlib import Path
 
 from config.config import Config
 from core.scanner import MultiThreadScanner, SingleThreadScanner

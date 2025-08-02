@@ -4,28 +4,25 @@ Interactive Educational Tutorial Web Server
 Modern web-based tutorial system with rich interactivity
 """
 
-import asyncio
 import json
 import logging
-import os
 
 # Import tutorial system components
 import sys
-import time
 import uuid
-from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from tutorial_system import TutorialManager, TutorialStep
+from tutorial_system import TutorialManager
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -2230,12 +2227,10 @@ function startTutorial(tutorialId) {
     def create_initial_templates(self):
         """Create initial HTML templates if they don't exist."""
         # Create basic templates
-        pass
 
     def create_static_assets(self):
         """Create CSS and JavaScript files."""
         # Create basic assets
-        pass
 
     def run(self, host: str = "127.0.0.1", port: int = 8001):
         """Run the tutorial web server."""

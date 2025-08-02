@@ -10,7 +10,6 @@ This module centralizes all configuration parameters for the Zeek-YARA integrati
 import json
 import logging
 import os
-from pathlib import Path
 
 # Base directory for the project
 BASE_DIR = os.path.expanduser("~/zeek_yara_integration")

@@ -4,23 +4,19 @@ Interactive Help System for Educational Security Platform
 Provides context-aware guidance and assistance
 """
 
-import json
-import os
 import subprocess
 import sys
 import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 try:
     from rich.console import Console
     from rich.markdown import Markdown
     from rich.panel import Panel
-    from rich.prompt import Confirm, Prompt
+    from rich.prompt import Prompt
     from rich.table import Table
-    from rich.text import Text
-    from rich.tree import Tree
 
     RICH_AVAILABLE = True
 except ImportError:

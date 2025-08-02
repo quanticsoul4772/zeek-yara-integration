@@ -7,15 +7,12 @@ Author: Security Team
 This module provides API endpoints for Suricata management and alerts.
 """
 
-import json
 import logging
 import os
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 # Import FastAPI components
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path, Query
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from suricata.alert_correlation import AlertCorrelator

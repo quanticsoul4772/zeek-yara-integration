@@ -11,12 +11,10 @@ It provides endpoints for retrieving alerts, system status, and basic control op
 import datetime
 import json
 import logging
-import multiprocessing
 import os
 import sys
 import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import uvicorn
 
@@ -25,9 +23,8 @@ from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi import Path as PathParam
 from fastapi import Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 from api.suricata_api import get_alert_correlator, get_suricata_runner, suricata_router
 from config.config import Config
@@ -36,7 +33,7 @@ from core.scanner import MultiThreadScanner, SingleThreadScanner
 from suricata.alert_correlation import AlertCorrelator
 from suricata.suricata_integration import SuricataRunner
 from utils.file_utils import FileAnalyzer
-from utils.yara_utils import RuleManager, YaraMatcher
+from utils.yara_utils import RuleManager
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

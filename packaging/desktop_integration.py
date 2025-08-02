@@ -4,11 +4,9 @@ Desktop integration for Zeek-YARA Educational Platform
 Creates shortcuts, file associations, and platform-specific integration
 """
 
-import os
 import platform
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent.absolute()
@@ -360,7 +358,7 @@ pause
     def register_windows_file_associations(self):
         """Register Windows file associations."""
         try:
-            import winreg
+            pass
 
             # YARA files
             self.register_windows_file_type(".yar", "YARARule", "YARA Rule File")

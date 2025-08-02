@@ -5,7 +5,6 @@ Version management for Zeek-YARA Educational Platform
 
 import json
 import os
-import re
 from datetime import datetime
 from pathlib import Path
 
