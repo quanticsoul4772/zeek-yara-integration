@@ -41,11 +41,7 @@ except ImportError:
                     result = func(*args, **kwargs)
                 total_time = time.time() - start_time
                 print(
-                    f"Benchmark: {
-                        func.__name__} - Total time: {
-                        total_time:.6f}s, Average: {
-                        total_time /
-                        iterations:.6f}s"
+                    f"Benchmark: {func.__name__} - Total time: {total_time:.6f}s, Average: {total_time / iterations:.6f}s"
                 )
                 return result
 
