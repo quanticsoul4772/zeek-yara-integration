@@ -28,7 +28,19 @@ python -m pytest tests/ --cov=core --cov=utils --cov=suricata
 ```
 
 ### Development Environment Setup
+
+**Python Version Requirement: 3.12.5**
+
+This project requires Python 3.12.5 for consistent test execution and compatibility. Using other Python versions may cause test failures or inconsistent behavior.
+
 ```bash
+# Install Python 3.12.5 using pyenv (recommended)
+pyenv install 3.12.5
+pyenv local 3.12.5
+
+# Verify Python version
+python3 --version  # Should output: Python 3.12.5
+
 # Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate

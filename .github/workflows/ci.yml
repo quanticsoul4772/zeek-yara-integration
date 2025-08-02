@@ -21,7 +21,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.12.5'
 
     - name: Install dependencies
       run: |
@@ -54,7 +54,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.12.5']
     
     steps:
     - name: Checkout code
@@ -111,7 +111,7 @@ jobs:
         PYTHONPATH: ${{ github.workspace }}/PLATFORM
 
     - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12.5'
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
@@ -130,7 +130,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.12.5'
 
     - name: Install system dependencies
       run: |
@@ -179,7 +179,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.12.5'
 
     - name: Install dependencies
       run: |
@@ -218,7 +218,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.12.5'
 
     - name: Install dependencies
       run: |
@@ -252,7 +252,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.12.5'
 
     - name: Install security tools
       run: |
@@ -313,7 +313,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.12.5'
 
     - name: Install dependencies
       run: |
@@ -344,7 +344,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.12.5'
 
     - name: Install documentation tools
       run: |
