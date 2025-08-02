@@ -870,14 +870,11 @@ Total XP: {self.user_progress['experience_points']}
             print("-" * 30)
             print(f"Tutorials Completed: {len(self.user_progress['tutorials_completed'])}")
             print(
-                f"Experience Points: {
-                    self.user_progress['experience_points']}"
+                 f"Experience Points: {self.user_progress['experience_points']}"
             )
             print(f"Achievements: {len(self.user_progress['achievements'])}")
             print(
-                f"Time Spent Learning: {
-                    self.user_progress['total_time_spent'] /
-                    60:.1f} minutes"
+                 f"Time Spent Learning: {self.user_progress['total_time_spent'] / 60:.1f} minutes"
             )
 
             if self.user_progress["achievements"]:

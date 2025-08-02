@@ -154,10 +154,7 @@ def main():
             results = scanner.scan_directory(args.scan_dir)
 
             logger.info(
-                f"Directory scan complete: {
-                    results.get(
-                        'scanned',
-                        0)} files scanned, "
+                 f"Directory scan complete: {results.get( 'scanned', 0)} files scanned, "
                 f"{results.get( 'matched',
                         0)} matches found"
             )

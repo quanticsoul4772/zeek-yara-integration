@@ -166,8 +166,7 @@ async def start_suricata(
 
             return {
                 "success": True,
-                "message": f"Started Suricata on interface {
-                    request.interface} in background mode",
+                 "message": f"Started Suricata on interface {request.interface} in background mode",
                 "interface": request.interface,
             }
         else:
@@ -177,9 +176,7 @@ async def start_suricata(
             if success:
                 return {
                     "success": True,
-                    "message": f"Completed Suricata monitoring on interface {
-                        request.interface} for {
-                        request.duration} seconds",
+                     "message": f"Completed Suricata monitoring on interface {request.interface} for {request.duration} seconds",
                     "interface": request.interface,
                 }
             else:
@@ -318,8 +315,7 @@ async def get_suricata_alerts(
         logging.error(f"Error retrieving Suricata alerts: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving Suricata alerts: {
-                str(e)}",
+             detail=f"Error retrieving Suricata alerts: {str(e)}",
         )
 
 
@@ -461,6 +457,5 @@ async def get_correlated_alerts(
         logging.error(f"Error retrieving correlated alerts: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving correlated alerts: {
-                str(e)}",
+             detail=f"Error retrieving correlated alerts: {str(e)}",
         )

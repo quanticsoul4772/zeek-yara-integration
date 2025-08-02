@@ -632,9 +632,7 @@ async def scan_file(scan_request: ScanRequestModel, _: bool = Depends(verify_api
         raise
     except Exception as e:
         logger.error(
-            f"Error scanning {
-                scan_request.file_path}: {
-                str(e)}",
+             f"Error scanning {scan_request.file_path}: {str(e)}",
             exc_info=True,
         )
         raise HTTPException(status_code=500, detail=f"Error scanning file: {str(e)}")
@@ -809,8 +807,7 @@ async def get_webhook_config(_: bool = Depends(verify_api_key)):
         logger.error(f"Error retrieving webhook config: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving webhook config: {
-                str(e)}",
+             detail=f"Error retrieving webhook config: {str(e)}",
         )
 
 

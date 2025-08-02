@@ -302,10 +302,7 @@ class TestScannerPerformance:
 
             # Print comparison results without asserting which one is faster
             print(
-                f"Speed comparison: Single-threaded vs. min multi-threaded: {
-                    single_time:.6f}s vs {
-                    min(
-                        thread_times.values()):.6f}s"
+                 f"Speed comparison: Single-threaded vs. min multi-threaded: {single_time:.6f}s vs {min( thread_times.values()):.6f}s"
             )
             # Get best thread count - don't assert that multi-threaded is faster
             # as it may not be for small test datasets or test environments
@@ -315,8 +312,7 @@ class TestScannerPerformance:
             best_speedup = single_time / thread_times[best_threads]
 
             print(
-                f"Best performance with {best_threads} threads: {
-                    best_speedup:.2f}x speedup"
+                 f"Best performance with {best_threads} threads: {best_speedup:.2f}x speedup"
             )
 
         finally:
@@ -395,14 +391,10 @@ class TestScannerPerformance:
 
             # Print results
             print(
-                f"Unfiltered scan: {
-                    unfiltered_time:.6f}s for {
-                    unfiltered_result['scanned']} files"
+                 f"Unfiltered scan: {unfiltered_time:.6f}s for {unfiltered_result['scanned']} files"
             )
             print(
-                f"Filtered scan (text only): {
-                    filtered_time:.6f}s for {
-                    filtered_result['scanned']} files"
+                 f"Filtered scan (text only): {filtered_time:.6f}s for {filtered_result['scanned']} files"
             )
 
             # Calculate efficiency

@@ -109,8 +109,7 @@ class SystemDetector:
 
         if available or python_yara:
             self.log(
-                f"Found YARA {
-                    'and Python module' if python_yara else ''}",
+                 f"Found YARA {'and Python module' if python_yara else ''}",
                 "success",
             )
             return {
@@ -403,13 +402,11 @@ What do you want to learn about? (Select primary focus)
                 preferences["network_interface"] = results["interfaces"][0]["name"]
                 if self.console:
                     self.console.print(
-                        f"Using network interface: {
-                            results['interfaces'][0]['description']}"
+                         f"Using network interface: {results['interfaces'][0]['description']}"
                     )
                 else:
                     print(
-                        f"Using network interface: {
-                            results['interfaces'][0]['description']}"
+                         f"Using network interface: {results['interfaces'][0]['description']}"
                     )
             else:
                 if self.console:
@@ -575,17 +572,13 @@ Happy learning! 🛡️
             print("=" * 60)
             print(f"Experience Level: {config['EXPERIENCE_LEVEL'].title()}")
             print(
-                f"Learning Goal: {
-                    config['LEARNING_GOAL'].replace(
-                        '_', ' ').title()}"
+                 f"Learning Goal: {config['LEARNING_GOAL'].replace( '_', ' ').title()}"
             )
             print(
-                f"Tutorial Mode: {
-                    'Enabled' if config['TUTORIAL_MODE'] else 'Disabled'}"
+                 f"Tutorial Mode: {'Enabled' if config['TUTORIAL_MODE'] else 'Disabled'}"
             )
             print(
-                f"Web Interface: {
-                    'Enabled' if config['WEB_INTERFACE'] else 'Disabled'}"
+                 f"Web Interface: {'Enabled' if config['WEB_INTERFACE'] else 'Disabled'}"
             )
             print("\nNext steps:")
             print("1. Run: python main.py")

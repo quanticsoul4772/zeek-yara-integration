@@ -523,10 +523,7 @@ Perfect for students, educators, and security professionals.
             print("-" * 40)
             print(f"Mode: {config.get('PLATFORM_MODE', 'educational').title()}")
             print(
-                f"Experience Level: {
-                    config.get(
-                        'EXPERIENCE_LEVEL',
-                        'beginner').title()}"
+                 f"Experience Level: {config.get( 'EXPERIENCE_LEVEL', 'beginner').title()}"
             )
 
             tools = config.get("TOOLS_ENABLED", {})
@@ -583,8 +580,7 @@ Perfect for students, educators, and security professionals.
             valid_choices = [opt[0] for opt in menu_options]
             choice = (
                 input(
-                    f"Choose an option ({
-                    '/'.join(valid_choices)}) [2]: "
+                     f"Choose an option ({'/'.join(valid_choices)}) [2]: "
                 ).strip()
                 or "2"
             )

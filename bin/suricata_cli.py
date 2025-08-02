@@ -166,8 +166,7 @@ def main():
 
         elif args.correlate:
             logger.info(
-                f"Correlating alerts with time window: {
-                    args.correlation_window} seconds"
+                 f"Correlating alerts with time window: {args.correlation_window} seconds"
             )
             correlated_groups = alert_correlator.correlate_alerts(args.correlation_window)
 
@@ -178,24 +177,11 @@ def main():
                 for i, group in enumerate(correlated_groups[:5], 1):
                     logger.info(f"Group {i}:")
                     logger.info(
-                        f"  Correlation type: {
-                            group.get(
-                                'correlation_type',
-                                'unknown')}"
+                         f" Correlation type: {group.get( 'correlation_type', 'unknown')}"
                     )
                     logger.info(f"  Confidence: {group.get('confidence', 0)}%")
                     logger.info(
-                        f"  Primary alert: {
-                            group.get(
-                                'primary_alert',
-                                {}).get(
-                                'source',
-                                'unknown')} - {
-                            group.get(
-                                'primary_alert',
-                                {}).get(
-                                'rule_name',
-                                'unknown')}"
+                         f" Primary alert: {group.get( 'primary_alert', {}).get( 'source', 'unknown')} - {group.get( 'primary_alert', {}).get( 'rule_name', 'unknown')}"
                     )
                     logger.info(f"  Related alerts: {len(group.get('related_alerts', []))}")
 
