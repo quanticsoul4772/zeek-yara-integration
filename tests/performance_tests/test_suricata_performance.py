@@ -325,9 +325,7 @@ class TestSuricataPerformance:
 
         # Log performance metrics
         print(f"Retrieved {len(all_alerts)} alerts in {duration:.6f} seconds")
-        print(
-            f"Average time per alert: {duration / len(all_alerts):.6f} seconds"
-        )
+        print(f"Average time per alert: {duration / len(all_alerts):.6f} seconds")
 
         # Test should run in reasonable time (adjust threshold as needed)
         assert (
@@ -453,12 +451,8 @@ class TestSuricataPerformance:
         duration = timer.stop().duration
 
         # Log performance metrics
-        print(
-            f"Stored {len(correlation_groups)} correlation groups in {duration:.6f} seconds"
-        )
-        print(
-            f"Average time per group: {duration / len(correlation_groups):.6f} seconds"
-        )
+        print(f"Stored {len(correlation_groups)} correlation groups in {duration:.6f} seconds")
+        print(f"Average time per group: {duration / len(correlation_groups):.6f} seconds")
 
         # Verify correlations were stored
         conn = sqlite3.connect(db_file)
