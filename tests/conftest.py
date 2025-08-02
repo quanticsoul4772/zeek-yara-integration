@@ -3,10 +3,11 @@ Zeek-YARA Integration Test Configuration
 Minimal version for CI
 """
 
-import pytest
-import tempfile
 import os
 import shutil
+import tempfile
+
+import pytest
 
 
 @pytest.fixture
@@ -50,3 +51,9 @@ def test_files():
         shutil.rmtree(temp_dir)
     except Exception:
         pass
+
+
+@pytest.fixture
+def timer(benchmark):
+    """Timer fixture that wraps pytest-benchmark for performance tests"""
+    return benchmark

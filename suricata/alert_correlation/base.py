@@ -210,24 +210,9 @@ class AlertDatabaseManager:
             str: Alert summary
         """
         if alert.get("source") == "yara":
-            return f"YARA match: {
-                alert.get(
-                    'rule_name',
-                    'Unknown rule')} on file {
-                alert.get(
-                    'file_name',
-                    'Unknown file')}"
+            return f"YARA match: {alert.get('rule_name', 'Unknown rule')} on file {alert.get('file_name', 'Unknown file')}"
         elif alert.get("source") == "suricata":
-            return f"Suricata alert: {
-                alert.get(
-                    'signature',
-                    'Unknown signature')} from {
-                alert.get(
-                    'src_ip',
-                    'Unknown')} to {
-                alert.get(
-                    'dest_ip',
-                    'Unknown')}"
+            return f"Suricata alert: {alert.get('signature', 'Unknown signature')} from {alert.get('src_ip', 'Unknown')} to {alert.get('dest_ip', 'Unknown')}"
         else:
             return f"Unknown alert type: {alert.get('source', 'unknown')}"
 
