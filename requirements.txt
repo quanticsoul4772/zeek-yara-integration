@@ -3,6 +3,9 @@ click>=8.0.0,<9.0.0
 requests>=2.25.0
 markdown>=3.3.0
 
+# Async framework (pin to avoid ConnectedUDPSocket ImportError in anyio 4.0+)
+anyio>=3.6.0,<4.0.0
+
 # Testing
 pytest>=7.0.0
 pytest-cov>=3.0.0
