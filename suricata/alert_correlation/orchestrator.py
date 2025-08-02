@@ -79,13 +79,21 @@ class AlertCorrelator:
             # Start correlation
             correlated_groups = []
 
-            # Apply all correlation strategies
-            for strategy in self.correlation_strategies:
-                strategy_groups = strategy.correlate(yara_alerts, suricata_alerts)
-                correlated_groups.extend(strategy_groups)
+            # Correlation steps:
+            # 1. IP-based correlation
+            ip_groups = self._correlate_by_ip(yara_alerts, suricata_alerts)
+            correlated_groups.extend(ip_groups)
+
+            # 2. File hash correlation
+            hash_groups = self._correlate_by_hash(yara_alerts, suricata_alerts)
+            correlated_groups.extend(hash_groups)
+
+            # 3. Time-proximity correlation
+            time_groups = self._correlate_by_time_proximity(yara_alerts, suricata_alerts)
+            correlated_groups.extend(time_groups)
 
             # Store correlated alerts in database
-            self.db_manager.store_correlated_alerts(correlated_groups)
+            self._store_correlated_alerts(correlated_groups)
 
             return correlated_groups
 
@@ -145,6 +153,60 @@ class AlertCorrelator:
             }
 
         return connection_info
+
+    def _correlate_by_ip(self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Correlate alerts based on IP addresses using the IP correlation strategy.
+
+        Args:
+            yara_alerts (List[Dict]): List of YARA alerts
+            suricata_alerts (List[Dict]): List of Suricata alerts
+
+        Returns:
+            List of correlated alert groups
+        """
+        try:
+            # Use the IP correlation strategy
+            return self.correlation_strategies[0].correlate(yara_alerts, suricata_alerts)
+        except Exception as e:
+            self.logger.error(f"Error in IP correlation: {e}")
+            return []
+
+    def _correlate_by_hash(self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Correlate alerts based on file hashes using the hash correlation strategy.
+
+        Args:
+            yara_alerts (List[Dict]): List of YARA alerts
+            suricata_alerts (List[Dict]): List of Suricata alerts
+
+        Returns:
+            List of correlated alert groups
+        """
+        try:
+            # Use the hash correlation strategy
+            return self.correlation_strategies[1].correlate(yara_alerts, suricata_alerts)
+        except Exception as e:
+            self.logger.error(f"Error in hash correlation: {e}")
+            return []
+
+    def _correlate_by_time_proximity(self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Correlate alerts based on time proximity using the time proximity correlation strategy.
+
+        Args:
+            yara_alerts (List[Dict]): List of YARA alerts
+            suricata_alerts (List[Dict]): List of Suricata alerts
+
+        Returns:
+            List of correlated alert groups
+        """
+        try:
+            # Use the time proximity correlation strategy
+            return self.correlation_strategies[2].correlate(yara_alerts, suricata_alerts)
+        except Exception as e:
+            self.logger.error(f"Error in time proximity correlation: {e}")
+            return []
 
     def _store_correlated_alerts(self, correlated_groups: List[Dict[str, Any]]):
         """
