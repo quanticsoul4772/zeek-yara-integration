@@ -1,6 +1,6 @@
 [flake8]
 max-line-length = 100
-max-complexity = 10
+extend-ignore = E203, W503
 exclude = 
     venv,
     .venv,
@@ -9,6 +9,4 @@ exclude =
     DATA/runtime,
     .git,
     build,
-    dist,
-    *.egg-info
-ignore = E203, W503, E501
+    dist
