@@ -4,9 +4,10 @@ Zeek-YARA Integration Platform - Package Setup
 Network security monitoring toolkit integrating Zeek, YARA, and Suricata.
 """
 
-from setuptools import setup, find_packages
-from pathlib import Path
 import os
+from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read version from version file or use default
 try:

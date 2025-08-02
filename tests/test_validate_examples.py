@@ -8,14 +8,14 @@ in educational markdown files for syntax errors and security patterns.
 import json
 import os
 import shutil
+
+# Add the TOOLS directory to path to import the validation script
+import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-
-# Add the TOOLS directory to path to import the validation script
-import sys
 
 sys.path.insert(
     0, os.path.join(os.path.dirname(__file__), "..", "TOOLS", "dev-tools", "documentation")
@@ -25,11 +25,11 @@ from validate_examples import (
     CodeBlock,
     ValidationResult,
     extract_code_blocks,
-    validate_python_code,
     validate_bash_code,
-    validate_json_yaml,
     validate_code_block,
     validate_directory,
+    validate_json_yaml,
+    validate_python_code,
 )
 
 
