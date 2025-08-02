@@ -306,14 +306,14 @@ jobs:
     
     # Publish to PyPI
     - name: Publish to PyPI
-      if: secrets.PYPI_API_TOKEN
+      if: secrets.PYPI_API_TOKEN != ''
       run: |
         pip install twine
         twine upload packaging/dist/* --username __token__ --password ${{ secrets.PYPI_API_TOKEN }}
     
     # Publish to Conda
     - name: Publish to Conda
-      if: secrets.CONDA_TOKEN
+      if: secrets.CONDA_TOKEN != ''
       run: |
         # Install conda-build
         pip install conda-build anaconda-client
