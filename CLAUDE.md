@@ -37,12 +37,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 pip install -r test-requirements.txt
 
-# Run platform setup wizard (creates configs, directories)
-python setup.py install
-python setup_wizard.py
+# Install platform in development mode (for CI/CD and development)
+pip install -e .
 
-# Initialize with simplified educational config
-python setup.py  # Creates educational platform setup
+# Run platform installer (creates configs, directories, virtual env)
+python install_platform.py
+
+# Or use the command line installer after pip install
+zeek-yara-install
+
+# Run setup wizard for configuration
+python setup_wizard.py
 ```
 
 ### Starting the System
@@ -166,7 +171,8 @@ This is a **network security monitoring toolkit** that integrates three main com
 - `PLATFORM/core/database.py` - SQLite database manager with connection pooling and performance optimization
 - `PLATFORM/api/api_server.py` - FastAPI-based REST API server with comprehensive endpoints
 - `TOOLS/cli/zyi` - Primary CLI tool for all platform operations
-- `setup.py` - Cross-platform installer with educational platform setup
+- `setup.py` - Setuptools package configuration for pip installation and GitHub Actions CI/CD
+- `install_platform.py` - Cross-platform installer with educational platform setup (moved from setup.py)
 - `config/default_config.json` - Legacy configuration (still used)
 - `CONFIGURATION/defaults/` - New modular configuration system
 

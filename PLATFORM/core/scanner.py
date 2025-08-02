@@ -488,3 +488,57 @@ class FileEventHandler(FileSystemEventHandler):
         else:
             # Scan directly for single-threaded scanner
             self.scanner.scan_file(event.src_path)
+
+
+def main():
+    """
+    Main entry point for command-line scanner execution.
+    """
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Zeek-YARA File Scanner')
+    parser.add_argument('--config', '-c', help='Configuration file path')
+    parser.add_argument('--threads', '-t', type=int, default=2, help='Number of scanner threads')
+    parser.add_argument('--directory', '-d', help='Directory to monitor')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose logging')
+    
+    args = parser.parse_args()
+    
+    # Configure logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    try:
+        # Create scanner instance
+        if args.threads > 1:
+            scanner = MultiThreadScanner(num_threads=args.threads)
+        else:
+            scanner = SingleThreadScanner()
+            
+        print(f"Starting YARA scanner (threads: {args.threads})")
+        print(f"Monitoring directory: {args.directory or 'extracted_files/'}")
+        
+        # Start scanning
+        scanner.start()
+        
+        # Keep running
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("\nShutting down scanner...")
+            scanner.stop()
+            
+    except Exception as e:
+        print(f"Error starting scanner: {e}")
+        return 1
+        
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())
