@@ -10,6 +10,23 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Change to project root
 cd "$PROJECT_ROOT" || { echo "Error: Could not change to project root directory"; exit 1; }
 
+# Check Python version requirement
+REQUIRED_PYTHON_VERSION="3.12.5"
+CURRENT_PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2)
+
+echo "Required Python version: $REQUIRED_PYTHON_VERSION"
+echo "Current Python version: $CURRENT_PYTHON_VERSION"
+
+# Compare versions (basic check for major.minor.patch)
+if [[ "$CURRENT_PYTHON_VERSION" != "$REQUIRED_PYTHON_VERSION" ]]; then
+    echo "Warning: Python version mismatch!"
+    echo "  Required: $REQUIRED_PYTHON_VERSION"
+    echo "  Current:  $CURRENT_PYTHON_VERSION"
+    echo "  This may cause inconsistent test results."
+    echo "  Consider using pyenv to install Python $REQUIRED_PYTHON_VERSION"
+    echo ""
+fi
+
 # Activate virtual environment if it exists
 if [ -d "venv" ]; then
     source venv/bin/activate
