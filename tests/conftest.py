@@ -20,12 +20,12 @@ def config():
         "MAX_FILE_SIZE": 1024 * 1024,  # 1MB for tests
         "THREADS": 2,
     }
-    
+
     # Create test directories
     os.makedirs(test_config["EXTRACT_DIR"], exist_ok=True)
-    
+
     yield test_config
-    
+
     # Clean up
     try:
         shutil.rmtree(test_dir)
@@ -37,14 +37,14 @@ def config():
 def test_files():
     """Fixture for test files"""
     temp_dir = tempfile.mkdtemp()
-    
+
     # Create a simple test file
     test_file = os.path.join(temp_dir, "test.txt")
     with open(test_file, "w") as f:
         f.write("Test content")
-    
+
     yield {"dir": temp_dir, "files": [test_file]}
-    
+
     # Clean up
     try:
         shutil.rmtree(temp_dir)
