@@ -857,8 +857,7 @@ Total XP: {self.user_progress['experience_points']}
             progress_table.add_row("Achievements", str(len(self.user_progress["achievements"])))
             progress_table.add_row(
                 "Time Spent Learning",
-                f"{
-                    self.user_progress['total_time_spent'] / 60:.1f} minutes",
+                f"{self.user_progress['total_time_spent'] / 60:.1f} minutes",
             )
 
             self.console.print(progress_table)

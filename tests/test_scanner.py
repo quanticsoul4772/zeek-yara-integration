@@ -297,9 +297,7 @@ class TestScannerPerformance:
             for threads, thread_time in thread_times.items():
                 speedup = single_time / thread_time
                 print(
-                    f"{threads} threads: {
-                        thread_time:.6f}s (speedup: {
-                        speedup:.2f}x)"
+                    f"{threads} threads: { thread_time:.6f}s (speedup: { speedup:.2f}x)"
                 )
 
             # Print comparison results without asserting which one is faster

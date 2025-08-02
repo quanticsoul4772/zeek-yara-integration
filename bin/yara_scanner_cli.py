@@ -158,9 +158,7 @@ def main():
                     results.get(
                         'scanned',
                         0)} files scanned, "
-                f"{
-                    results.get(
-                        'matched',
+                f"{results.get( 'matched',
                         0)} matches found"
             )
 
