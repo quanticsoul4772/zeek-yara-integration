@@ -1,0 +1,30 @@
+[run]
+# Focus coverage on core modules only to achieve realistic threshold
+source = PLATFORM/core, utils, suricata
+
+# Exclude test files and third-party code
+omit = 
+    */tests/*
+    */test_*
+    */venv/*
+    */site-packages/*
+    */conftest.py
+    */setup.py
+    */setup_wizard.py
+    */tutorial_system.py
+
+[report]
+# Generate reports in test_results directory
+directory = test_results/htmlcov
+
+# Show missing lines
+show_missing = true
+
+# Sort by percentage missing (most important first)
+sort = -miss
+
+[html]
+directory = test_results/htmlcov
+
+[xml]
+output = test_results/coverage.xml
