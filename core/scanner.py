@@ -437,9 +437,7 @@ class MultiThreadScanner(BaseScanner):
                 try:
                     self.scan_file(file_path)
                 except Exception as e:
-                    self.logger.error(
-                        f"Thread {thread_id} error scanning {file_path}: {str(e)}"
-                    )
+                    self.logger.error(f"Thread {thread_id} error scanning {file_path}: {str(e)}")
 
                 # Mark task as done
                 self.file_queue.task_done()

@@ -16,7 +16,10 @@ import pytest
 
 # Add the TOOLS directory to path to import the validation script
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'TOOLS', 'dev-tools', 'documentation'))
+
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "..", "TOOLS", "dev-tools", "documentation")
+)
 
 from validate_examples import (
     CodeBlock,
@@ -26,7 +29,7 @@ from validate_examples import (
     validate_bash_code,
     validate_json_yaml,
     validate_code_block,
-    validate_directory
+    validate_directory,
 )
 
 
@@ -37,12 +40,9 @@ class TestCodeBlock:
     def test_code_block_initialization(self):
         """Test CodeBlock initialization"""
         block = CodeBlock(
-            code="print('hello')",
-            language="python",
-            file_path="/test/file.md",
-            line_number=5
+            code="print('hello')", language="python", file_path="/test/file.md", line_number=5
         )
-        
+
         assert block.code == "print('hello')"
         assert block.language == "python"
         assert block.file_path == "/test/file.md"
@@ -57,7 +57,7 @@ class TestValidationResult:
         """Test ValidationResult initialization"""
         block = CodeBlock("test", "python", "/test.md", 1)
         result = ValidationResult(block)
-        
+
         assert result.block == block
         assert result.errors == []
         assert result.warnings == []
@@ -67,9 +67,9 @@ class TestValidationResult:
         """Test adding errors"""
         block = CodeBlock("test", "python", "/test.md", 1)
         result = ValidationResult(block)
-        
+
         result.add_error("Syntax error")
-        
+
         assert len(result.errors) == 1
         assert result.errors[0] == "Syntax error"
         assert result.is_valid is False
@@ -78,9 +78,9 @@ class TestValidationResult:
         """Test adding warnings"""
         block = CodeBlock("test", "python", "/test.md", 1)
         result = ValidationResult(block)
-        
+
         result.add_warning("Security warning")
-        
+
         assert len(result.warnings) == 1
         assert result.warnings[0] == "Security warning"
         assert result.is_valid is True  # Warnings don't affect validity
@@ -92,9 +92,9 @@ class TestExtractCodeBlocks:
 
     def create_temp_markdown(self, content):
         """Helper to create temporary markdown file"""
-        fd, path = tempfile.mkstemp(suffix='.md')
+        fd, path = tempfile.mkstemp(suffix=".md")
         try:
-            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
                 f.write(content)
             return path
         except Exception:
@@ -114,7 +114,7 @@ Some text after.
         path = self.create_temp_markdown(content)
         try:
             blocks = extract_code_blocks(path)
-            
+
             assert len(blocks) == 1
             assert blocks[0].language == "python"
             assert blocks[0].code == 'print("hello world")\n'
@@ -144,19 +144,19 @@ echo "bash code"
         path = self.create_temp_markdown(content)
         try:
             blocks = extract_code_blocks(path)
-            
+
             assert len(blocks) == 3
-            
+
             # Python block
             assert blocks[0].language == "python"
             assert blocks[0].code == 'print("python code")\n'
             assert blocks[0].line_number == 3
-            
+
             # Bash block
             assert blocks[1].language == "bash"
             assert blocks[1].code == 'echo "bash code"\n'
             assert blocks[1].line_number == 9
-            
+
             # JSON block
             assert blocks[2].language == "json"
             assert blocks[2].code == '{"key": "value"}\n'
@@ -175,7 +175,7 @@ plain code block
         path = self.create_temp_markdown(content)
         try:
             blocks = extract_code_blocks(path)
-            
+
             assert len(blocks) == 1
             assert blocks[0].language == ""
             assert blocks[0].code == "plain code block\n"
@@ -192,7 +192,7 @@ plain code block
         path = self.create_temp_markdown(content)
         try:
             blocks = extract_code_blocks(path)
-            
+
             assert len(blocks) == 0  # Empty blocks are not extracted
         finally:
             os.unlink(path)
@@ -212,11 +212,11 @@ print("end")
         path = self.create_temp_markdown(content)
         try:
             blocks = extract_code_blocks(path)
-            
+
             # Should handle this gracefully by treating the second ``` as end
             assert len(blocks) == 2  # Actually finds 2 blocks due to malformed syntax
             assert blocks[0].language == "python"
-            assert "print(\"start\")" in blocks[0].code
+            assert 'print("start")' in blocks[0].code
         finally:
             os.unlink(path)
 
@@ -234,7 +234,7 @@ class TestValidatePythonCode:
         """Test validation of valid Python code"""
         block = CodeBlock("print('hello world')", "python", "/test.md", 1)
         result = validate_python_code(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
         assert len(result.warnings) == 0
@@ -243,7 +243,7 @@ class TestValidatePythonCode:
         """Test validation of invalid Python syntax"""
         block = CodeBlock("print('hello world'", "python", "/test.md", 1)
         result = validate_python_code(block)
-        
+
         assert result.is_valid is False
         assert len(result.errors) == 1
         assert "Syntax error" in result.errors[0]
@@ -255,18 +255,20 @@ class TestValidatePythonCode:
             ("exec('print(1)')", "exec()"),
             ("__import__('os')", "__import__"),
             ("os.system('ls')", "os.system"),
-            ("subprocess.call('ls', shell=True)", "shell=True")
+            ("subprocess.call('ls', shell=True)", "shell=True"),
         ]
-        
+
         for code, pattern in security_codes:
             block = CodeBlock(code, "python", "/test.md", 1)
             result = validate_python_code(block)
-            
+
             assert result.is_valid is True  # Warnings don't invalidate
             assert len(result.warnings) >= 1
             # Check that the warning mentions the dangerous pattern
-            warning_text = ' '.join(result.warnings)
-            assert pattern in code or pattern.replace('()', '') in code  # Verify our test case is correct
+            warning_text = " ".join(result.warnings)
+            assert (
+                pattern in code or pattern.replace("()", "") in code
+            )  # Verify our test case is correct
 
     def test_complex_python_code(self):
         """Test validation of complex valid Python code"""
@@ -281,7 +283,7 @@ for i in range(10):
 """
         block = CodeBlock(complex_code, "python", "/test.md", 1)
         result = validate_python_code(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -294,7 +296,7 @@ class TestValidateBashCode:
         """Test validation of valid Bash code"""
         block = CodeBlock("echo 'hello world'", "bash", "/test.md", 1)
         result = validate_bash_code(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -304,13 +306,13 @@ class TestValidateBashCode:
             ("rm -rf /", "rm command"),
             (": () { : | : & }; :", "Fork bomb"),
             ("echo test > /dev/sda", "disk write"),
-            ("dd if=/dev/zero of=/dev/sdb", "dd command")
+            ("dd if=/dev/zero of=/dev/sdb", "dd command"),
         ]
-        
+
         for code, pattern_desc in security_codes:
             block = CodeBlock(code, "bash", "/test.md", 1)
             result = validate_bash_code(block)
-            
+
             assert result.is_valid is True  # Warnings don't invalidate
             assert len(result.warnings) >= 1
 
@@ -319,7 +321,7 @@ class TestValidateBashCode:
         # Use invalid syntax that bash -n will catch
         block = CodeBlock("if [ test; then echo 'missing fi'", "bash", "/test.md", 1)
         result = validate_bash_code(block)
-        
+
         # Should have either an error or warning about syntax
         assert len(result.errors) >= 1 or len(result.warnings) >= 1
 
@@ -335,18 +337,18 @@ done
 """
         block = CodeBlock(complex_bash, "bash", "/test.md", 1)
         result = validate_bash_code(block)
-        
+
         # Should be valid (no errors)
         assert len(result.errors) == 0
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_bash_validation_subprocess_error(self, mock_run):
         """Test handling of subprocess errors during bash validation"""
         mock_run.side_effect = Exception("Subprocess failed")
-        
+
         block = CodeBlock("echo 'test'", "bash", "/test.md", 1)
         result = validate_bash_code(block)
-        
+
         # Should add a warning about validation failure
         assert len(result.warnings) >= 1
         assert "Could not validate bash syntax" in result.warnings[0]
@@ -361,7 +363,7 @@ class TestValidateJsonYaml:
         json_code = '{"name": "test", "value": 123}'
         block = CodeBlock(json_code, "json", "/test.md", 1)
         result = validate_json_yaml(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -370,7 +372,7 @@ class TestValidateJsonYaml:
         json_code = '{"name": "test", "value": 123'  # Missing closing brace
         block = CodeBlock(json_code, "json", "/test.md", 1)
         result = validate_json_yaml(block)
-        
+
         assert result.is_valid is False
         assert len(result.errors) == 1
         assert "Invalid JSON" in result.errors[0]
@@ -386,7 +388,7 @@ items:
 """
         block = CodeBlock(yaml_code, "yaml", "/test.md", 1)
         result = validate_json_yaml(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -398,7 +400,7 @@ name: test
 """
         block = CodeBlock(yaml_code, "yaml", "/test.md", 1)
         result = validate_json_yaml(block)
-        
+
         assert result.is_valid is False
         assert len(result.errors) == 1
         assert "Invalid YAML" in result.errors[0]
@@ -408,11 +410,11 @@ name: test
         # This test simulates the case where yaml module is not importable
         yaml_code = "name: test"
         block = CodeBlock(yaml_code, "yaml", "/test.md", 1)
-        
+
         # Mock the import to raise ImportError
-        with patch('builtins.__import__', side_effect=ImportError('No module named yaml')):
+        with patch("builtins.__import__", side_effect=ImportError("No module named yaml")):
             result = validate_json_yaml(block)
-            
+
             assert result.is_valid is True  # No error, just warning
             assert len(result.warnings) >= 1
             assert "PyYAML not installed" in result.warnings[0]
@@ -420,7 +422,7 @@ name: test
     def test_case_insensitive_languages(self):
         """Test that language detection is case insensitive"""
         json_code = '{"test": true}'
-        
+
         # Test various case combinations
         for lang in ["JSON", "Json", "json"]:
             block = CodeBlock(json_code, lang, "/test.md", 1)
@@ -442,7 +444,7 @@ class TestValidateCodeBlock:
         """Test validation routing for Python code"""
         block = CodeBlock("print('test')", "python", "/test.md", 1)
         result = validate_code_block(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -450,7 +452,7 @@ class TestValidateCodeBlock:
         """Test validation routing for Bash code"""
         block = CodeBlock("echo 'test'", "bash", "/test.md", 1)
         result = validate_code_block(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -458,7 +460,7 @@ class TestValidateCodeBlock:
         """Test validation routing for JSON code"""
         block = CodeBlock('{"test": true}', "json", "/test.md", 1)
         result = validate_code_block(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -466,7 +468,7 @@ class TestValidateCodeBlock:
         """Test validation routing for YAML code"""
         block = CodeBlock("test: true", "yaml", "/test.md", 1)
         result = validate_code_block(block)
-        
+
         assert result.is_valid is True
         assert len(result.errors) == 0
 
@@ -474,7 +476,7 @@ class TestValidateCodeBlock:
         """Test validation of unsupported language"""
         block = CodeBlock("SELECT * FROM users;", "sql", "/test.md", 1)
         result = validate_code_block(block)
-        
+
         assert result.is_valid is True  # No validation performed
         assert len(result.warnings) == 1
         assert "No validator for language: sql" in result.warnings[0]
@@ -483,7 +485,7 @@ class TestValidateCodeBlock:
         """Test validation of code block with no language specified"""
         block = CodeBlock("some generic code", "", "/test.md", 1)
         result = validate_code_block(block)
-        
+
         assert result.is_valid is True  # No validation performed
         assert len(result.warnings) == 0  # No warning for empty language
 
@@ -492,19 +494,19 @@ class TestValidateCodeBlock:
         python_aliases = ["python", "py", "python3"]
         bash_aliases = ["bash", "sh", "shell"]
         yaml_aliases = ["yaml", "yml"]
-        
+
         # Test Python aliases
         for alias in python_aliases:
             block = CodeBlock("print('test')", alias, "/test.md", 1)
             result = validate_code_block(block)
             assert result.is_valid is True
-        
+
         # Test Bash aliases
         for alias in bash_aliases:
             block = CodeBlock("echo 'test'", alias, "/test.md", 1)
             result = validate_code_block(block)
             assert result.is_valid is True
-        
+
         # Test YAML aliases
         for alias in yaml_aliases:
             block = CodeBlock("test: true", alias, "/test.md", 1)
@@ -519,11 +521,12 @@ class TestValidateDirectory:
     def setUp_temp_directory(self):
         """Set up a temporary directory with test markdown files"""
         temp_dir = tempfile.mkdtemp()
-        
+
         # Create markdown file with valid code
         valid_md = os.path.join(temp_dir, "valid.md")
-        with open(valid_md, 'w') as f:
-            f.write("""# Valid Examples
+        with open(valid_md, "w") as f:
+            f.write(
+                """# Valid Examples
 
 ```python
 print("hello world")
@@ -532,12 +535,14 @@ print("hello world")
 ```json
 {"valid": true}
 ```
-""")
-        
+"""
+            )
+
         # Create markdown file with invalid code
         invalid_md = os.path.join(temp_dir, "invalid.md")
-        with open(invalid_md, 'w') as f:
-            f.write("""# Invalid Examples
+        with open(invalid_md, "w") as f:
+            f.write(
+                """# Invalid Examples
 
 ```python
 print("unclosed string
@@ -546,12 +551,14 @@ print("unclosed string
 ```json
 {"invalid": json}
 ```
-""")
-        
+"""
+            )
+
         # Create markdown file with security warnings
         security_md = os.path.join(temp_dir, "security.md")
-        with open(security_md, 'w') as f:
-            f.write("""# Security Examples
+        with open(security_md, "w") as f:
+            f.write(
+                """# Security Examples
 
 ```python
 eval("1+1")
@@ -560,25 +567,28 @@ eval("1+1")
 ```bash
 rm -rf /tmp
 ```
-""")
-        
+"""
+            )
+
         # Create subdirectory with markdown
         subdir = os.path.join(temp_dir, "subdir")
         os.makedirs(subdir)
         sub_md = os.path.join(subdir, "sub.md")
-        with open(sub_md, 'w') as f:
-            f.write("""# Subdirectory Examples
+        with open(sub_md, "w") as f:
+            f.write(
+                """# Subdirectory Examples
 
 ```python
 import os
 ```
-""")
-        
+"""
+            )
+
         # Create non-markdown file (should be ignored)
         txt_file = os.path.join(temp_dir, "readme.txt")
-        with open(txt_file, 'w') as f:
+        with open(txt_file, "w") as f:
             f.write("This is not markdown")
-        
+
         return temp_dir
 
     def test_validate_directory_success(self):
@@ -586,7 +596,7 @@ import os
         temp_dir = self.setUp_temp_directory()
         try:
             errors, warnings = validate_directory(temp_dir, verbose=False)
-            
+
             # Should find some errors in invalid.md
             assert errors > 0
             # Should find some warnings in security.md
@@ -601,7 +611,7 @@ import os
             # Capture log output would require more complex setup
             # For now, just verify it runs without error
             errors, warnings = validate_directory(temp_dir, verbose=True)
-            
+
             assert isinstance(errors, int)
             assert isinstance(warnings, int)
         finally:
@@ -612,7 +622,7 @@ import os
         # This should be handled by the main() function
         # The validate_directory function itself will process what it finds
         errors, warnings = validate_directory("/nonexistent/directory")
-        
+
         # Should not crash, should return 0 errors and warnings
         assert errors == 0
         assert warnings == 0
@@ -622,7 +632,7 @@ import os
         temp_dir = tempfile.mkdtemp()
         try:
             errors, warnings = validate_directory(temp_dir)
-            
+
             assert errors == 0
             assert warnings == 0
         finally:
@@ -633,7 +643,7 @@ import os
         temp_dir = self.setUp_temp_directory()
         try:
             errors, warnings = validate_directory(temp_dir, verbose=True)
-            
+
             # Should process files in subdirectories too
             # The exact counts depend on the validation results
             assert isinstance(errors, int)
@@ -651,7 +661,7 @@ class TestValidationIntegration:
         # Create a comprehensive test markdown file
         temp_dir = tempfile.mkdtemp()
         test_file = os.path.join(temp_dir, "comprehensive.md")
-        
+
         content = """# Comprehensive Test Document
 
 ## Valid Python Code
@@ -721,30 +731,30 @@ fn main() {
 }
 ```
 """
-        
+
         try:
-            with open(test_file, 'w') as f:
+            with open(test_file, "w") as f:
                 f.write(content)
-            
+
             # Test extraction
             blocks = extract_code_blocks(test_file)
             assert len(blocks) == 9  # Should find all code blocks
-            
+
             # Test validation
             errors, warnings = validate_directory(temp_dir, verbose=True)
-            
+
             # Should have some errors (invalid Python, invalid JSON)
             assert errors > 0
             # Should have some warnings (security patterns, unsupported language)
             assert warnings > 0
-            
+
             # Test individual block validation
             python_blocks = [b for b in blocks if b.language == "python"]
             assert len(python_blocks) == 2  # One valid, one invalid
-            
+
             valid_python = python_blocks[0]  # First one should be valid
             result = validate_python_code(valid_python)
             assert result.is_valid is True
-            
+
         finally:
             shutil.rmtree(temp_dir)

@@ -7,46 +7,51 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 def run_setup_tests():
     """Run the setup.py validation tests"""
-    
+
     try:
         # Test 1: setup.py check
         print("🧪 Testing: setup.py check")
-        result = subprocess.run([sys.executable, "setup.py", "check"], 
-                              capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            [sys.executable, "setup.py", "check"], capture_output=True, text=True, check=False
+        )
         if result.returncode == 0:
             print("   ✅ setup.py check: SUCCESS")
         else:
             print(f"   ❌ setup.py check: FAILED")
             print(f"   Error: {result.stderr[:200]}")
-            
+
         # Test 2: setup.py --name
         print("\n🧪 Testing: setup.py --name")
-        result = subprocess.run([sys.executable, "setup.py", "--name"], 
-                              capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            [sys.executable, "setup.py", "--name"], capture_output=True, text=True, check=False
+        )
         if result.returncode == 0:
             print(f"   ✅ Package name: {result.stdout.strip()}")
         else:
             print(f"   ❌ Package name: FAILED")
-            
+
         # Test 3: setup.py --version
         print("\n🧪 Testing: setup.py --version")
-        result = subprocess.run([sys.executable, "setup.py", "--version"], 
-                              capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            [sys.executable, "setup.py", "--version"], capture_output=True, text=True, check=False
+        )
         if result.returncode == 0:
             print(f"   ✅ Package version: {result.stdout.strip()}")
         else:
             print(f"   ❌ Package version: FAILED")
-            
+
         # Test 4: Try importing setup module
         print("\n🧪 Testing: setup.py import")
         try:
             import setup
+
             print("   ✅ setup.py import: SUCCESS")
         except Exception as e:
             print(f"   ❌ setup.py import: FAILED - {e}")
-            
+
         # Test 5: Check entry points can be imported
         print("\n🧪 Testing: Entry point imports")
         entry_points = [
@@ -55,7 +60,7 @@ def run_setup_tests():
             ("setup_wizard", "Setup wizard"),
             ("tutorial_system", "Tutorial system"),
         ]
-        
+
         for module_name, description in entry_points:
             try:
                 if "." in module_name:
@@ -69,9 +74,10 @@ def run_setup_tests():
                 print(f"   ✅ {description}: importable")
             except Exception as e:
                 print(f"   ❌ {description}: import failed - {e}")
-                
+
     except Exception as e:
         print(f"Error running tests: {e}")
+
 
 if __name__ == "__main__":
     print("🚀 Setup.py Validation Test Suite")

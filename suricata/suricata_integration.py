@@ -46,10 +46,7 @@ class SuricataConfig:
     def _initialize(self) -> None:
         """Initialize Suricata configuration file if it doesn't exist"""
         if not os.path.exists(self.config_file):
-            self.logger.info(
-                f"Creating default Suricata configuration at {
-                    self.config_file}"
-            )
+            self.logger.info(f"Creating default Suricata configuration at {self.config_file}")
             try:
                 default_config = self._create_default_config()
                 with open(self.config_file, "w") as f:

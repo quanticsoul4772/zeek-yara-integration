@@ -183,9 +183,7 @@ class AlertDatabaseManager:
                             group.get("timestamp", datetime.now().isoformat()),
                             group.get(
                                 "correlation_id",
-                                f"corr_{
-                                int(
-                                    datetime.now().timestamp())}",
+                                f"corr_{int(datetime.now().timestamp())}",
                             ),
                             primary_alert.get("source", "unknown"),
                             primary_id,

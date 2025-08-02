@@ -12,4 +12,4 @@ to provide comprehensive threat detection.
 from .alert_correlation.orchestrator import AlertCorrelator
 
 # Re-export for backward compatibility
-__all__ = ['AlertCorrelator']
+__all__ = ["AlertCorrelator"]

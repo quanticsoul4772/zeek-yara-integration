@@ -154,7 +154,9 @@ class AlertCorrelator:
 
         return connection_info
 
-    def _correlate_by_ip(self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _correlate_by_ip(
+        self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Correlate alerts based on IP addresses using the IP correlation strategy.
 
@@ -172,7 +174,9 @@ class AlertCorrelator:
             self.logger.error(f"Error in IP correlation: {e}")
             return []
 
-    def _correlate_by_hash(self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _correlate_by_hash(
+        self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Correlate alerts based on file hashes using the hash correlation strategy.
 
@@ -190,7 +194,9 @@ class AlertCorrelator:
             self.logger.error(f"Error in hash correlation: {e}")
             return []
 
-    def _correlate_by_time_proximity(self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _correlate_by_time_proximity(
+        self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Correlate alerts based on time proximity using the time proximity correlation strategy.
 

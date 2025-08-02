@@ -24,8 +24,8 @@ __version__ = "1.0.0"
 
 @click.group()
 @click.version_option(version=__version__)
-@click.option('--config', '-c', help='Configuration file path')
-@click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
+@click.option("--config", "-c", help="Configuration file path")
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 def cli(config, verbose):
     """Zeek-YARA Integration Educational Platform CLI
 
@@ -45,9 +45,8 @@ def demo():
 
 
 @demo.command()
-@click.option('--tutorial', '-t', help='Tutorial name to demonstrate')
-@click.option('--list', 'list_tutorials', is_flag=True,
-              help='List available tutorials')
+@click.option("--tutorial", "-t", help="Tutorial name to demonstrate")
+@click.option("--list", "list_tutorials", is_flag=True, help="List available tutorials")
 def run(tutorial, list_tutorials):
     """Run a specific tutorial demonstration"""
     if list_tutorials:
@@ -57,7 +56,7 @@ def run(tutorial, list_tutorials):
             "eicar-test - EICAR test file detection",
             "network-monitoring - Basic network monitoring",
             "yara-rules - Creating YARA detection rules",
-            "file-extraction - Network file extraction"
+            "file-extraction - Network file extraction",
         ]
         for tut in tutorials:
             click.echo(f"  • {tut}")
@@ -65,7 +64,8 @@ def run(tutorial, list_tutorials):
 
     if not tutorial:
         click.echo(
-            "❌ Please specify a tutorial with --tutorial or use --list to see available options")
+            "❌ Please specify a tutorial with --tutorial or use --list to see available options"
+        )
         return
 
     click.echo(f"🚀 Running tutorial: {tutorial}")
@@ -92,7 +92,7 @@ def demo_eicar_detection():
     eicar_file = test_dir / "eicar.txt"
 
     click.echo("📝 Creating EICAR test file...")
-    with open(eicar_file, 'w') as f:
+    with open(eicar_file, "w") as f:
         f.write(eicar_content)
 
     click.echo(f"✅ Created: {eicar_file}")
@@ -112,8 +112,7 @@ def demo_eicar_detection():
     test_dir.rmdir()
 
     click.echo("\n🎉 Demo completed successfully!")
-    click.echo(
-        "📖 Next: Try the full tutorial in EDUCATION/getting-started/first-detection/")
+    click.echo("📖 Next: Try the full tutorial in EDUCATION/getting-started/first-detection/")
 
 
 @cli.group()
@@ -123,11 +122,15 @@ def scan():
 
 
 @scan.command()
-@click.argument('target', required=True)
-@click.option('--output', '-o', help='Output file for results')
-@click.option('--format', 'output_format', default='json',
-              type=click.Choice(['json', 'text', 'csv']),
-              help='Output format')
+@click.argument("target", required=True)
+@click.option("--output", "-o", help="Output file for results")
+@click.option(
+    "--format",
+    "output_format",
+    default="json",
+    type=click.Choice(["json", "text", "csv"]),
+    help="Output format",
+)
 def file(target, output, output_format):
     """Scan a specific file for threats"""
     target_path = Path(target)
@@ -146,20 +149,22 @@ def file(target, output, output_format):
         "file_size": target_path.stat().st_size,
         "scan_timestamp": "2025-01-28T10:00:00Z",
         "threats_detected": 0,
-        "scan_time_ms": 1.2
+        "scan_time_ms": 1.2,
     }
 
     # Check if it's the EICAR test file
     try:
-        with open(target_path, 'r') as f:
+        with open(target_path, "r") as f:
             content = f.read()
             if "EICAR-STANDARD-ANTIVIRUS-TEST-FILE" in content:
                 result["threats_detected"] = 1
-                result["detections"] = [{
-                    "rule": "EICAR_Test_File",
-                    "description": "EICAR antivirus test file",
-                    "severity": "test"
-                }]
+                result["detections"] = [
+                    {
+                        "rule": "EICAR_Test_File",
+                        "description": "EICAR antivirus test file",
+                        "severity": "test",
+                    }
+                ]
                 click.echo("✅ DETECTED: EICAR test file")
             else:
                 click.echo("✅ No threats detected")
@@ -167,8 +172,8 @@ def file(target, output, output_format):
         click.echo("✅ Binary file scanned - no threats detected")
 
     if output:
-        with open(output, 'w') as f:
-            if output_format == 'json':
+        with open(output, "w") as f:
+            if output_format == "json":
                 json.dump(result, f, indent=2)
             else:
                 f.write(str(result))
@@ -182,9 +187,8 @@ def dev():
 
 
 @dev.command()
-@click.option('--port', '-p', default=8000,
-              help='Port number for development server')
-@click.option('--reload', is_flag=True, help='Enable auto-reload')
+@click.option("--port", "-p", default=8000, help="Port number for development server")
+@click.option("--reload", is_flag=True, help="Enable auto-reload")
 def start(port, reload):
     """Start development environment"""
     click.echo("🚀 Starting development environment...")
@@ -194,8 +198,7 @@ def start(port, reload):
 
     # This would start the actual development server
     click.echo("📊 Development server would start here")
-    click.echo(
-        "🛠️  Access API documentation at: http://localhost:{}/docs".format(port))
+    click.echo("🛠️  Access API documentation at: http://localhost:{}/docs".format(port))
 
 
 @dev.command()
@@ -207,8 +210,7 @@ def test():
     test_script = PROJECT_ROOT / "TOOLS" / "scripts" / "testing" / "run-tests.sh"
     if test_script.exists():
         try:
-            result = subprocess.run([str(test_script), "--unit"],
-                                    capture_output=True, text=True)
+            result = subprocess.run([str(test_script), "--unit"], capture_output=True, text=True)
             click.echo(result.stdout)
             if result.stderr:
                 click.echo(result.stderr)
@@ -228,10 +230,10 @@ def api():
 
 
 @api.command()
-@click.option('--dev', is_flag=True, help='Run in development mode')
-@click.option('--reload', is_flag=True, help='Enable auto-reload')
-@click.option('--port', '-p', default=8000, help='Port number')
-@click.option('--host', '-h', default='127.0.0.1', help='Host address')
+@click.option("--dev", is_flag=True, help="Run in development mode")
+@click.option("--reload", is_flag=True, help="Enable auto-reload")
+@click.option("--port", "-p", default=8000, help="Port number")
+@click.option("--host", "-h", default="127.0.0.1", help="Host address")
 def start(dev, reload, port, host):
     """Start the API server"""
     click.echo("🚀 Starting ZYI API server...")
@@ -254,9 +256,13 @@ def config():
 
 
 @config.command()
-@click.option('--environment', '-e',
-              type=click.Choice(['development', 'education', 'production']),
-              default='education', help='Environment type')
+@click.option(
+    "--environment",
+    "-e",
+    type=click.Choice(["development", "education", "production"]),
+    default="education",
+    help="Environment type",
+)
 def init(environment):
     """Initialize configuration for specified environment"""
     click.echo(f"⚙️  Initializing {environment} configuration...")
@@ -274,8 +280,8 @@ def init(environment):
 
 
 @config.command()
-@click.argument('key', required=False)
-@click.argument('value', required=False)
+@click.argument("key", required=False)
+@click.argument("value", required=False)
 def set(key, value):
     """Set configuration value"""
     if not key:
@@ -298,8 +304,14 @@ def status():
 
     # Check directories
     directories = [
-        "EDUCATION", "PLATFORM", "TESTING", "DEPLOYMENT",
-        "TOOLS", "CONFIGURATION", "DATA", "RULES"
+        "EDUCATION",
+        "PLATFORM",
+        "TESTING",
+        "DEPLOYMENT",
+        "TOOLS",
+        "CONFIGURATION",
+        "DATA",
+        "RULES",
     ]
 
     for directory in directories:
@@ -353,5 +365,5 @@ def info():
     click.echo("  zyi api start --dev")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

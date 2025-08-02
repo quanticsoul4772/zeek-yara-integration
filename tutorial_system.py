@@ -156,11 +156,11 @@ class TutorialManager:
 
         # Ensure we always return at least some tutorials for CI environments
         result_tutorials = tutorials.get(experience_level, tutorials["beginner"])
-        
+
         # Fallback to ensure tutorials are always available
         if not result_tutorials:
             result_tutorials = tutorials["beginner"]
-            
+
         # Final safety check - create minimal tutorials if still empty
         if not result_tutorials:
             result_tutorials = [
@@ -174,7 +174,7 @@ class TutorialManager:
                 },
                 {
                     "id": "basic_detection",
-                    "title": "Basic Detection", 
+                    "title": "Basic Detection",
                     "description": "Simple threat detection example",
                     "duration": "10 minutes",
                     "difficulty": "Beginner",
@@ -184,7 +184,7 @@ class TutorialManager:
                     "id": "dashboard_intro",
                     "title": "Dashboard Introduction",
                     "description": "Navigate the security dashboard",
-                    "duration": "5 minutes", 
+                    "duration": "5 minutes",
                     "difficulty": "Beginner",
                     "topics": ["Dashboard", "UI"],
                 },
@@ -197,7 +197,7 @@ class TutorialManager:
                     "topics": ["Support", "Resources"],
                 },
             ]
-            
+
         return result_tutorials
 
     def show_tutorial_menu(self) -> Optional[str]:
@@ -843,9 +843,7 @@ Total XP: {self.user_progress['experience_points']}
             )
             self.console.print(panel)
         else:
-            print(
-                f"\n🎉 ACHIEVEMENT UNLOCKED: {info.get('title', 'Unknown Achievement')}"
-            )
+            print(f"\n🎉 ACHIEVEMENT UNLOCKED: {info.get('title', 'Unknown Achievement')}")
             print(info.get("description", "Great job!"))
             print(f"Bonus XP: +{xp_bonus}")
             print(f"Total XP: {self.user_progress['experience_points']}")
