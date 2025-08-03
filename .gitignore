@@ -63,3 +63,6 @@ rules/suricata/et_rules/
 
 # Runtime data
 DATA/runtime/
+
+# Type marker files that can cause performance issues
+py.typed

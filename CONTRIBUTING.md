@@ -261,6 +261,19 @@ git commit -m "Add tutorial for basic YARA rule creation
 - Include detailed description if needed
 - Reference relevant issues with "Fixes #123" or "Relates to #456"
 
+**Pre-commit Hooks:**
+The project includes pre-commit hooks that automatically check for common issues:
+- Code formatting and style violations
+- Performance anti-patterns (like py.typed files)
+- Security issues and hardcoded credentials
+- Educational code safety requirements
+
+Install pre-commit hooks to catch issues early:
+```bash
+pip install pre-commit
+pre-commit install
+```
+
 ### 6. Push and Create Pull Request
 
 ```bash
@@ -512,12 +525,32 @@ We value all contributions to the project and recognize contributors in several 
 - Support various hardware configurations
 - Monitor resource usage
 - Provide performance guidance
+- **Avoid performance anti-patterns**: Do not commit py.typed files, which can significantly impact import times and git operations
 
 **Security:**
 - Follow secure coding practices
 - Regular dependency updates
 - Responsible disclosure processes
 - Safe example implementations
+
+### Performance Best Practices
+
+**File Management:**
+- Avoid unnecessary marker files like py.typed that impact filesystem traversal
+- Use .gitignore to prevent committing performance-degrading files
+- Keep directory structures flat where possible for faster scanning
+
+**Import Optimization:**
+- Use lazy imports for optional dependencies
+- Avoid expensive operations at module level
+- Implement caching for frequently accessed resources
+
+**Development Workflow:**
+- Use pre-commit hooks to catch performance anti-patterns early
+- Monitor import times and startup performance regularly
+- Document performance implications of architectural decisions
+
+For detailed performance guidelines and metrics, see [PERFORMANCE.md](PERFORMANCE.md).
 
 ### Community Values
 
