@@ -2,13 +2,35 @@
 
 ## Network Security Education Platform
 
-An educational platform that teaches network security monitoring, threat detection, and security tool integration. This project integrates Zeek's network analysis, YARA's malware detection, and Suricata's intrusion detection.
+An educational platform that teaches network security monitoring, threat detection, and security tool integration. This project integrates **Zeek's network analysis**, **YARA's malware detection**, and **Suricata's intrusion detection** into a unified monitoring system.
+
+### How the Components Work Together
+
+- **Zeek** monitors network traffic and extracts files for analysis
+- **YARA** scans extracted files for malware signatures and behavioral patterns  
+- **Suricata** provides network-based intrusion detection and prevention
+- **Alert Correlation Engine** combines detections from all three tools for comprehensive threat visibility
 
 **Target Audience**: Students, educators, security professionals, and researchers.
 
 ## Quick Start
 
 **Prerequisites: Requires Python 3.12.5 or higher**
+
+### 🚀 Fastest Path to Success
+
+1. **5-Minute Demo**: Run the EICAR detection demo to see the platform in action
+   ```bash
+   ./TOOLS/cli/zyi demo run --tutorial basic-detection
+   ```
+
+2. **Educational Setup**: Start the tutorial server for guided learning
+   ```bash
+   cd EDUCATION && python start_tutorial_server.py
+   # Access at http://localhost:8001
+   ```
+
+3. **Production Setup**: Follow the complete installation guide below
 
 **Starting points**:
 1. [EICAR Demo](docs/examples/quick-demos/eicar-detection.md) - Threat detection demonstration
@@ -75,7 +97,7 @@ requests>=2.28.0
 
 ## Installation
 
-### Clone and Setup
+### Method 1: Automated Installation (Recommended)
 
 ```bash
 # Verify Python version (must be 3.12.5 or higher)
@@ -85,12 +107,37 @@ python3 --version  # Should output: Python 3.12.5 or higher
 git clone https://github.com/quanticsoul4772/zeek-yara-integration.git
 cd zeek-yara-integration
 
-# Create virtual environment
+# Run the automated installer (creates virtual environment, installs dependencies, configures platform)
+python install_platform.py
+
+# OR use the pip-installable command after installation
+# pip install -e .
+# zeek-yara-install
+
+# Run setup wizard for configuration
+python setup_wizard.py
+
+# Verify installation with CLI tool
+./TOOLS/cli/zyi --version
+./TOOLS/cli/zyi status
+```
+
+### Method 2: Manual Setup
+
+```bash
+# Verify Python version requirement
+python3 --version  # Must be Python 3.12.5 or higher
+
+# Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
+# Install dependencies (production + development)
 pip install -r requirements.txt
+pip install -r test-requirements.txt
+
+# Install platform in development mode (for CI/CD and development)
+pip install -e .
 
 # Run initial setup
 bin/setup.sh
@@ -161,9 +208,33 @@ Configuration via `config/default_config.json`:
 
 ## Usage
 
-### Integrated System
+### Primary CLI Tool: `zyi` (Zeek-YARA Integration)
 
-Run all components together:
+The `zyi` CLI tool is the unified interface for all platform operations:
+
+```bash
+# Educational demonstrations
+./TOOLS/cli/zyi demo run --tutorial basic-detection   # EICAR detection demo
+./TOOLS/cli/zyi demo run --list                       # List available tutorials
+
+# Development server and API
+./TOOLS/cli/zyi api start --dev --port 8000           # Start API server
+./TOOLS/cli/zyi dev start --reload                    # Start with auto-reload
+./TOOLS/cli/zyi dev test                              # Run test suite
+
+# File scanning operations
+./TOOLS/cli/zyi scan file /path/to/file               # Scan single file
+./TOOLS/cli/zyi scan file /path/to/file --output results.json
+
+# System status and management
+./TOOLS/cli/zyi status                                # Check platform status
+./TOOLS/cli/zyi info                                  # Show platform information
+./TOOLS/cli/zyi config init --environment education  # Initialize config
+```
+
+### Integrated System (Legacy)
+
+Run all components together using legacy scripts:
 
 ```bash
 # Run integrated system (Zeek, YARA scanner, Suricata, and API server)
@@ -318,27 +389,69 @@ Configuration in `config/default_config.json`:
 
 ## Directory Structure
 
+### Core Platform Structure
+
 ```
-zeek_yara_integration/
-├── api/                 # RESTful API server implementation
-├── bin/                 # Command-line tools and scripts
-├── config/              # Configuration files
-│   ├── default_config.json
-│   └── suricata.yaml
-├── core/                # Core scanning and database functionality
+zeek-yara-integration/
+├── PLATFORM/            # Main platform code
+│   ├── core/            # Core scanning and database functionality
+│   │   ├── scanner.py   # Multi-threaded file scanning engine
+│   │   └── database.py  # SQLite database manager with connection pooling
+│   ├── api/             # FastAPI-based REST API server
+│   │   ├── api_server.py
+│   │   └── suricata_api.py
+│   └── integrations/    # Tool integrations (Zeek, YARA, Suricata)
+├── TOOLS/               # Command-line tools and utilities
+│   ├── cli/             # Primary CLI tool (`zyi`)
+│   ├── gui/             # Graphical interfaces (dashboard, rule editor)
+│   └── scripts/         # Automation and maintenance scripts
+├── EDUCATION/           # Educational platform and tutorials
+│   ├── tutorials/       # Step-by-step learning modules
+│   ├── examples/        # Practical demonstrations
+│   └── static/          # Web assets for tutorial server
+├── CONFIGURATION/       # Modern configuration system
+│   └── defaults/        # Default configuration templates
+└── TESTING/             # Comprehensive testing framework
+    ├── unit/            # Unit tests
+    ├── integration/     # Integration tests
+    └── performance/     # Performance benchmarks
+```
+
+### Legacy Structure (Still Active)
+
+```
+├── api/                 # Legacy API server (still used)
+├── bin/                 # Legacy command-line tools and scripts
+├── config/              # Legacy configuration files
+│   ├── default_config.json  # Main configuration file
+│   └── suricata.yaml    # Suricata configuration
+├── core/                # Legacy core modules (still used)
 ├── extracted_files/     # Files extracted by Zeek for scanning
 ├── logs/                # Log directory
+│   ├── yara_scan.log    # YARA scanner logs
+│   ├── api.log          # API server logs
 │   └── suricata/        # Suricata-specific logs
 ├── rules/               # Rules directory
-│   ├── active/          # YARA rules
+│   ├── active/          # YARA rules organized by category
+│   │   ├── malware/
+│   │   ├── ransomware/
+│   │   └── document_malware/
 │   └── suricata/        # Suricata rules
-├── suricata/            # Suricata integration
-│   ├── alert_correlation.py
-│   └── suricata_integration.py
-├── tests/               # Testing framework
+├── suricata/            # Suricata integration modules
 ├── utils/               # Utility modules
 └── zeek/                # Zeek scripts for file extraction
 ```
+
+### Key Directories Explained
+
+- **PLATFORM/**: Modern platform architecture with improved organization
+- **TOOLS/cli/**: Unified CLI tool (`zyi`) for all platform operations
+- **EDUCATION/**: Complete educational system with tutorials and web interface
+- **extracted_files/**: Temporary storage for files extracted by Zeek from network traffic
+- **rules/active/**: YARA rules organized by threat category (malware, ransomware, etc.)
+- **logs/**: All system logs including scanner, API, and Suricata outputs
+- **config/**: System configuration files (paths, threading, correlation settings)
+- **TESTING/**: Comprehensive test suite with unit, integration, and performance tests
 
 ## Testing
 
@@ -357,37 +470,229 @@ bin/run_tests.sh --all --coverage
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues and Solutions
+
+#### Installation Issues
+
+**Wrong Python version**:
+```bash
+# Install Python 3.12.5 using pyenv (recommended)
+curl https://pyenv.run | bash
+pyenv install 3.12.5
+pyenv local 3.12.5
+python3 --version  # Verify version
+```
 
 **Missing dependencies**:
 ```bash
+# Reinstall all dependencies
+pip install -r requirements.txt
+pip install -r test-requirements.txt
+
+# For API server issues specifically
+pip install uvicorn fastapi
+```
+
+**Virtual environment issues**:
+```bash
+# Recreate virtual environment
+rm -rf venv
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-**API server startup failure**:
+#### Runtime Issues
+
+**CLI tool fails**:
 ```bash
-pip install uvicorn fastapi
+# Check Python path and virtual environment activation
+which python3
+echo $VIRTUAL_ENV
+source venv/bin/activate
+
+# Make CLI tool executable
+chmod +x ./TOOLS/cli/zyi
+```
+
+**Platform status shows missing components**:
+```bash
+# Create required directories
+mkdir -p extracted_files logs logs/suricata rules/active rules/suricata
+
+# Check permissions
+ls -la extracted_files logs
+sudo chown -R $USER:$USER extracted_files logs
 ```
 
 **Scanner startup failure**:
 ```bash
-# Create test rule
+# Create test rule to verify YARA functionality
 mkdir -p rules/active/malware
 echo 'rule test {strings: $a = "test" condition: $a}' > rules/active/malware/test.yar
+
+# Test YARA compilation
+yara-python -c rules/active/malware/test.yar
 ```
 
-**No file extraction**:
+**No file extraction from Zeek**:
 ```bash
 # Test Zeek configuration
 zeek -i en0 -C zeek/extract_files.zeek
+
+# Check interface name
+ip link show  # Linux
+ifconfig      # macOS
+
+# Test with PCAP file instead
+zeek -r test.pcap zeek/extract_files.zeek
+```
+
+**Demo fails**:
+```bash
+# Check temporary directory permissions
+ls -la /tmp
+mkdir -p /tmp/zeek-yara-demo
+chmod 777 /tmp/zeek-yara-demo
+
+# Verify EICAR test file creation
+echo 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*' > test_eicar.txt
+```
+
+**Tutorial server fails**:
+```bash
+# Check port availability
+netstat -an | grep 8001
+lsof -i :8001
+
+# Install tutorial dependencies
+cd EDUCATION
+pip install -r requirements.txt
+
+# Use different port if needed
+python start_tutorial_server.py --port 8002
+```
+
+**Tests fail**:
+```bash
+# Ensure TESTING directory exists
+mkdir -p TESTING
+
+# Install test dependencies
+pip install pytest pytest-cov
+
+# Run specific test categories
+bin/run_tests.sh --unit
+bin/run_tests.sh --integration
+
+# Check test configuration
+cat pytest.ini
+```
+
+#### Performance Issues
+
+**Slow scanning**:
+```bash
+# Increase thread count in config
+vim config/default_config.json
+# Set "THREADS": 4 or higher
+
+# Check system resources
+top
+htop
+```
+
+**Database performance**:
+```bash
+# Check database file
+ls -la logs/alerts.db
+sqlite3 logs/alerts.db "VACUUM;"
+
+# Check database indexes
+sqlite3 logs/alerts.db ".schema"
+```
+
+### Diagnostic Commands
+
+```bash
+# Platform health check
+./TOOLS/cli/zyi status
+./TOOLS/cli/zyi info
+
+# Check component logs
+tail -f logs/yara_scan.log
+tail -f logs/api.log
+tail -f logs/suricata/eve.json
+
+# Database inspection
+sqlite3 logs/alerts.db "SELECT COUNT(*) FROM yara_alerts;"
+sqlite3 logs/alerts.db "SELECT rule_name, COUNT(*) FROM yara_alerts GROUP BY rule_name;"
+
+# Test network connectivity (for Suricata)
+ping 8.8.8.8
+netstat -rn
 ```
 
 ### Log Locations
 
-- YARA Scanner: `logs/yara_scan.log`
-- Suricata: `logs/suricata/`
-- API Server: `logs/api.log`
-- Zeek: Log files in project root (`*.log`)
+- **YARA Scanner**: `logs/yara_scan.log`
+- **API Server**: `logs/api.log`
+- **Suricata**: `logs/suricata/eve.json`, `logs/suricata/suricata.log`
+- **Zeek**: Log files in project root (`*.log`)
+- **Database**: `logs/alerts.db` (SQLite)
+- **Tutorial Server**: Console output and browser developer tools
+
+### Sample Data and Testing Files
+
+The platform includes test data for immediate experimentation:
+
+**EICAR Test File** (Safe Malware Test):
+```bash
+# Create EICAR test file for immediate testing
+echo 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*' > tests/test_eicar.txt
+
+# Test with YARA scanner
+./TOOLS/cli/zyi scan file tests/test_eicar.txt
+
+# Expected result: Detection by malware rules
+```
+
+**Sample Network Traffic** (Educational):
+```bash
+# The platform includes sample PCAP files in DATA/samples/pcaps/
+ls DATA/samples/pcaps/
+
+# Run analysis on sample PCAP
+bin/run_integrated.sh --read DATA/samples/pcaps/sample.pcap
+
+# Expected: File extraction, YARA scanning, and Suricata alerts
+```
+
+**Working Configuration Examples**:
+```bash
+# Educational configuration (recommended for learning)
+cp CONFIGURATION/defaults/config.py config/educational_config.py
+
+# Production configuration (for real deployment)
+cp config/default_config.json config/production_config.json
+```
+
+### Expected Outputs and Results
+
+When the platform is working correctly, you should see:
+
+1. **File Extraction**: Files appear in `extracted_files/` directory
+2. **YARA Alerts**: Logged to `logs/yara_scan.log` and `logs/alerts.db`
+3. **Suricata Alerts**: Logged to `logs/suricata/eve.json`
+4. **API Responses**: Available at `http://localhost:8000/alerts`
+5. **Dashboard Access**: Tutorial server at `http://localhost:8001`
+
+### Getting Help
+
+1. **Check Issues**: [GitHub Issues](https://github.com/quanticsoul4772/zeek-yara-integration/issues)
+2. **Community Discussion**: [GitHub Discussions](https://github.com/quanticsoul4772/zeek-yara-integration/discussions)
+3. **Documentation**: Review [CLAUDE.md](CLAUDE.md) for detailed developer guidance
+4. **Educational Support**: Use tutorial server at `http://localhost:8001` for guided troubleshooting
 
 ## Community and Contributing
 
