@@ -6,25 +6,25 @@ Welcome to the comprehensive documentation for the Zeek-YARA Integration educati
 
 Our documentation follows the [Diátaxis framework](https://diataxis.fr/) to provide different types of information for different needs:
 
-### 🎯 [Tutorials](tutorials/)
+###  [Tutorials](tutorials/)
 **Learning-oriented guides** - Perfect for beginners who want to learn by doing
 - Step-by-step instructions with hands-on exercises
 - Build understanding through practical experience
 - Designed for educational progression
 
-### 🔧 [How-to Guides](guides/)
+###  [How-to Guides](guides/)
 **Problem-solving oriented** - Solutions for specific tasks and challenges
 - Practical solutions to real problems
 - Assume some familiarity with the system
 - Focus on getting things done
 
-### 📚 [Reference](reference/)
+###  [Reference](reference/)
 **Information-oriented** - Technical specifications and detailed documentation
 - API documentation and configuration options
 - Comprehensive technical information
 - Organized for quick lookup
 
-### 💡 [Explanations](explanations/)
+###  [Explanations](explanations/)
 **Understanding-oriented** - Background knowledge and concepts
 - Conceptual overviews and theory
 - Context and background information
@@ -32,25 +32,25 @@ Our documentation follows the [Diátaxis framework](https://diataxis.fr/) to pro
 
 ## Quick Start Paths
 
-### 🆕 New to Network Security?
+###  New to Network Security?
 Start here if you're new to cybersecurity or network monitoring:
 1. [Understanding Network Security Monitoring](explanations/network-security-basics.md)
 2. [Your First Security Setup](tutorials/getting-started.md)
 3. [Basic Threat Detection](tutorials/basic-threat-detection.md)
 
-### 🎓 Student or Educator?
+###  Student or Educator?
 Perfect for academic use and structured learning:
 1. [Classroom Setup Guide](guides/classroom-setup.md)
 2. [Educational Exercises](tutorials/educational-exercises/)
 3. [Assessment Tools](reference/assessment-tools.md)
 
-### 🔬 Security Professional?
+###  Security Professional?
 Jump right into advanced topics and real-world scenarios:
 1. [Advanced Integration Guide](guides/advanced-integration.md)
 2. [Performance Optimization](guides/performance-optimization.md)
 3. [Production Deployment](guides/production-deployment.md)
 
-### 🔍 Researcher or Developer?
+###  Researcher or Developer?
 Extend and customize the platform for your needs:
 1. [Architecture Overview](explanations/architecture.md)
 2. [API Reference](reference/api-reference.md)
@@ -109,58 +109,58 @@ Extend and customize the platform for your needs:
 
 ## Interactive Examples
 
-### 🚀 Quick Demos
+###  Quick Demos
 - [5-Minute Setup](examples/quick-demos/5-minute-setup.md)
 - [EICAR Test Detection](examples/quick-demos/eicar-detection.md)
 - [Network Traffic Analysis](examples/quick-demos/traffic-analysis.md)
 
-### 🎮 Hands-on Labs
+###  Hands-on Labs
 - [Malware Detection Lab](examples/labs/malware-detection/)
 - [Network Forensics Lab](examples/labs/network-forensics/)
 - [Incident Response Simulation](examples/labs/incident-response/)
 
-### 📊 Case Studies
+###  Case Studies
 - [APT Detection Scenario](examples/case-studies/apt-detection.md)
 - [Insider Threat Investigation](examples/case-studies/insider-threat.md)
 - [Ransomware Analysis](examples/case-studies/ransomware-analysis.md)
 
 ## Assessment and Verification
 
-### 📝 Knowledge Checks
+###  Knowledge Checks
 - [Concept Quizzes](reference/quizzes/)
 - [Practical Assessments](reference/assessments/)
 - [Skill Verification](reference/verification/)
 
-### 🏆 Certification Paths
+###  Certification Paths
 - [Basic Certification](reference/certification/basic.md)
 - [Intermediate Certification](reference/certification/intermediate.md)
 - [Advanced Certification](reference/certification/advanced.md)
 
 ## Community Resources
 
-### 💬 Getting Help
+###  Getting Help
 - [FAQ](reference/faq.md)
 - [Troubleshooting Guide](reference/troubleshooting.md)
 - [Community Discussions](https://github.com/your-repo/discussions)
 
-### 🤝 Contributing
+###  Contributing
 - [Documentation Guidelines](../DOCUMENTATION_STANDARDS.md)
 - [Content Templates](reference/templates/)
 - [Style Guide](reference/style-guide.md)
 
-### 📈 Project Information
+###  Project Information
 - [Project Roadmap](../PROJECT_PLAN.md)
 - [Release Notes](reference/release-notes.md)
 - [Educational Goals](explanations/educational-goals.md)
 
 ## Additional Resources
 
-### 📖 External Learning
+###  External Learning
 - [Recommended Reading](reference/reading-list.md)
 - [Related Tools and Projects](reference/related-tools.md)
 - [Security Conferences and Events](reference/events.md)
 
-### 🔗 Useful Links
+###  Useful Links
 - [Main Project Repository](https://github.com/your-repo)
 - [Issue Tracker](https://github.com/your-repo/issues)
 - [Project Website](https://your-project-website.com)
@@ -183,7 +183,7 @@ We welcome feedback and contributions to improve this documentation:
 
 ---
 
-**Happy Learning!** 🎓
+**Happy Learning!** 
 
 Whether you're a student, educator, security professional, or researcher, we're excited to support your journey in learning network security monitoring and threat detection. Start with any path above and don't hesitate to ask questions or seek help from our community.
 
