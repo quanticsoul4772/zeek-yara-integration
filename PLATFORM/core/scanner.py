@@ -17,6 +17,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from core.database import DatabaseManager
+from core.cleanup_manager import FileCleanupManager
 from utils.file_utils import FileAnalyzer
 from utils.yara_utils import RuleManager, YaraMatcher
 
@@ -44,6 +45,7 @@ class BaseScanner:
             rule_manager=self.rule_manager, timeout=config.get("SCAN_TIMEOUT", 60)
         )
         self.db_manager = DatabaseManager(db_file=config.get("DB_FILE"))
+        self.cleanup_manager = FileCleanupManager(config)
 
         # Callback for notifications
         self.scan_callback = None
@@ -211,6 +213,24 @@ class BaseScanner:
 
         return results
 
+    def get_cleanup_statistics(self):
+        """
+        Get file cleanup statistics.
+
+        Returns:
+            dict: Cleanup statistics and configuration
+        """
+        return self.cleanup_manager.get_statistics()
+
+    def force_cleanup(self):
+        """
+        Force an immediate cleanup operation.
+
+        Returns:
+            dict: Cleanup operation results
+        """
+        return self.cleanup_manager.force_cleanup()
+
 
 class SingleThreadScanner(BaseScanner):
     """Single-threaded scanner implementation"""
@@ -243,6 +263,10 @@ class SingleThreadScanner(BaseScanner):
             self.running = True
             self.logger.info(f"Started monitoring directory: {self.extract_dir}")
 
+            # Start cleanup manager
+            if not self.cleanup_manager.start_cleanup_scheduler():
+                self.logger.warning("Failed to start file cleanup scheduler")
+
             # Scan existing files in the directory
             self.scan_directory()
 
@@ -265,6 +289,10 @@ class SingleThreadScanner(BaseScanner):
 
         try:
             self.running = False
+
+            # Stop cleanup manager
+            if not self.cleanup_manager.stop_cleanup_scheduler():
+                self.logger.warning("Failed to stop file cleanup scheduler")
 
             if self.observer:
                 self.observer.stop()
@@ -337,6 +365,10 @@ class MultiThreadScanner(BaseScanner):
                 f"Started monitoring directory with {self.num_threads} threads: {self.extract_dir}"
             )
 
+            # Start cleanup manager
+            if not self.cleanup_manager.start_cleanup_scheduler():
+                self.logger.warning("Failed to start file cleanup scheduler")
+
             # Queue existing files for scanning
             for filename in os.listdir(self.extract_dir):
                 file_path = os.path.join(self.extract_dir, filename)
@@ -366,6 +398,10 @@ class MultiThreadScanner(BaseScanner):
         try:
             # Signal threads to stop
             self.stop_event.set()
+
+            # Stop cleanup manager
+            if not self.cleanup_manager.stop_cleanup_scheduler():
+                self.logger.warning("Failed to stop file cleanup scheduler")
 
             # Wait for threads to finish
             for thread in self.worker_threads:
