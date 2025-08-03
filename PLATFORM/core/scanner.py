@@ -53,6 +53,9 @@ class BaseScanner:
         # Prepare rules
         self.rule_manager.compile_rules()
 
+        # Recovery mechanism for interrupted scans
+        self.recover_interrupted_scans()
+
     def scan_file(self, file_path):
         """
         Scan a single file with YARA and process the results.
@@ -63,6 +66,8 @@ class BaseScanner:
         Returns:
             dict: Scan result dictionary
         """
+        scan_start_time = time.perf_counter()
+        
         # Check if file exists
         if not os.path.exists(file_path) or not os.path.isfile(file_path):
             self.logger.warning(f"File not found: {file_path}")
@@ -71,7 +76,22 @@ class BaseScanner:
         # Check if file is too large
         if self.file_analyzer.is_file_too_large(file_path):
             self.logger.warning(f"File too large to scan: {file_path}")
+            # Update state to failed due to size limit
+            self.db_manager.update_file_state(file_path, 'failed', 'File too large to scan')
             return {"matched": False, "error": "File too large"}
+
+        # Check if file has already been processed
+        file_state = self.db_manager.get_file_state(file_path)
+        if file_state:
+            if file_state['state'] == 'completed':
+                self.logger.info(f"File already processed: {file_path}")
+                return {"matched": False, "error": "Already processed", "cached": True}
+            elif file_state['state'] == 'scanning':
+                self.logger.info(f"File currently being scanned: {file_path}")
+                return {"matched": False, "error": "Currently scanning", "in_progress": True}
+            elif file_state['state'] == 'quarantined':
+                self.logger.info(f"File quarantined: {file_path}")
+                return {"matched": False, "error": "File quarantined", "quarantined": True}
 
         # Get file metadata
         try:
@@ -81,67 +101,100 @@ class BaseScanner:
             self.logger.error(f"Error getting file metadata: {e}")
             file_metadata = {"file_path": file_path, "name": os.path.basename(file_path)}
 
+        # Add file to state tracking if not already present
+        if not file_state:
+            self.db_manager.add_file_state(file_path, file_metadata)
+
+        # Update state to scanning
+        self.db_manager.update_file_state(file_path, 'scanning')
+
         # Log basic file info
         self.logger.info(f"Scanning: {file_path} ({file_metadata.get('size', 0)} bytes)")
 
-        # Apply mime-type or extension filtering if configured
-        if self.config.get("SCAN_MIME_TYPES") and not self.file_analyzer.filter_file_by_mime(
-            file_path, self.config.get("SCAN_MIME_TYPES")
-        ):
-            self.logger.info(f"Skipping file with excluded MIME type: {file_path}")
-            return {"matched": False, "error": "Excluded MIME type"}
+        try:
+            # Apply mime-type or extension filtering if configured
+            if self.config.get("SCAN_MIME_TYPES") and not self.file_analyzer.filter_file_by_mime(
+                file_path, self.config.get("SCAN_MIME_TYPES")
+            ):
+                self.logger.info(f"Skipping file with excluded MIME type: {file_path}")
+                self.db_manager.update_file_state(file_path, 'completed', 'Excluded MIME type', 
+                                                int((time.perf_counter() - scan_start_time) * 1000))
+                return {"matched": False, "error": "Excluded MIME type"}
 
-        if self.config.get("SCAN_EXTENSIONS") and not self.file_analyzer.filter_file_by_extension(
-            file_path, self.config.get("SCAN_EXTENSIONS")
-        ):
-            self.logger.info(f"Skipping file with excluded extension: {file_path}")
-            return {"matched": False, "error": "Excluded extension"}
+            if self.config.get("SCAN_EXTENSIONS") and not self.file_analyzer.filter_file_by_extension(
+                file_path, self.config.get("SCAN_EXTENSIONS")
+            ):
+                self.logger.info(f"Skipping file with excluded extension: {file_path}")
+                self.db_manager.update_file_state(file_path, 'completed', 'Excluded extension',
+                                                int((time.perf_counter() - scan_start_time) * 1000))
+                return {"matched": False, "error": "Excluded extension"}
 
-        # Scan file with YARA
-        scan_result = self.yara_matcher.scan_file(file_path)
+            # Scan file with YARA
+            scan_result = self.yara_matcher.scan_file(file_path)
 
-        # Process and store results
-        if scan_result.get("matched", False):
-            self.logger.info(f"YARA match found in {file_metadata.get('name', '')}")
+            # Calculate scan duration
+            scan_duration_ms = int((time.perf_counter() - scan_start_time) * 1000)
 
-            # Log match details
-            for match in scan_result.get("matches", []):
-                rule_name = match.get("rule", "unknown")
-                rule_namespace = match.get("namespace", "unknown")
-                self.logger.info(f"  Rule Match: {rule_namespace}.{rule_name}")
+            # Process and store results
+            if scan_result.get("matched", False):
+                self.logger.info(f"YARA match found in {file_metadata.get('name', '')}")
 
-                # Log metadata if available
-                meta = match.get("meta", {})
-                for key, value in meta.items():
-                    self.logger.info(f"    {key}: {value}")
+                # Log match details
+                for match in scan_result.get("matches", []):
+                    rule_name = match.get("rule", "unknown")
+                    rule_namespace = match.get("namespace", "unknown")
+                    self.logger.info(f"  Rule Match: {rule_namespace}.{rule_name}")
 
-            # Add to database
-            try:
-                add_result = self.db_manager.add_alert(file_metadata, scan_result)
-                if add_result:
-                    self.logger.info(
-                        f"Added alert to database for file: {file_metadata.get('name', '')}"
-                    )
-                else:
-                    self.logger.error(
-                        f"Failed to add alert to database for file: {file_metadata.get('name', '')}"
-                    )
-            except Exception as e:
-                self.logger.error(f"Exception adding alert to database: {e}")
-        else:
-            if scan_result.get("error"):
-                self.logger.warning(f"Error scanning {file_path}: {scan_result.get('error')}")
+                    # Log metadata if available
+                    meta = match.get("meta", {})
+                    for key, value in meta.items():
+                        self.logger.info(f"    {key}: {value}")
+
+                # Add to database
+                try:
+                    add_result = self.db_manager.add_alert(file_metadata, scan_result)
+                    if add_result:
+                        self.logger.info(
+                            f"Added alert to database for file: {file_metadata.get('name', '')}"
+                        )
+                    else:
+                        self.logger.error(
+                            f"Failed to add alert to database for file: {file_metadata.get('name', '')}"
+                        )
+                except Exception as e:
+                    self.logger.error(f"Exception adding alert to database: {e}")
+
+                # Update state to completed (successful scan with matches)
+                self.db_manager.update_file_state(file_path, 'completed', None, scan_duration_ms)
             else:
-                self.logger.info(f"No matches for file: {file_path}")
+                if scan_result.get("error"):
+                    self.logger.warning(f"Error scanning {file_path}: {scan_result.get('error')}")
+                    # Update state to failed due to scan error
+                    self.db_manager.update_file_state(file_path, 'failed', scan_result.get('error'), scan_duration_ms)
+                else:
+                    self.logger.info(f"No matches for file: {file_path}")
+                    # Update state to completed (successful scan, no matches)
+                    self.db_manager.update_file_state(file_path, 'completed', None, scan_duration_ms)
 
-        # Call the scan callback if registered
-        if self.scan_callback is not None:
-            try:
-                self.scan_callback(file_path, scan_result)
-            except Exception as e:
-                self.logger.error(f"Error in scan callback: {e}")
+            # Call the scan callback if registered
+            if self.scan_callback is not None:
+                try:
+                    self.scan_callback(file_path, scan_result)
+                except Exception as e:
+                    self.logger.error(f"Error in scan callback: {e}")
 
-        return scan_result
+            return scan_result
+
+        except Exception as e:
+            # Handle any unexpected errors during scanning
+            scan_duration_ms = int((time.perf_counter() - scan_start_time) * 1000)
+            error_msg = f"Unexpected error during scan: {str(e)}"
+            self.logger.error(f"Error scanning {file_path}: {error_msg}")
+            
+            # Update state to failed
+            self.db_manager.update_file_state(file_path, 'failed', error_msg, scan_duration_ms)
+            
+            return {"matched": False, "error": error_msg}
 
     def scan_directory(self, directory=None):
         """
@@ -230,6 +283,71 @@ class BaseScanner:
             dict: Cleanup operation results
         """
         return self.cleanup_manager.force_cleanup()
+
+    def recover_interrupted_scans(self, timeout_minutes=30):
+        """
+        Recover files that were interrupted during scanning.
+        
+        Args:
+            timeout_minutes (int): Minutes after which a scanning state is considered interrupted
+            
+        Returns:
+            int: Number of files recovered
+        """
+        try:
+            recovered_count = self.db_manager.recover_interrupted_scans(timeout_minutes)
+            if recovered_count > 0:
+                self.logger.info(f"Recovered {recovered_count} interrupted scans on startup")
+            return recovered_count
+        except Exception as e:
+            self.logger.error(f"Error recovering interrupted scans: {e}")
+            return 0
+
+    def get_processing_statistics(self):
+        """
+        Get file processing state statistics.
+        
+        Returns:
+            dict: Processing statistics
+        """
+        try:
+            return self.db_manager.get_state_statistics()
+        except Exception as e:
+            self.logger.error(f"Error getting processing statistics: {e}")
+            return {}
+
+    def quarantine_file(self, file_path, reason="Manual quarantine"):
+        """
+        Quarantine a file by updating its state.
+        
+        Args:
+            file_path (str): Path to the file
+            reason (str): Reason for quarantine
+            
+        Returns:
+            bool: True if quarantined successfully
+        """
+        try:
+            return self.db_manager.update_file_state(file_path, 'quarantined', reason)
+        except Exception as e:
+            self.logger.error(f"Error quarantining file {file_path}: {e}")
+            return False
+
+    def get_pending_files(self, limit=None):
+        """
+        Get files in pending state.
+        
+        Args:
+            limit (int, optional): Maximum number of results
+            
+        Returns:
+            list: List of pending files
+        """
+        try:
+            return self.db_manager.get_files_by_state('pending', limit)
+        except Exception as e:
+            self.logger.error(f"Error getting pending files: {e}")
+            return []
 
 
 class SingleThreadScanner(BaseScanner):
@@ -376,6 +494,17 @@ class MultiThreadScanner(BaseScanner):
                     self.file_queue.put(file_path)
                     self.logger.debug(f"Queued existing file: {file_path}")
 
+            # Queue pending files from previous runs
+            pending_files = self.get_pending_files()
+            for file_record in pending_files:
+                file_path = file_record['file_path']
+                if os.path.exists(file_path) and os.path.isfile(file_path):
+                    self.file_queue.put(file_path)
+                    self.logger.debug(f"Queued pending file: {file_path}")
+                else:
+                    # File no longer exists, mark as failed
+                    self.db_manager.update_file_state(file_path, 'failed', 'File no longer exists')
+
             return True
 
         except Exception as e:
@@ -514,6 +643,15 @@ class FileEventHandler(FileSystemEventHandler):
         time.sleep(1)
 
         self.logger.info(f"New file detected: {event.src_path}")
+
+        # Add file to state tracking as pending
+        try:
+            file_metadata = self.scanner.file_analyzer.get_file_metadata(event.src_path)
+        except Exception as e:
+            self.logger.warning(f"Could not get metadata for {event.src_path}: {e}")
+            file_metadata = None
+
+        self.scanner.db_manager.add_file_state(event.src_path, file_metadata)
 
         # Process differently based on scanner type
         if isinstance(self.scanner, MultiThreadScanner):

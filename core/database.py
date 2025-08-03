@@ -204,6 +204,45 @@ class DatabaseManager:
                 """
                 )
 
+                # Create file processing states table
+                c.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS file_processing_states (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        file_path TEXT NOT NULL UNIQUE,
+                        file_name TEXT,
+                        file_size INTEGER,
+                        md5 TEXT,
+                        sha256 TEXT,
+                        state TEXT NOT NULL CHECK (state IN ('pending', 'scanning', 'completed', 'failed', 'quarantined')),
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        started_at DATETIME,
+                        completed_at DATETIME,
+                        error_message TEXT,
+                        scan_duration_ms INTEGER,
+                        retry_count INTEGER DEFAULT 0
+                    )
+                """
+                )
+
+                # Create indexes for file processing states
+                c.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_file_state ON file_processing_states(state)
+                """
+                )
+                c.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_file_path ON file_processing_states(file_path)
+                """
+                )
+                c.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_file_updated ON file_processing_states(updated_at)
+                """
+                )
+
                 conn.commit()
                 self.logger.info("Database initialized successfully")
 
@@ -463,3 +502,350 @@ class DatabaseManager:
         except Exception as e:
             self.logger.error(f"Error deleting alerts: {e}")
             return 0
+
+    # File Processing State Tracking Methods
+
+    @performance_track()
+    def add_file_state(self, file_path, file_metadata=None):
+        """
+        Add a new file to processing state tracking with 'pending' state
+        
+        Args:
+            file_path (str): Path to the file
+            file_metadata (dict, optional): File metadata including size, hashes, etc.
+            
+        Returns:
+            bool: True if state was added successfully
+        """
+        try:
+            with self.connection_pool.connection() as conn:
+                c = conn.cursor()
+                
+                # Ensure absolute path
+                if not os.path.isabs(file_path):
+                    file_path = os.path.abspath(file_path)
+                
+                # Extract metadata
+                file_name = os.path.basename(file_path)
+                file_size = None
+                md5 = None
+                sha256 = None
+                
+                if file_metadata:
+                    file_size = file_metadata.get("size", file_metadata.get("file_size"))
+                    md5 = file_metadata.get("md5", "")
+                    sha256 = file_metadata.get("sha256", "")
+                
+                # Insert with pending state
+                c.execute(
+                    """
+                    INSERT OR REPLACE INTO file_processing_states 
+                    (file_path, file_name, file_size, md5, sha256, state, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                    """,
+                    (file_path, file_name, file_size, md5, sha256)
+                )
+                
+                conn.commit()
+                self.logger.debug(f"Added file state for: {file_path}")
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"Error adding file state for {file_path}: {e}")
+            return False
+
+    @performance_track()
+    def update_file_state(self, file_path, new_state, error_message=None, scan_duration_ms=None):
+        """
+        Update the processing state of a file
+        
+        Args:
+            file_path (str): Path to the file
+            new_state (str): New state (pending, scanning, completed, failed, quarantined)
+            error_message (str, optional): Error message if state is 'failed'
+            scan_duration_ms (int, optional): Scan duration in milliseconds
+            
+        Returns:
+            bool: True if state was updated successfully
+        """
+        try:
+            with self.connection_pool.connection() as conn:
+                c = conn.cursor()
+                
+                # Ensure absolute path
+                if not os.path.isabs(file_path):
+                    file_path = os.path.abspath(file_path)
+                
+                # Build update query based on new state
+                if new_state == 'scanning':
+                    c.execute(
+                        """
+                        UPDATE file_processing_states 
+                        SET state = ?, started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+                        WHERE file_path = ?
+                        """,
+                        (new_state, file_path)
+                    )
+                elif new_state in ['completed', 'failed', 'quarantined']:
+                    c.execute(
+                        """
+                        UPDATE file_processing_states 
+                        SET state = ?, completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP,
+                            error_message = ?, scan_duration_ms = ?
+                        WHERE file_path = ?
+                        """,
+                        (new_state, error_message, scan_duration_ms, file_path)
+                    )
+                else:
+                    c.execute(
+                        """
+                        UPDATE file_processing_states 
+                        SET state = ?, updated_at = CURRENT_TIMESTAMP
+                        WHERE file_path = ?
+                        """,
+                        (new_state, file_path)
+                    )
+                
+                conn.commit()
+                
+                if c.rowcount > 0:
+                    self.logger.debug(f"Updated file state to '{new_state}' for: {file_path}")
+                    return True
+                else:
+                    self.logger.warning(f"No file state record found for: {file_path}")
+                    return False
+                
+        except Exception as e:
+            self.logger.error(f"Error updating file state for {file_path}: {e}")
+            return False
+
+    @performance_track()
+    def get_file_state(self, file_path):
+        """
+        Get the current processing state of a file
+        
+        Args:
+            file_path (str): Path to the file
+            
+        Returns:
+            dict: File state record or None if not found
+        """
+        try:
+            with self.connection_pool.connection() as conn:
+                c = conn.cursor()
+                
+                # Ensure absolute path
+                if not os.path.isabs(file_path):
+                    file_path = os.path.abspath(file_path)
+                
+                c.execute(
+                    "SELECT * FROM file_processing_states WHERE file_path = ?",
+                    (file_path,)
+                )
+                
+                row = c.fetchone()
+                if row:
+                    columns = [column[0] for column in c.description]
+                    return dict(zip(columns, row))
+                else:
+                    return None
+                    
+        except Exception as e:
+            self.logger.error(f"Error getting file state for {file_path}: {e}")
+            return None
+
+    @performance_track()
+    def get_files_by_state(self, state, limit=None):
+        """
+        Get all files in a specific processing state
+        
+        Args:
+            state (str): State to filter by
+            limit (int, optional): Maximum number of results
+            
+        Returns:
+            list: List of file state records
+        """
+        try:
+            with self.connection_pool.connection() as conn:
+                c = conn.cursor()
+                
+                query = "SELECT * FROM file_processing_states WHERE state = ? ORDER BY updated_at DESC"
+                params = [state]
+                
+                if limit:
+                    query += " LIMIT ?"
+                    params.append(limit)
+                
+                c.execute(query, params)
+                
+                columns = [column[0] for column in c.description]
+                return [dict(zip(columns, row)) for row in c.fetchall()]
+                
+        except Exception as e:
+            self.logger.error(f"Error getting files by state '{state}': {e}")
+            return []
+
+    @performance_track()
+    def get_interrupted_scans(self, timeout_minutes=30):
+        """
+        Find files that may have been interrupted during scanning
+        
+        Args:
+            timeout_minutes (int): Minutes after which a scanning state is considered interrupted
+            
+        Returns:
+            list: List of potentially interrupted file records
+        """
+        try:
+            with self.connection_pool.connection() as conn:
+                c = conn.cursor()
+                
+                # Find files in 'scanning' state that haven't been updated recently
+                c.execute(
+                    """
+                    SELECT * FROM file_processing_states 
+                    WHERE state = 'scanning' 
+                    AND datetime(updated_at) < datetime('now', '-' || ? || ' minutes')
+                    ORDER BY updated_at ASC
+                    """,
+                    (timeout_minutes,)
+                )
+                
+                columns = [column[0] for column in c.description]
+                return [dict(zip(columns, row)) for row in c.fetchall()]
+                
+        except Exception as e:
+            self.logger.error(f"Error finding interrupted scans: {e}")
+            return []
+
+    @performance_track()
+    def recover_interrupted_scans(self, timeout_minutes=30):
+        """
+        Reset interrupted scans back to 'pending' state for retry
+        
+        Args:
+            timeout_minutes (int): Minutes after which a scanning state is considered interrupted
+            
+        Returns:
+            int: Number of files recovered
+        """
+        try:
+            with self.connection_pool.connection() as conn:
+                c = conn.cursor()
+                
+                # Update interrupted scans back to pending and increment retry count
+                c.execute(
+                    """
+                    UPDATE file_processing_states 
+                    SET state = 'pending', 
+                        updated_at = CURRENT_TIMESTAMP,
+                        retry_count = retry_count + 1,
+                        error_message = 'Recovered from interrupted scan'
+                    WHERE state = 'scanning' 
+                    AND datetime(updated_at) < datetime('now', '-' || ? || ' minutes')
+                    """,
+                    (timeout_minutes,)
+                )
+                
+                recovered_count = c.rowcount
+                conn.commit()
+                
+                if recovered_count > 0:
+                    self.logger.info(f"Recovered {recovered_count} interrupted scans")
+                
+                return recovered_count
+                
+        except Exception as e:
+            self.logger.error(f"Error recovering interrupted scans: {e}")
+            return 0
+
+    @performance_track()
+    def cleanup_completed_states(self, retention_hours=24):
+        """
+        Clean up old completed file state records
+        
+        Args:
+            retention_hours (int): Hours to retain completed records
+            
+        Returns:
+            int: Number of records cleaned up
+        """
+        try:
+            with self.connection_pool.connection() as conn:
+                c = conn.cursor()
+                
+                c.execute(
+                    """
+                    DELETE FROM file_processing_states 
+                    WHERE state = 'completed' 
+                    AND datetime(completed_at) < datetime('now', '-' || ? || ' hours')
+                    """,
+                    (retention_hours,)
+                )
+                
+                deleted_count = c.rowcount
+                conn.commit()
+                
+                if deleted_count > 0:
+                    self.logger.info(f"Cleaned up {deleted_count} completed file state records")
+                
+                return deleted_count
+                
+        except Exception as e:
+            self.logger.error(f"Error cleaning up completed states: {e}")
+            return 0
+
+    @performance_track()
+    def get_state_statistics(self):
+        """
+        Get statistics about file processing states
+        
+        Returns:
+            dict: Statistics about current file processing states
+        """
+        try:
+            with self.connection_pool.connection() as conn:
+                c = conn.cursor()
+                
+                # Get counts by state
+                c.execute(
+                    """
+                    SELECT state, COUNT(*) as count 
+                    FROM file_processing_states 
+                    GROUP BY state
+                    """
+                )
+                
+                state_counts = {row[0]: row[1] for row in c.fetchall()}
+                
+                # Get oldest pending file
+                c.execute(
+                    """
+                    SELECT MIN(datetime(created_at)) as oldest_pending
+                    FROM file_processing_states 
+                    WHERE state = 'pending'
+                    """
+                )
+                oldest_pending = c.fetchone()[0]
+                
+                # Get average scan duration
+                c.execute(
+                    """
+                    SELECT AVG(scan_duration_ms) as avg_duration_ms
+                    FROM file_processing_states 
+                    WHERE scan_duration_ms IS NOT NULL
+                    """
+                )
+                avg_duration = c.fetchone()[0]
+                
+                return {
+                    "state_counts": state_counts,
+                    "oldest_pending": oldest_pending,
+                    "average_scan_duration_ms": avg_duration,
+                    "total_files": sum(state_counts.values())
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error getting state statistics: {e}")
+            return {}
