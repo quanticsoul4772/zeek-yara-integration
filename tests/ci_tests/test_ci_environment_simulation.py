@@ -58,7 +58,7 @@ class TestCIEnvironmentSimulation:
         
         # Check Python version
         python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-        supported_versions = ['3.8', '3.9', '3.10', '3.11']
+        supported_versions = ['3.8', '3.9', '3.10', '3.11', '3.12']
         
         assert python_version in supported_versions, \
             f"Python {python_version} should be in supported versions {supported_versions}"
@@ -92,14 +92,17 @@ class TestCIEnvironmentSimulation:
             ('ubuntu-latest', '3.9'),
             ('ubuntu-latest', '3.10'),
             ('ubuntu-latest', '3.11'),
+            ('ubuntu-latest', '3.12'),
             ('macos-latest', '3.8'),
             ('macos-latest', '3.9'),
             ('macos-latest', '3.10'),
             ('macos-latest', '3.11'),
+            ('macos-latest', '3.12'),
             ('windows-latest', '3.8'),
             ('windows-latest', '3.9'),
             ('windows-latest', '3.10'),
             ('windows-latest', '3.11'),
+            ('windows-latest', '3.12'),
         ]
         
         # Check that current environment is in matrix
@@ -113,7 +116,7 @@ class TestCIEnvironmentSimulation:
                 print(f"Current environment {current_combination} not in CI matrix")
         
         # Validate matrix structure
-        assert len(matrix_combinations) == 12, "Should have 12 matrix combinations (3 OS × 4 Python versions)"
+        assert len(matrix_combinations) == 15, "Should have 15 matrix combinations (3 OS × 5 Python versions)"
 
     def test_dependency_installation_simulation(self):
         """Test dependency installation simulation."""

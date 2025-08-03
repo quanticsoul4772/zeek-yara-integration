@@ -211,7 +211,7 @@ class TestUnitTestJob:
         import sys
         
         current_version = f"{sys.version_info.major}.{sys.version_info.minor}"
-        supported_versions = ['3.8', '3.9', '3.10', '3.11']
+        supported_versions = ['3.8', '3.9', '3.10', '3.11', '3.12']
         
         # We can't test all versions in one run, but we can validate our current version
         assert current_version in supported_versions, \
