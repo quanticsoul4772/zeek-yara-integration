@@ -17,7 +17,7 @@ An educational platform that teaches network security monitoring, threat detecti
 
 **Prerequisites: Requires Python 3.12.5 or higher**
 
-### 🚀 Fastest Path to Success
+###  Fastest Path to Success
 
 1. **5-Minute Demo**: Run the EICAR detection demo to see the platform in action
    ```bash
@@ -108,7 +108,7 @@ The platform supports Windows, macOS, Linux, and containerized deployments. Choo
 | **Docker** | Container Deploy | `docker-compose up -d zyi-education` |
 | **Any Platform** | Manual Setup | See detailed instructions below |
 
-📖 **[Complete Cross-Platform Installation Guide](docs/setup/cross-platform-installation.md)**
+**[Complete Cross-Platform Installation Guide](docs/setup/cross-platform-installation.md)**
 
 ### Method 1: Automated Installation (Recommended)
 
@@ -780,20 +780,20 @@ docker-compose --profile monitoring --profile logging up -d
 This platform includes comprehensive documentation organized by use case:
 
 ### Quick Reference Guides
-- 📋 **[Configuration Reference](docs/reference/configuration-reference.md)** - All parameters and options
-- 🏗️ **[System Architecture](docs/architecture/system-architecture.md)** - Design and data flow
-- 🐳 **[Container Deployment](docs/deployment/container-deployment-guide.md)** - Docker & Kubernetes
-- 💻 **[Cross-Platform Setup](docs/setup/cross-platform-installation.md)** - Windows, macOS, Linux
+- **[Configuration Reference](docs/reference/configuration-reference.md)** - All parameters and options
+- **[System Architecture](docs/architecture/system-architecture.md)** - Design and data flow
+- **[Container Deployment](docs/deployment/container-deployment-guide.md)** - Docker & Kubernetes
+- **[Cross-Platform Setup](docs/setup/cross-platform-installation.md)** - Windows, macOS, Linux
 
 ### Learning Materials
-- 🎯 **[Getting Started Tutorial](docs/tutorials/getting-started.md)** - First steps
-- 🔍 **[EICAR Demo](docs/examples/quick-demos/eicar-detection.md)** - Threat detection example
-- 📚 **[Network Security Basics](docs/explanations/network-security-basics.md)** - Fundamentals
+- **[Getting Started Tutorial](docs/tutorials/getting-started.md)** - First steps
+- **[EICAR Demo](docs/examples/quick-demos/eicar-detection.md)** - Threat detection example
+- **[Network Security Basics](docs/explanations/network-security-basics.md)** - Fundamentals
 
 ### Platform Support
-- ⚡ **[CLI Reference](CLAUDE.md)** - Development commands and workflows
-- 🐛 **[Troubleshooting Guide](#troubleshooting)** - Common issues and solutions
-- 🔧 **[Performance Tuning](PERFORMANCE.md)** - Optimization guidelines
+- **[CLI Reference](CLAUDE.md)** - Development commands and workflows
+- **[Troubleshooting Guide](#troubleshooting)** - Common issues and solutions
+- **[Performance Tuning](PERFORMANCE.md)** - Optimization guidelines
 
 ## Community and Contributing
 
