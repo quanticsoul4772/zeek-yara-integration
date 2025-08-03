@@ -369,9 +369,9 @@ class TestAsyncPerformance:
         import asyncio
         
         async def make_request():
-            async with AsyncClient(app=app, base_url="http://test") as test_client:
+            async with client:
                 with patch('api.api_server.API_KEY', ''):  # Disable auth for test
-                    return await test_client.get("/status")
+                    return await client.get("/status")
         
         # Test concurrent requests
         tasks = [make_request() for _ in range(10)]
@@ -420,9 +420,9 @@ class TestAsyncPerformance:
 
 @pytest.mark.asyncio
 @pytest.mark.integration
-async def test_async_endpoint_error_handling():
+async def test_async_endpoint_error_handling(client):
     """Test async error handling in endpoints"""
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with client:
         # Test with malformed JSON in scan request
         response = await client.post("/scan", 
                              data="invalid json",
