@@ -95,7 +95,20 @@ sqlalchemy>=2.0.0
 requests>=2.28.0
 ```
 
-## Installation
+## Cross-Platform Installation
+
+The platform supports Windows, macOS, Linux, and containerized deployments. Choose your preferred installation method:
+
+### Quick Installation Options
+
+| Platform | Method | Command |
+|----------|--------|---------|
+| **Linux/macOS** | Automated Script | `python install_platform.py` |
+| **Windows** | PowerShell Script | `.\bin\powershell\setup.ps1` |
+| **Docker** | Container Deploy | `docker-compose up -d zyi-education` |
+| **Any Platform** | Manual Setup | See detailed instructions below |
+
+📖 **[Complete Cross-Platform Installation Guide](docs/setup/cross-platform-installation.md)**
 
 ### Method 1: Automated Installation (Recommended)
 
@@ -191,20 +204,50 @@ python start_tutorial_server.py
 - Tutorial server fails: Verify port 8001 availability and dependencies
 - Tests fail: Check TESTING/ directory exists and pytest installed
 
+## System Architecture
+
+The platform integrates three core security tools with a correlation engine and unified API:
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│    ZEEK     │    │    YARA     │    │  SURICATA   │
+│  Network    │────│   File      │────│  Network    │
+│  Analysis   │    │  Scanner    │    │   IDS/IPS   │
+└─────────────┘    └─────────────┘    └─────────────┘
+       │                   │                   │
+       └───────────────────┼───────────────────┘
+                           │
+              ┌─────────────────────────┐
+              │  CORRELATION ENGINE     │
+              │  & UNIFIED API SERVER   │
+              └─────────────────────────┘
+```
+
+**Data Flow**: Network Traffic → Zeek → File Extraction → YARA Scanning → Alert Correlation → API/Dashboard
+
+📖 **[Complete Architecture Documentation](docs/architecture/system-architecture.md)**
+
 ## Configuration
 
-Configuration via `config/default_config.json`:
+The platform uses hierarchical configuration with multiple sources:
 
-- `EXTRACT_DIR`: Directory for extracted files
-- `RULES_DIR`: Path to YARA rule directory
-- `DB_FILE`: SQLite database path
-- `LOG_FILE`: Logging file path
-- `MAX_FILE_SIZE`: Maximum file size to scan
-- `THREADS`: Number of scanner threads
-- `LOG_LEVEL`: Logging verbosity (DEBUG, INFO, WARNING, ERROR)
-- `SURICATA_CONFIG`: Path to Suricata configuration
-- `SURICATA_INTERFACE`: Default network interface
-- `CORRELATION_WINDOW`: Time window for alert correlation
+### Quick Configuration Reference
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `THREADS` | `2` | Scanner worker threads |
+| `MAX_FILE_SIZE` | `100MB` | Maximum file scan size |
+| `API_PORT` | `8000` | API server port |
+| `SURICATA_INTERFACE` | `eth0` | Network monitoring interface |
+| `LOG_LEVEL` | `INFO` | Logging verbosity |
+| `CORRELATION_WINDOW` | `300` | Alert correlation time window (seconds) |
+
+### Platform-Specific Interface Names
+- **Linux**: `eth0`, `enp0s3`, `wlan0`  
+- **macOS**: `en0`, `en1` (check with `ifconfig`)
+- **Windows**: `"Ethernet"`, `"Wi-Fi"` (check with `Get-NetAdapter`)
+
+📖 **[Complete Configuration Reference](docs/reference/configuration-reference.md)**
 
 ## Usage
 
@@ -231,6 +274,16 @@ The `zyi` CLI tool is the unified interface for all platform operations:
 ./TOOLS/cli/zyi info                                  # Show platform information
 ./TOOLS/cli/zyi config init --environment education  # Initialize config
 ```
+
+### Cross-Platform Script Alternatives
+
+| Platform | Shell Scripts | PowerShell/Python Alternatives |
+|----------|---------------|--------------------------------|
+| **Linux/macOS** | `bin/run_tests.sh --all` | `python bin/run_tests.py --all` |
+| **Windows** | Not compatible | `.\bin\powershell\run_tests.ps1 -All` |
+| **Cross-platform** | `bin/run_integrated.sh` | `python bin/run_integrated.py` |
+
+📖 **All platforms**: Use Python scripts in `bin/` for full cross-platform compatibility
 
 ### Integrated System (Legacy)
 
@@ -693,6 +746,54 @@ When the platform is working correctly, you should see:
 2. **Community Discussion**: [GitHub Discussions](https://github.com/quanticsoul4772/zeek-yara-integration/discussions)
 3. **Documentation**: Review [CLAUDE.md](CLAUDE.md) for detailed developer guidance
 4. **Educational Support**: Use tutorial server at `http://localhost:8001` for guided troubleshooting
+
+## Container Deployment
+
+For containerized deployments, the platform provides complete Docker and Kubernetes support:
+
+### Docker Compose Quick Start
+
+```bash
+# Educational environment (recommended for learning)
+docker-compose up -d zyi-education
+
+# Development environment with live reload
+docker-compose up -d zyi-development
+
+# Full stack with monitoring and logging
+docker-compose --profile monitoring --profile logging up -d
+```
+
+### Container Access Points
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Main Platform | http://localhost:8000 | API and core functionality |
+| Tutorial Interface | http://localhost:8080 | Educational web interface |
+| Grafana Dashboard | http://localhost:3000 | System monitoring |
+| Jupyter Notebooks | http://localhost:8888 | Data analysis environment |
+
+📖 **[Complete Container Deployment Guide](docs/deployment/container-deployment-guide.md)**
+
+## Documentation Structure
+
+This platform includes comprehensive documentation organized by use case:
+
+### Quick Reference Guides
+- 📋 **[Configuration Reference](docs/reference/configuration-reference.md)** - All parameters and options
+- 🏗️ **[System Architecture](docs/architecture/system-architecture.md)** - Design and data flow
+- 🐳 **[Container Deployment](docs/deployment/container-deployment-guide.md)** - Docker & Kubernetes
+- 💻 **[Cross-Platform Setup](docs/setup/cross-platform-installation.md)** - Windows, macOS, Linux
+
+### Learning Materials
+- 🎯 **[Getting Started Tutorial](docs/tutorials/getting-started.md)** - First steps
+- 🔍 **[EICAR Demo](docs/examples/quick-demos/eicar-detection.md)** - Threat detection example
+- 📚 **[Network Security Basics](docs/explanations/network-security-basics.md)** - Fundamentals
+
+### Platform Support
+- ⚡ **[CLI Reference](CLAUDE.md)** - Development commands and workflows
+- 🐛 **[Troubleshooting Guide](#troubleshooting)** - Common issues and solutions
+- 🔧 **[Performance Tuning](PERFORMANCE.md)** - Optimization guidelines
 
 ## Community and Contributing
 
