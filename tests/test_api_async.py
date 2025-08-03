@@ -315,10 +315,81 @@ class TestAsyncAPIEndpoints:
             response = await client.get("/status", headers={"X-API-Key": "wrong-key"})
             assert response.status_code == 401
             
-            # Test with correct API key (mocked)
-            with patch('api.api_server.API_KEY', 'test-api-key'):
+            # Test with correct API key (mocked) - improved verification
+            with patch('PLATFORM.api.api_server.API_KEY', 'test-api-key'), \
+                 patch('PLATFORM.api.api_server.scanner') as mock_scanner, \
+                 patch('PLATFORM.api.api_server.config') as mock_config, \
+                 patch('PLATFORM.api.api_server.db_manager') as mock_db, \
+                 patch('PLATFORM.api.api_server.rule_manager') as mock_rules, \
+                 patch('os.path.exists', return_value=True), \
+                 patch('os.path.isdir', return_value=True), \
+                 patch('os.listdir', return_value=['file1.txt', 'file2.bin']):
+                
+                # Mock scanner attributes
+                mock_scanner.running = True
+                mock_scanner.__class__.__name__ = 'MultiThreadScanner'
+                
+                # Mock config
+                mock_config.get.side_effect = lambda key, default=None: {
+                    'EXTRACT_DIR': '/tmp/extracted',
+                }.get(key, default)
+                
+                # Mock database manager
+                mock_db.get_alerts.return_value = [
+                    {'timestamp': '2025-08-03T14:00:00'},
+                    {'timestamp': '2025-08-03T13:30:00'}
+                ]
+                
+                # Mock rule manager
+                mock_rules.get_rule_list.return_value = ['rule1', 'rule2']
+                
                 response = await client.get("/status", headers={"X-API-Key": "test-api-key"})
-                # This may still fail due to other dependencies, but auth should pass
+                
+                # Verify authentication passed (not 401) and request succeeded
+                assert response.status_code != 401, "Authentication should not fail with correct API key"
+                assert response.status_code == 200, "Status endpoint should return 200 with valid auth"
+                
+                # Verify response structure
+                data = response.json()
+                assert 'scanner_running' in data
+                assert 'extracted_files_count' in data
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_api_key_authentication_isolated(self, client):
+        """Test API key authentication in isolation from other dependencies"""
+        async with client:
+            # Test 1: No API key configured (auth disabled) - should pass
+            with patch('PLATFORM.api.api_server.API_KEY', ''):
+                response = await client.get(\"/test-endpoint-minimal\")
+                # Would test this if we had a minimal endpoint, but we'll test via verify_api_key directly
+            
+            # Test 2: Direct verification function testing
+            from PLATFORM.api.api_server import verify_api_key
+            
+            # Test with no API key configured (should pass)
+            with patch('PLATFORM.api.api_server.API_KEY', ''):
+                result = await verify_api_key(None)
+                assert result is True, "Should pass when no API key is configured"
+                
+                result = await verify_api_key("any-key")
+                assert result is True, "Should pass with any key when auth disabled"
+            
+            # Test with API key configured
+            with patch('PLATFORM.api.api_server.API_KEY', 'secret-key'):
+                # Should pass with correct key
+                result = await verify_api_key("secret-key")
+                assert result is True, "Should pass with correct API key"
+                
+                # Should raise HTTPException with wrong key
+                with pytest.raises(Exception) as exc_info:
+                    await verify_api_key("wrong-key")
+                assert "401" in str(exc_info.value) or "Invalid API key" in str(exc_info.value)
+                
+                # Should raise HTTPException with no key when required
+                with pytest.raises(Exception) as exc_info:
+                    await verify_api_key(None)
+                assert "401" in str(exc_info.value) or "Invalid API key" in str(exc_info.value)
 
     @pytest.mark.asyncio
     @pytest.mark.integration
