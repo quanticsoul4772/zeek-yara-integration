@@ -22,6 +22,9 @@ rich>=13.7.0
 # Network Interface Detection
 netifaces>=0.11.0
 
+# Configuration
+PyYAML>=6.0
+
 # Optional: Enhanced security and performance
 # python-multipart>=0.0.6  # For form uploads
 # python-jose[cryptography]>=3.3.0  # For JWT tokens
