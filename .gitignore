@@ -28,6 +28,7 @@ wheels/
 
 # Test coverage
 .coverage
+.coverage.*
 htmlcov/
 
 # Database files
@@ -66,3 +67,9 @@ DATA/runtime/
 
 # Type marker files that can cause performance issues
 py.typed
+
+# Test results
+test_results/
+
+# Documentation site
+site/
