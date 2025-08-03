@@ -66,29 +66,31 @@ class TestUnitTestJob:
         if collected_line:
             assert 'collected' in collected_line[0], "Should collect some tests"
 
-    def test_platform_dependencies_detection(self):
-        """Test detection of platform-specific dependencies."""
-        current_os = platform.system().lower()
-        
-        if current_os == 'linux':
-            # Check if we can find package managers
-            apt_available = subprocess.run(['which', 'apt-get'], capture_output=True).returncode == 0
-            if apt_available:
-                assert True, "apt-get available on Linux"
-            else:
-                pytest.skip("apt-get not available, skipping Linux dependency test")
-                
-        elif current_os == 'darwin':
-            # Check if brew is available on macOS
-            brew_available = subprocess.run(['which', 'brew'], capture_output=True).returncode == 0
-            if brew_available:
-                assert True, "brew available on macOS"
-            else:
-                pytest.skip("brew not available, skipping macOS dependency test")
-                
-        elif current_os == 'windows':
-            # Windows dependency installation is TODO in CI
-            pytest.skip("Windows dependency installation not yet implemented")
+    @pytest.mark.linux
+    def test_linux_dependencies_detection(self):
+        """Test detection of Linux-specific dependencies."""
+        # Check if we can find package managers
+        apt_available = subprocess.run(['which', 'apt-get'], capture_output=True).returncode == 0
+        if apt_available:
+            assert True, "apt-get available on Linux"
+        else:
+            pytest.skip("apt-get not available, skipping Linux dependency test")
+    
+    @pytest.mark.macos
+    def test_macos_dependencies_detection(self):
+        """Test detection of macOS-specific dependencies."""
+        # Check if brew is available on macOS
+        brew_available = subprocess.run(['which', 'brew'], capture_output=True).returncode == 0
+        if brew_available:
+            assert True, "brew available on macOS"
+        else:
+            pytest.skip("brew not available, skipping macOS dependency test")
+    
+    @pytest.mark.windows
+    def test_windows_dependencies_detection(self):
+        """Test detection of Windows-specific dependencies."""
+        # Windows dependency installation is TODO in CI
+        pytest.skip("Windows dependency installation not yet implemented")
 
     def test_required_directories_creation(self):
         """Test that required directories can be created."""
