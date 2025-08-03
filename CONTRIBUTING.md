@@ -48,8 +48,9 @@ Remember that this project serves educational purposes. All contributions should
 ### Prerequisites
 
 Before contributing, ensure you have:
+- **Python Version**: **Python 3.12.5 or higher** (Required for consistent test execution and compatibility)
 - **Technical Skills**: Basic understanding of Python, network security concepts, or documentation writing
-- **Development Environment**: Python 3.8+, Git, and a text editor
+- **Development Environment**: Git and a text editor
 - **Learning Mindset**: Willingness to learn and help others learn
 
 ### First Steps
@@ -137,6 +138,13 @@ git remote add upstream https://github.com/ORIGINAL_REPO/zeek_yara_integration.g
 ### 2. Environment Setup
 
 ```bash
+# Verify Python version (must be 3.12.5 or higher)
+python3 --version  # Should output: Python 3.12.5 or higher
+
+# If you need to install Python 3.12.5:
+# pyenv install 3.12.5
+# pyenv local 3.12.5
+
 # Create virtual environment
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\\Scripts\\activate

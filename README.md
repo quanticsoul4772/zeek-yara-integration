@@ -8,6 +8,8 @@ An educational platform that teaches network security monitoring, threat detecti
 
 ## Quick Start
 
+**⚠️ Prerequisites: Requires Python 3.12.5 or higher**
+
 **Starting points**:
 1. [EICAR Demo](docs/examples/quick-demos/eicar-detection.md) - Threat detection demonstration
 2. [Getting Started Tutorial](docs/tutorials/getting-started.md) - Setup and first steps
@@ -47,10 +49,12 @@ An educational platform that teaches network security monitoring, threat detecti
 - **Learning Tracks**: Structured progression paths
 - **Research Platform**: Extensible architecture for experimentation
 
-## Prerequisites
+## Requirements
+
+**⚠️ Important: Python Version Requirement**
+- **Python 3.12.5 or higher** (Required for consistent test execution and compatibility)
 
 **System Requirements**:
-- Python 3.8+
 - Zeek (latest stable release)
 - YARA 4.2.0+
 - Suricata 6.0.0+
@@ -74,6 +78,9 @@ requests>=2.28.0
 ### Clone and Setup
 
 ```bash
+# Verify Python version (must be 3.12.5 or higher)
+python3 --version  # Should output: Python 3.12.5 or higher
+
 # Clone the repository
 git clone https://github.com/quanticsoul4772/zeek-yara-integration.git
 cd zeek-yara-integration
@@ -124,6 +131,13 @@ python start_tutorial_server.py
 - Tests pass
 
 **Troubleshooting**:
+- **Wrong Python version**: Install Python 3.12.5 using pyenv:
+  ```bash
+  # Install pyenv (see: https://github.com/pyenv/pyenv#installation)
+  pyenv install 3.12.5
+  pyenv local 3.12.5
+  python3 --version  # Verify version
+  ```
 - CLI tool fails: Check Python path and virtual environment activation
 - Platform status shows missing components: Verify all directories exist
 - Demo fails: Check temporary directory permissions
