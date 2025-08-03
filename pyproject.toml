@@ -1,6 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zeek-yara-integration"
+description = "Educational network security platform integrating Zeek, YARA, and Suricata"
+requires-python = ">=3.12.5"
+dynamic = ["version"]
+
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py312']
 include = '\.pyi?$'
 exclude = '''
 /(
