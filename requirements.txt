@@ -2,6 +2,10 @@
 click>=8.0.0,<9.0.0
 requests>=2.25.0
 markdown>=3.3.0
+yara-python>=4.2.0
+watchdog>=2.1.0
+netifaces>=0.11.0
+PyYAML>=6.0
 
 # Async framework (pin to avoid ConnectedUDPSocket ImportError in anyio 4.0+)
 anyio>=3.6.0,<4.0.0
