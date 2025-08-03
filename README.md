@@ -8,7 +8,7 @@ An educational platform that teaches network security monitoring, threat detecti
 
 ## Quick Start
 
-**⚠️ Prerequisites: Requires Python 3.12.5 or higher**
+**Prerequisites: Requires Python 3.12.5 or higher**
 
 **Starting points**:
 1. [EICAR Demo](docs/examples/quick-demos/eicar-detection.md) - Threat detection demonstration
@@ -51,7 +51,7 @@ An educational platform that teaches network security monitoring, threat detecti
 
 ## Requirements
 
-**⚠️ Important: Python Version Requirement**
+**Important: Python Version Requirement**
 - **Python 3.12.5 or higher** (Required for consistent test execution and compatibility)
 
 **System Requirements**:
