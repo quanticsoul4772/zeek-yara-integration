@@ -164,6 +164,33 @@ class WebhookConfigModel(BaseModel):
     enabled: bool = Field(True, description="Whether webhook is enabled")
 
 
+class CleanupStatsModel(BaseModel):
+    """File cleanup statistics model"""
+
+    running: bool = Field(..., description="Whether cleanup scheduler is running")
+    cleanup_enabled: bool = Field(..., description="Whether cleanup is enabled")
+    total_cleanups: int = Field(..., description="Total number of cleanup operations")
+    files_deleted: int = Field(..., description="Total files deleted")
+    space_freed_bytes: int = Field(..., description="Total space freed in bytes")
+    last_cleanup: Optional[str] = Field(None, description="Last cleanup timestamp")
+    errors: int = Field(..., description="Number of cleanup errors")
+    configuration: Dict[str, Any] = Field(..., description="Cleanup configuration")
+    disk_usage: Optional[Dict[str, Any]] = Field(None, description="Current disk usage")
+
+
+class CleanupResultModel(BaseModel):
+    """File cleanup operation result model"""
+
+    success: bool = Field(..., description="Whether cleanup was successful")
+    start_time: str = Field(..., description="Cleanup start time")
+    files_processed: int = Field(..., description="Number of files processed")
+    files_deleted: int = Field(..., description="Number of files deleted")
+    space_freed_bytes: int = Field(..., description="Space freed in bytes")
+    errors: List[str] = Field(..., description="List of error messages")
+    disk_usage_before: Optional[Dict[str, Any]] = Field(None, description="Disk usage before cleanup")
+    disk_usage_after: Optional[Dict[str, Any]] = Field(None, description="Disk usage after cleanup")
+
+
 # API key dependency
 async def verify_api_key(api_key: str = Depends(api_key_header)):
     """Verify API key if configured"""
@@ -766,6 +793,40 @@ async def get_rules(_: bool = Depends(verify_api_key)):
     except Exception as e:
         logger.error(f"Error retrieving rules: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error retrieving rules: {str(e)}")
+
+
+@app.get("/cleanup/stats", response_model=CleanupStatsModel, tags=["File Cleanup"])
+async def get_cleanup_statistics(_: bool = Depends(verify_api_key)):
+    """
+    Get file cleanup statistics and configuration
+    """
+    try:
+        if not scanner:
+            raise HTTPException(status_code=503, detail="Scanner not available")
+        
+        stats = scanner.get_cleanup_statistics()
+        return CleanupStatsModel(**stats)
+
+    except Exception as e:
+        logger.error(f"Error retrieving cleanup statistics: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error retrieving cleanup statistics: {str(e)}")
+
+
+@app.post("/cleanup/force", response_model=CleanupResultModel, tags=["File Cleanup"])
+async def force_cleanup(_: bool = Depends(verify_api_key)):
+    """
+    Force an immediate cleanup operation
+    """
+    try:
+        if not scanner:
+            raise HTTPException(status_code=503, detail="Scanner not available")
+        
+        result = scanner.force_cleanup()
+        return CleanupResultModel(**result)
+
+    except Exception as e:
+        logger.error(f"Error forcing cleanup: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error forcing cleanup: {str(e)}")
 
 
 @app.post("/webhook/config", tags=["Webhooks"])
