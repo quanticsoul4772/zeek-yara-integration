@@ -378,6 +378,12 @@ git push origin feature/your-feature-name
 - Validate external links
 - Check tutorial completeness
 
+**Platform-Specific Tests:**
+- Use platform markers for cross-platform compatibility
+- Test platform-specific functionality
+- Handle OS-dependent behavior gracefully
+- Ensure consistent behavior across supported platforms
+
 ### Writing Tests
 
 ```python
@@ -397,6 +403,137 @@ class TestBaseScanner:
         assert result.success
         assert result.scan_time > 0
 ```
+
+### Platform-Specific Testing
+
+The project includes pytest markers for handling cross-platform compatibility testing. These markers allow tests to run only on specific operating systems or groups of systems.
+
+#### Available Platform Markers
+
+**Individual Platform Markers:**
+- `@pytest.mark.linux` - Runs only on Linux systems
+- `@pytest.mark.macos` - Runs only on macOS systems  
+- `@pytest.mark.windows` - Runs only on Windows systems
+
+**Group Platform Markers:**
+- `@pytest.mark.unix` - Runs on Unix-like systems (Linux and macOS)
+- `@pytest.mark.posix` - Runs on POSIX-compliant systems
+
+#### Usage Examples
+
+**Basic Platform-Specific Tests:**
+```python
+import pytest
+import platform
+import subprocess
+
+@pytest.mark.linux
+def test_linux_specific_behavior():
+    """Test that runs only on Linux systems."""
+    assert platform.system() == "Linux"
+    
+    # Test Linux-specific functionality
+    result = subprocess.run(['which', 'apt-get'], capture_output=True)
+    assert result.returncode == 0, "apt-get should be available on Linux"
+
+@pytest.mark.macos
+def test_macos_specific_behavior():
+    """Test that runs only on macOS systems."""  
+    assert platform.system() == "Darwin"
+    
+    # Test macOS-specific functionality
+    result = subprocess.run(['which', 'brew'], capture_output=True)
+    assert result.returncode == 0, "brew should be available on macOS"
+
+@pytest.mark.windows
+def test_windows_specific_behavior():
+    """Test that runs only on Windows systems."""
+    assert platform.system() == "Windows"
+    
+    # Test Windows-specific functionality
+    import os
+    assert os.name == 'nt'
+```
+
+**Unix-like Systems Testing:**
+```python
+@pytest.mark.unix
+def test_unix_commands():
+    """Test Unix commands available on both Linux and macOS."""
+    assert platform.system() in ["Linux", "Darwin"]
+    
+    # Test commands common to Unix-like systems
+    result = subprocess.run(['which', 'grep'], capture_output=True)
+    assert result.returncode == 0
+```
+
+**Combining with Other Markers:**
+```python
+@pytest.mark.linux
+@pytest.mark.integration
+def test_linux_integration():
+    """Integration test specific to Linux."""
+    # Test Linux-specific integration behavior
+    pass
+
+@pytest.mark.unix  
+@pytest.mark.performance
+def test_unix_performance():
+    """Performance test for Unix-like systems."""
+    # Test performance on Unix systems
+    pass
+```
+
+**Traditional skipif Approach (Alternative):**
+```python
+@pytest.mark.skipif(platform.system() != "Darwin", reason="macOS only")
+def test_macos_grep_behavior():
+    """Alternative approach using skipif."""
+    # Test macOS-specific grep behavior
+    result = subprocess.run(['grep', '--version'], capture_output=True, text=True)
+    assert 'grep' in result.stdout.lower()
+```
+
+#### Running Platform-Specific Tests
+
+**Run tests for specific platforms:**
+```bash
+# Run only Linux-specific tests
+python -m pytest -m linux
+
+# Run only macOS-specific tests  
+python -m pytest -m macos
+
+# Run only Windows-specific tests
+python -m pytest -m windows
+
+# Run Unix-like system tests
+python -m pytest -m unix
+
+# Run tests excluding specific platforms
+python -m pytest -m "not windows"
+
+# Combine platform markers with other markers
+python -m pytest -m "linux and integration"
+```
+
+**CI/CD Integration:**
+Platform markers work seamlessly with the existing CI matrix that runs tests on ubuntu-latest, macos-latest, and windows-latest. Tests will automatically be filtered based on the runner's operating system.
+
+#### Best Practices
+
+**When to Use Platform Markers:**
+- Testing OS-specific command availability
+- Handling different path separators or file systems
+- Testing platform-specific integrations (package managers, etc.)
+- Validating OS-dependent behavior
+
+**Guidelines:**
+- Use descriptive test names that indicate platform requirements
+- Include platform assertions in test bodies for clarity
+- Prefer group markers (unix, posix) over individual markers when appropriate
+- Document platform-specific requirements in test docstrings
+- Use skipif for complex conditional logic, markers for simple platform filtering
 
 ### Test Data
 
