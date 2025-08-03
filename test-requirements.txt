@@ -4,6 +4,7 @@ pytest-xdist>=3.0.0
 pytest-benchmark>=3.4.1
 pytest-html>=3.1.0
 pytest-asyncio>=0.6.0
+httpx>=0.24.0
 black>=22.0.0
 isort>=5.10.0
 flake8>=4.0.0

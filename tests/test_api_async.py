@@ -7,7 +7,7 @@ import os
 import tempfile
 import pytest
 import pytest_asyncio
-from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from unittest.mock import Mock, patch, AsyncMock
 
 # Import the FastAPI app and components
@@ -22,7 +22,7 @@ from core.scanner import SingleThreadScanner
 @pytest.fixture
 def client():
     """Test client fixture"""
-    return TestClient(app)
+    return AsyncClient(app=app, base_url="http://test")
 
 
 @pytest.fixture
@@ -73,12 +73,13 @@ class TestAsyncAPIEndpoints:
     @pytest.mark.integration
     async def test_root_endpoint(self, client):
         """Test async access to root endpoint"""
-        response = client.get("/")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["name"] == "Zeek-YARA Integration API"
-        assert data["version"] == "1.0.0"
-        assert "documentation" in data
+        async with client:
+            response = await client.get("/")
+            assert response.status_code == 200
+            data = response.json()
+            assert data["name"] == "Zeek-YARA Integration API"
+            assert data["version"] == "1.0.0"
+            assert "documentation" in data
 
     @pytest.mark.asyncio
     @pytest.mark.integration
@@ -102,8 +103,9 @@ class TestAsyncAPIEndpoints:
             os.makedirs(mock_config["EXTRACT_DIR"], exist_ok=True)
             
             # Make request
-            response = client.get("/status", headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.get("/status", headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert data["status"] == "operational"
@@ -117,8 +119,9 @@ class TestAsyncAPIEndpoints:
     async def test_alerts_endpoint_with_mocked_data(self, client, mock_db_manager):
         """Test async alerts endpoint with mocked data"""
         with patch('api.api_server.db_manager', mock_db_manager):
-            response = client.get("/alerts?page=1&page_size=10", headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.get("/alerts?page=1&page_size=10", headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert "alerts" in data
@@ -138,25 +141,27 @@ class TestAsyncAPIEndpoints:
     async def test_alerts_endpoint_with_filters(self, client, mock_db_manager):
         """Test async alerts endpoint with query filters"""
         with patch('api.api_server.db_manager', mock_db_manager):
-            # Test with severity filter
-            response = client.get("/alerts?severity=5", headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
-            
-            # Test with rule name filter
-            response = client.get("/alerts?rule_name=test", headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
-            
-            # Test with file type filter
-            response = client.get("/alerts?file_type=text", headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                # Test with severity filter
+                response = await client.get("/alerts?severity=5", headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
+                
+                # Test with rule name filter
+                response = await client.get("/alerts?rule_name=test", headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
+                
+                # Test with file type filter
+                response = await client.get("/alerts?file_type=text", headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
 
     @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_specific_alert_endpoint(self, client, mock_db_manager):
         """Test async access to specific alert by ID"""
         with patch('api.api_server.db_manager', mock_db_manager):
-            response = client.get("/alerts/1", headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.get("/alerts/1", headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert data["id"] == 1
@@ -168,18 +173,20 @@ class TestAsyncAPIEndpoints:
     async def test_specific_alert_not_found(self, client, mock_db_manager):
         """Test async access to non-existent alert"""
         with patch('api.api_server.db_manager', mock_db_manager):
-            response = client.get("/alerts/999", headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 404
+            async with client:
+                response = await client.get("/alerts/999", headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 404
 
     @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_scan_endpoint_file_not_found(self, client):
         """Test async scan endpoint with non-existent file"""
         scan_data = {"file_path": "/nonexistent/file.txt", "recursive": False}
-        response = client.post("/scan", 
-                             json=scan_data,
-                             headers={"X-API-Key": "test-api-key"})
-        assert response.status_code == 404
+        async with client:
+            response = await client.post("/scan", 
+                                 json=scan_data,
+                                 headers={"X-API-Key": "test-api-key"})
+            assert response.status_code == 404
 
     @pytest.mark.asyncio
     @pytest.mark.integration
@@ -206,10 +213,11 @@ class TestAsyncAPIEndpoints:
                     mock_db.get_alerts.return_value = []
                     
                     scan_data = {"file_path": tmp_file_path, "recursive": False}
-                    response = client.post("/scan", 
-                                         json=scan_data,
-                                         headers={"X-API-Key": "test-api-key"})
-                    assert response.status_code == 200
+                    async with client:
+                        response = await client.post("/scan", 
+                                             json=scan_data,
+                                             headers={"X-API-Key": "test-api-key"})
+                        assert response.status_code == 200
                     
                     data = response.json()
                     assert data["success"] is True
@@ -229,9 +237,10 @@ class TestAsyncAPIEndpoints:
             mock_scanner.start_monitoring.return_value = True
             mock_scanner_class.return_value = mock_scanner
             
-            response = client.post("/scanner/start?threads=0", 
-                                 headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.post("/scanner/start?threads=0", 
+                                     headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert data["success"] is True
@@ -246,9 +255,10 @@ class TestAsyncAPIEndpoints:
             mock_scanner.running = True
             mock_scanner.stop_monitoring.return_value = True
             
-            response = client.post("/scanner/stop", 
-                                 headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.post("/scanner/stop", 
+                                     headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert data["success"] is True
@@ -262,9 +272,10 @@ class TestAsyncAPIEndpoints:
             mock_rule_manager.compile_rules.return_value = True
             mock_rule_manager.get_rule_list.return_value = ["rule1", "rule2"]
             
-            response = client.post("/rules/update", 
-                                 headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.post("/rules/update", 
+                                     headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert data["success"] is True
@@ -282,8 +293,9 @@ class TestAsyncAPIEndpoints:
             ]
             mock_rule_manager.get_rule_list.return_value = mock_rules
             
-            response = client.get("/rules", headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.get("/rules", headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert "rules" in data
@@ -294,18 +306,19 @@ class TestAsyncAPIEndpoints:
     @pytest.mark.unit
     async def test_api_key_authentication(self, client):
         """Test async API key authentication"""
-        # Test without API key
-        response = client.get("/status")
-        assert response.status_code == 401
-        
-        # Test with wrong API key
-        response = client.get("/status", headers={"X-API-Key": "wrong-key"})
-        assert response.status_code == 401
-        
-        # Test with correct API key (mocked)
-        with patch('api.api_server.API_KEY', 'test-api-key'):
-            response = client.get("/status", headers={"X-API-Key": "test-api-key"})
-            # This may still fail due to other dependencies, but auth should pass
+        async with client:
+            # Test without API key
+            response = await client.get("/status")
+            assert response.status_code == 401
+            
+            # Test with wrong API key
+            response = await client.get("/status", headers={"X-API-Key": "wrong-key"})
+            assert response.status_code == 401
+            
+            # Test with correct API key (mocked)
+            with patch('api.api_server.API_KEY', 'test-api-key'):
+                response = await client.get("/status", headers={"X-API-Key": "test-api-key"})
+                # This may still fail due to other dependencies, but auth should pass
 
     @pytest.mark.asyncio
     @pytest.mark.integration
@@ -321,10 +334,11 @@ class TestAsyncAPIEndpoints:
         with patch('builtins.open'), \
              patch('json.dump'):
             
-            response = client.post("/webhook/config", 
-                                 json=webhook_config,
-                                 headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.post("/webhook/config", 
+                                     json=webhook_config,
+                                     headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert data["success"] is True
@@ -335,9 +349,10 @@ class TestAsyncAPIEndpoints:
     async def test_webhook_get_config_endpoint(self, client):
         """Test async webhook get configuration endpoint"""
         with patch('os.path.exists', return_value=False):
-            response = client.get("/webhook/config", 
-                                headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.get("/webhook/config", 
+                                    headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert data["configured"] is False
@@ -352,20 +367,15 @@ class TestAsyncPerformance:
     async def test_concurrent_status_requests(self, client):
         """Test concurrent async requests to status endpoint"""
         import asyncio
-        from concurrent.futures import ThreadPoolExecutor
         
-        def make_request():
-            with patch('api.api_server.API_KEY', ''):  # Disable auth for test
-                return client.get("/status")
+        async def make_request():
+            async with AsyncClient(app=app, base_url="http://test") as test_client:
+                with patch('api.api_server.API_KEY', ''):  # Disable auth for test
+                    return await test_client.get("/status")
         
         # Test concurrent requests
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            loop = asyncio.get_event_loop()
-            futures = [
-                loop.run_in_executor(executor, make_request)
-                for _ in range(10)
-            ]
-            responses = await asyncio.gather(*futures)
+        tasks = [make_request() for _ in range(10)]
+        responses = await asyncio.gather(*tasks)
         
         # All requests should succeed
         for response in responses:
@@ -398,9 +408,10 @@ class TestAsyncPerformance:
         mock_db_manager.get_alerts.return_value = large_dataset
         
         with patch('api.api_server.db_manager', mock_db_manager):
-            response = client.get("/alerts?page=1&page_size=50", 
-                                headers={"X-API-Key": "test-api-key"})
-            assert response.status_code == 200
+            async with client:
+                response = await client.get("/alerts?page=1&page_size=50", 
+                                    headers={"X-API-Key": "test-api-key"})
+                assert response.status_code == 200
             
             data = response.json()
             assert data["count"] == 50  # Page size
@@ -411,14 +422,13 @@ class TestAsyncPerformance:
 @pytest.mark.integration
 async def test_async_endpoint_error_handling():
     """Test async error handling in endpoints"""
-    client = TestClient(app)
-    
-    # Test with malformed JSON in scan request
-    response = client.post("/scan", 
-                         data="invalid json",
-                         headers={"X-API-Key": "test-api-key",
-                                "Content-Type": "application/json"})
-    assert response.status_code == 422  # Unprocessable Entity
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        # Test with malformed JSON in scan request
+        response = await client.post("/scan", 
+                             data="invalid json",
+                             headers={"X-API-Key": "test-api-key",
+                                    "Content-Type": "application/json"})
+        assert response.status_code == 422  # Unprocessable Entity
 
 
 @pytest.mark.asyncio
