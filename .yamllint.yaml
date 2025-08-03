@@ -1,0 +1,39 @@
+# yamllint configuration for Zeek-YARA Integration project
+
+extends: default
+
+rules:
+  # Allow longer lines in YAML files
+  line-length:
+    max: 120
+    
+  # Allow empty lines at document start (common in configs)
+  document-start:
+    present: false
+    
+  # More flexible indentation for complex structures
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+    
+  # Allow trailing spaces in comments
+  trailing-spaces:
+    level: error
+    
+  # More flexible comment formatting for educational docs
+  comments:
+    min-spaces-from-content: 1
+    
+  # Allow truthy values (yes/no, on/off)
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    check-keys: false
+
+ignore: |
+  /.github/
+  /test_results/
+  /logs/
+  node_modules/
+  *.template.yaml
+  /DATA/samples/
