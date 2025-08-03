@@ -117,7 +117,8 @@ class TestEducationalContentJob:
             text=True
         )
         
-        assert result.returncode == 0, "grep should be available"
+        # Platform-specific behavior: Linux grep --help returns 0, macOS returns 2
+        assert result.returncode in [0, 2], "grep should be available"
 
     def test_pythonpath_for_educational_tests(self):
         """Test PYTHONPATH configuration for educational tests."""
