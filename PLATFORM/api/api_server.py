@@ -64,6 +64,9 @@ config = Config.load_config()
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
+# Get worker registration rate limit from config
+worker_registration_rate_limit = config.get("SECURITY", {}).get("WORKER_REGISTRATION_RATE_LIMIT", "10/minute")
+
 # Initialize API application
 app = FastAPI(
     title="Zeek-YARA-Suricata Integration API",
@@ -1104,6 +1107,7 @@ async def get_distributed_status(_: bool = Depends(verify_api_key)):
 
 
 @app.post("/distributed/workers/register", tags=["Distributed"])
+@limiter.limit(worker_registration_rate_limit)
 async def register_worker(worker_data: WorkerRegistrationModel, request: Request, _: bool = Depends(verify_api_key)):
     """
     Register a new worker node with enhanced security validation
@@ -1119,7 +1123,7 @@ async def register_worker(worker_data: WorkerRegistrationModel, request: Request
         logger.warning(f"Rejected worker registration from {request.client.host} - HTTPS required in production")
         raise HTTPException(status_code=400, detail="HTTPS is required for worker registration in production")
     
-    # Rate limiting check (basic implementation)
+    # Rate limiting is enforced by the @limiter.limit decorator above
     client_ip = request.client.host
     logger.info(f"Worker registration attempt from {client_ip} for worker {worker_data.worker_id}")
     
