@@ -1,0 +1,79 @@
+{
+    "system_id": "zeek-yara-distributed",
+    "version": "1.0.0",
+    "deployment": {
+        "environment": "development",
+        "region": "local",
+        "cluster_name": "default"
+    },
+    "master_node": {
+        "host": "localhost",
+        "port": 8000,
+        "api_key": "",
+        "max_workers": 10
+    },
+    "worker_defaults": {
+        "max_tasks": 5,
+        "threads": 2,
+        "heartbeat_interval": 30,
+        "capabilities": ["file_scan", "yara_analysis"]
+    },
+    "message_queue": {
+        "type": "memory",
+        "settings": {
+            "memory": {
+                "max_queue_size": 1000
+            },
+            "rabbitmq": {
+                "host": "localhost",
+                "port": 5672,
+                "username": "guest",
+                "password": "guest",
+                "queue": "zeek_yara_tasks",
+                "exchange": "zeek_yara",
+                "routing_key": "scan_tasks"
+            },
+            "kafka": {
+                "bootstrap_servers": "localhost:9092",
+                "topic": "zeek-yara-tasks",
+                "group_id": "zeek-yara-workers",
+                "auto_offset_reset": "earliest"
+            }
+        }
+    },
+    "load_balancing": {
+        "algorithm": "load_based",
+        "options": {
+            "load_based": {
+                "cpu_weight": 0.3,
+                "memory_weight": 0.3,
+                "queue_weight": 0.4
+            },
+            "capability_based": {
+                "strict_matching": false,
+                "fallback_algorithm": "load_based"
+            }
+        }
+    },
+    "monitoring": {
+        "enabled": true,
+        "metrics_retention_hours": 24,
+        "alert_retention_hours": 168,
+        "performance_baseline_samples": 100,
+        "health_check_interval": 60
+    },
+    "scaling": {
+        "auto_scaling_enabled": false,
+        "min_workers": 1,
+        "max_workers": 10,
+        "scale_up_threshold": 0.8,
+        "scale_down_threshold": 0.3,
+        "scale_check_interval": 300
+    },
+    "security": {
+        "require_worker_authentication": false,
+        "api_key_required": false,
+        "allowed_worker_ips": [],
+        "ssl_enabled": false
+    }
+}
