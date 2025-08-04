@@ -10,8 +10,10 @@ This module contains the core scanner functionality.
 import logging
 import os
 import statistics
+import sys
 import threading
 import time
+import traceback
 from collections import deque
 from queue import Empty, Queue
 
@@ -884,9 +886,35 @@ class MultiThreadScanner(BaseScanner):
                 # Mark task as done
                 self.file_queue.task_done()
 
-            except Exception as e:
-                self.logger.error(f"Thread {thread_id} error: {str(e)}")
+            except KeyboardInterrupt:
+                self.logger.info(f"Thread {thread_id} received keyboard interrupt, shutting down gracefully")
+                break
+            except SystemExit:
+                self.logger.info(f"Thread {thread_id} received system exit, shutting down")
+                break
+            except MemoryError as e:
+                self.logger.critical(f"Thread {thread_id} memory error: {str(e)}")
+                self.logger.critical(f"Thread {thread_id} traceback:\n{traceback.format_exc()}")
                 worker_stats["errors"] += 1
+                # Memory errors are critical - re-raise to potentially stop the scanner
+                raise
+            except OSError as e:
+                # Handle file system errors specifically
+                self.logger.error(f"Thread {thread_id} filesystem error: {str(e)}")
+                self.logger.debug(f"Thread {thread_id} traceback:\n{traceback.format_exc()}")
+                worker_stats["errors"] += 1
+                # Brief sleep for filesystem issues to avoid tight loops
+                time.sleep(1.0)
+            except Exception as e:
+                # Log full traceback for unexpected exceptions to aid debugging
+                self.logger.error(f"Thread {thread_id} unexpected error: {str(e)}")
+                self.logger.error(f"Thread {thread_id} traceback:\n{traceback.format_exc()}")
+                worker_stats["errors"] += 1
+                
+                # Check if this might be a critical system error
+                if isinstance(e, (ImportError, AttributeError, TypeError)) and "core" in str(e).lower():
+                    self.logger.critical(f"Thread {thread_id} critical system error detected, may indicate code issues: {str(e)}")
+                
                 # Sleep briefly to avoid tight loop in case of persistent error
                 time.sleep(1.0)
 
