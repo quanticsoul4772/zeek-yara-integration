@@ -12,3 +12,6 @@ PyYAML>=6.0
 
 # Async framework (pin to avoid ConnectedUDPSocket ImportError in anyio 4.0+)
 anyio>=3.6.0,<4.0.0
+
+# Rate limiting for API endpoints
+slowapi>=0.1.9
