@@ -242,6 +242,42 @@ app.dependency_overrides[get_alert_correlator] = lambda: alert_correlator
 start_time = time.time()
 
 
+def get_public_config() -> Dict[str, Any]:
+    """
+    Get public configuration values safe for API exposure.
+    Filters out sensitive configuration that should not be exposed externally.
+    """
+    # Define which config values are safe to expose publicly
+    public_config_keys = [
+        "EXTRACT_DIR",
+        "RULES_DIR", 
+        "MAX_FILE_SIZE",
+        "SCAN_INTERVAL",
+        "LOG_LEVEL",
+        "SCAN_MIME_TYPES",
+        "SCAN_EXTENSIONS",
+        "CORRELATION_ENABLED",
+        "CORRELATION_WINDOW",
+        "TIME_PROXIMITY_WINDOW",
+        "MIN_ALERT_CONFIDENCE",
+        "CLEANUP_ENABLED",
+        "CLEANUP_RETENTION_CLEAN_HOURS",
+        "CLEANUP_RETENTION_MATCHED_HOURS",
+        "CLEANUP_INTERVAL_MINUTES",
+        "CLEANUP_DISK_WARNING_THRESHOLD",
+        "CLEANUP_DISK_CRITICAL_THRESHOLD"
+    ]
+    
+    # Build filtered config dictionary
+    public_config = {}
+    for key in public_config_keys:
+        value = config.get(key)
+        if value is not None:
+            public_config[key.lower()] = value
+    
+    return public_config
+
+
 # Endpoints
 @app.get("/", tags=["General"])
 async def root():
@@ -304,13 +340,7 @@ async def get_status(_: bool = Depends(verify_api_key)):
             "alert_count": suricata_status.get("alert_count", 0),
             "rules_count": suricata_status.get("rules_count", 0),
         },
-        "config": {
-            "extract_dir": config.get("EXTRACT_DIR"),
-            "rules_dir": config.get("RULES_DIR"),
-            "max_file_size": config.get("MAX_FILE_SIZE"),
-            "scan_timeout": config.get("SCAN_TIMEOUT"),
-            "threads": config.get("THREADS", 1),
-        },
+        "config": get_public_config(),
     }
 
     return status
