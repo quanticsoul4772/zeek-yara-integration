@@ -620,6 +620,10 @@ class MultiThreadScanner(BaseScanner):
 
             self.running = False
             
+            # Clean up worker_health dictionary to prevent memory leak
+            self.worker_health.clear()
+            self.logger.debug("Cleared worker_health dictionary")
+            
             # Calculate final uptime
             uptime = 0
             with self.performance_stats["lock"]:
