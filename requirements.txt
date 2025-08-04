@@ -15,3 +15,6 @@ anyio>=3.6.0,<4.0.0
 
 # Rate limiting for API endpoints
 slowapi>=0.1.9
+
+# JSON Schema validation (security requirement)
+jsonschema>=4.0.0
