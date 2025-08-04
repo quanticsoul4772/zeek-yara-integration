@@ -19,12 +19,15 @@ from typing import Any, Dict, List, Optional
 import uvicorn
 
 # Import FastAPI components
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
 from fastapi import Path as PathParam
 from fastapi import Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from api.suricata_api import get_alert_correlator, get_suricata_runner, suricata_router
 from config.config import Config
@@ -55,12 +58,19 @@ logger = logging.getLogger("zeek_yara.api")
 # Load configuration
 config = Config.load_config()
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 # Initialize API application
 app = FastAPI(
     title="Zeek-YARA-Suricata Integration API",
     description="RESTful API for the Zeek-YARA-Suricata integration system",
     version="1.0.0",
 )
+
+# Add rate limiter to app
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS configuration
 app.add_middleware(
@@ -203,6 +213,23 @@ async def verify_api_key(api_key: str = Depends(api_key_header)):
     return True
 
 
+async def verify_api_key_required(api_key: str = Depends(api_key_header)):
+    """Verify API key - always required for sensitive endpoints"""
+    if not API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="API authentication is required but not configured. Please set API_KEY in configuration.",
+            headers={"WWW-Authenticate": "API key required"},
+        )
+    if not api_key or api_key != API_KEY:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing API key",
+            headers={"WWW-Authenticate": "API key required"},
+        )
+    return True
+
+
 # Include Suricata API router
 app.include_router(suricata_router)
 
@@ -312,7 +339,8 @@ class WorkerHealthModel(BaseModel):
 
 
 @app.get("/performance", response_model=PerformanceMetricsModel, tags=["Performance"])
-async def get_performance_metrics(_: bool = Depends(verify_api_key)):
+@limiter.limit("10/minute")
+async def get_performance_metrics(request: Request, _: bool = Depends(verify_api_key_required)):
     """Get detailed performance metrics for multi-threaded scanner"""
     if not scanner or not isinstance(scanner, MultiThreadScanner):
         raise HTTPException(status_code=400, detail="Multi-threaded scanner not available")
@@ -329,7 +357,8 @@ async def get_performance_metrics(_: bool = Depends(verify_api_key)):
 
 
 @app.get("/performance/workers", response_model=WorkerHealthModel, tags=["Performance"])
-async def get_worker_health(_: bool = Depends(verify_api_key)):
+@limiter.limit("10/minute")
+async def get_worker_health(request: Request, _: bool = Depends(verify_api_key_required)):
     """Get health status of all worker threads"""
     if not scanner or not isinstance(scanner, MultiThreadScanner):
         raise HTTPException(status_code=400, detail="Multi-threaded scanner not available")
