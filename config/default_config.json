@@ -35,6 +35,8 @@
     "API_HOST": "127.0.0.1",
     "API_KEY": "",
     "AUTO_START_SCANNER": false,
+    "FORCE_HTTPS": false,
+    "VERIFY_SSL": true,
     
     "CLEANUP_ENABLED": true,
     "CLEANUP_RETENTION_CLEAN_HOURS": 24,
@@ -47,8 +49,19 @@
     "MESSAGE_QUEUE_TYPE": "memory",
     "WORKER_HEARTBEAT_TIMEOUT": 60,
     "WORKER_HEALTH_CHECK_INTERVAL": 30,
+    "WORKER_HEARTBEAT_INTERVAL": 30,
     "LOAD_BALANCE_ALGORITHM": "load_based",
     "DISTRIBUTED_CONFIG_FILE": "./config/distributed_config.json",
+    
+    "SECURITY": {
+        "ENFORCE_HTTPS_PRODUCTION": true,
+        "WORKER_REGISTRATION_RATE_LIMIT": "10/minute",
+        "ALLOWED_WORKER_CAPABILITIES": ["file_scan", "yara_analysis", "network_analysis", "log_analysis"],
+        "MAX_WORKER_TASKS": 100,
+        "MIN_WORKER_ID_LENGTH": 3,
+        "MAX_WORKER_ID_LENGTH": 64,
+        "WORKER_PORT_RANGE": [1024, 65535]
+    },
     
     "RABBITMQ_HOST": "localhost",
     "RABBITMQ_PORT": 5672,

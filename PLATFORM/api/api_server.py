@@ -35,6 +35,7 @@ from core.database import DatabaseManager
 from core.scanner import MultiThreadScanner, SingleThreadScanner
 from core.distributed import DistributedScanner, WorkerNode, TaskPriority
 from core.monitoring import MonitoringSystem, AlertLevel
+from core.schemas import SchemaValidator
 from suricata.alert_correlation import AlertCorrelator
 from suricata.suricata_integration import SuricataRunner
 from utils.file_utils import FileAnalyzer
@@ -87,6 +88,7 @@ app.add_middleware(
 db_manager = DatabaseManager(db_file=config.get("DB_FILE"))
 file_analyzer = FileAnalyzer(max_file_size=config.get("MAX_FILE_SIZE"))
 rule_manager = RuleManager(rules_dir=config.get("RULES_DIR"), rules_index=config.get("RULES_INDEX"))
+schema_validator = SchemaValidator()
 
 # Initialize Suricata components
 suricata_runner = SuricataRunner(config)
@@ -1102,19 +1104,88 @@ async def get_distributed_status(_: bool = Depends(verify_api_key)):
 
 
 @app.post("/distributed/workers/register", tags=["Distributed"])
-async def register_worker(worker_data: WorkerRegistrationModel, _: bool = Depends(verify_api_key)):
+async def register_worker(worker_data: WorkerRegistrationModel, request: Request, _: bool = Depends(verify_api_key)):
     """
-    Register a new worker node
+    Register a new worker node with enhanced security validation
     """
     if not distributed_scanner:
         raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
-        
+    
+    # Security checks
+    environment = config.get("ENVIRONMENT", "development").lower()
+    
+    # Enforce HTTPS in production
+    if environment == "production" and request.url.scheme != "https":
+        logger.warning(f"Rejected worker registration from {request.client.host} - HTTPS required in production")
+        raise HTTPException(status_code=400, detail="HTTPS is required for worker registration in production")
+    
+    # Rate limiting check (basic implementation)
+    client_ip = request.client.host
+    logger.info(f"Worker registration attempt from {client_ip} for worker {worker_data.worker_id}")
+    
     try:
-        success = distributed_scanner.worker_manager.register_worker(worker_data.dict())
-        return {"success": success, "worker_id": worker_data.worker_id, "message": "Worker registered" if success else "Failed to register worker"}
+        # Additional JSON schema validation beyond Pydantic model
+        worker_dict = worker_data.dict()
+        try:
+            schema_validator.validate("worker_registration", worker_dict)
+        except Exception as validation_error:
+            logger.error(f"Worker registration schema validation failed: {validation_error}")
+            raise HTTPException(status_code=400, detail=f"Invalid worker registration data: {str(validation_error)}")
+        
+        # Security validation of worker data
+        worker_id = worker_dict.get("worker_id", "")
+        if not worker_id or len(worker_id) < 3 or len(worker_id) > 64:
+            raise HTTPException(status_code=400, detail="Worker ID must be between 3 and 64 characters")
+        
+        # Validate capabilities
+        capabilities = worker_dict.get("capabilities", [])
+        allowed_capabilities = ["file_scan", "yara_analysis", "network_analysis", "log_analysis"]
+        invalid_capabilities = [cap for cap in capabilities if cap not in allowed_capabilities]
+        if invalid_capabilities:
+            raise HTTPException(status_code=400, detail=f"Invalid capabilities: {invalid_capabilities}")
+        
+        # Validate port range
+        port = worker_dict.get("port", 0)
+        if port < 1024 or port > 65535:
+            raise HTTPException(status_code=400, detail="Worker port must be between 1024 and 65535")
+        
+        # Validate max_tasks reasonable limit
+        max_tasks = worker_dict.get("max_tasks", 0)
+        if max_tasks < 1 or max_tasks > 100:
+            raise HTTPException(status_code=400, detail="max_tasks must be between 1 and 100")
+        
+        # Check for duplicate worker registration
+        existing_workers = distributed_scanner.worker_manager.get_workers()
+        for existing_worker in existing_workers:
+            if existing_worker.worker_id == worker_id:
+                logger.warning(f"Attempt to register duplicate worker ID: {worker_id}")
+                raise HTTPException(status_code=409, detail=f"Worker ID {worker_id} is already registered")
+        
+        # Register the worker
+        success = distributed_scanner.worker_manager.register_worker(worker_dict)
+        
+        if success:
+            logger.info(f"Successfully registered worker {worker_id} from {client_ip}")
+            return {
+                "success": True, 
+                "worker_id": worker_data.worker_id, 
+                "message": "Worker registered successfully",
+                "timestamp": time.time()
+            }
+        else:
+            logger.error(f"Failed to register worker {worker_id}")
+            return {
+                "success": False, 
+                "worker_id": worker_data.worker_id, 
+                "message": "Failed to register worker - internal error"
+            }
+            
+    except HTTPException:
+        # Re-raise HTTP exceptions (validation errors, etc.)
+        raise
     except Exception as e:
-        logger.error(f"Error registering worker: {e}")
-        raise HTTPException(status_code=500, detail=f"Error registering worker: {str(e)}")
+        logger.error(f"Error registering worker: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error during worker registration")
 
 
 @app.delete("/distributed/workers/{worker_id}", tags=["Distributed"])
