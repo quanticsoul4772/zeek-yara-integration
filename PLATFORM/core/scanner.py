@@ -851,12 +851,23 @@ class MultiThreadScanner(BaseScanner):
                 else:
                     self._last_perf_log = current_time
                 
-                # Sleep until next check
-                time.sleep(self.health_check_interval)
+                # Sleep until next check, but check stop_event frequently for responsive shutdown
+                sleep_remaining = self.health_check_interval
+                sleep_increment = 1.0  # Check stop_event every second
+                while sleep_remaining > 0 and not self.stop_event.is_set():
+                    sleep_time = min(sleep_increment, sleep_remaining)
+                    time.sleep(sleep_time)
+                    sleep_remaining -= sleep_time
                 
             except Exception as e:
                 self.logger.error(f"Performance monitor error: {e}")
-                time.sleep(self.health_check_interval)
+                # Sleep with responsive shutdown checking after errors too
+                sleep_remaining = self.health_check_interval
+                sleep_increment = 1.0
+                while sleep_remaining > 0 and not self.stop_event.is_set():
+                    sleep_time = min(sleep_increment, sleep_remaining)
+                    time.sleep(sleep_time)
+                    sleep_remaining -= sleep_time
         
         self.logger.info("Performance monitor thread stopped")
 
