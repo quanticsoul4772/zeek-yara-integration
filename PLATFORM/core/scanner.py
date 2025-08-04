@@ -477,7 +477,7 @@ class MultiThreadScanner(BaseScanner):
 
         # Worker health monitoring
         self.worker_health = {}
-        self.health_check_interval = config.get("HEALTH_CHECK_INTERVAL", 30)
+        self.health_check_interval = self._get_health_check_interval(config)
         self.max_worker_idle_time = config.get("MAX_WORKER_IDLE_TIME", 300)
         
         # Initialize worker stats
@@ -494,6 +494,45 @@ class MultiThreadScanner(BaseScanner):
                 "last_heartbeat": time.time(),
                 "current_file": None
             }
+
+    def _get_health_check_interval(self, config):
+        """
+        Determine appropriate health check interval based on environment and configuration.
+        
+        Args:
+            config (dict): Configuration dictionary
+            
+        Returns:
+            int: Health check interval in seconds
+        """
+        # Check if explicitly configured
+        if "HEALTH_CHECK_INTERVAL" in config:
+            return config["HEALTH_CHECK_INTERVAL"]
+        
+        # Environment-aware defaults
+        environment = config.get("ENVIRONMENT", "development").lower()
+        
+        # Health check intervals optimized for different environments
+        environment_defaults = {
+            "production": 120,      # 2 minutes - less aggressive for production stability
+            "staging": 60,          # 1 minute - moderate for staging environments
+            "development": 30,      # 30 seconds - frequent for development debugging
+            "testing": 15,          # 15 seconds - very frequent for test environments
+            "education": 45,        # 45 seconds - balanced for educational use
+            "demo": 20             # 20 seconds - responsive for demonstrations
+        }
+        
+        default_interval = environment_defaults.get(environment, 30)
+        
+        # Log environment-specific choice for visibility
+        if environment in environment_defaults:
+            self.logger.info(f"Using environment-optimized health check interval: "
+                           f"{default_interval}s for '{environment}' environment")
+        else:
+            self.logger.info(f"Unknown environment '{environment}', using default "
+                           f"health check interval: {default_interval}s")
+        
+        return default_interval
 
     def start_monitoring(self):
         """
