@@ -596,3 +596,376 @@ class TestScannerPerformance:
             # Clean up
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
+
+
+# Edge case and resilience tests
+@pytest.mark.unit
+class TestScannerEdgeCases:
+    """Tests for scanner edge cases, failure scenarios, and resilience"""
+
+    def test_shutdown_under_heavy_load(self, config):
+        """Test graceful shutdown when scanner is under heavy load"""
+        # Create temporary directory with many files
+        temp_dir = tempfile.mkdtemp()
+        file_count = 100
+        test_files = []
+        
+        # Create files that will queue up
+        for i in range(file_count):
+            file_path = os.path.join(temp_dir, f"load_test_{i}.txt")
+            with open(file_path, "w") as f:
+                f.write(f"Test content {i}\n" * 100)  # Make files substantial
+            test_files.append(file_path)
+        
+        try:
+            # Configure scanner with small thread count to create backlog
+            load_config = config.copy()
+            load_config["THREADS"] = 2
+            load_config["MAX_QUEUE_SIZE"] = 50
+            load_config["EXTRACT_DIR"] = temp_dir
+            
+            scanner = MultiThreadScanner(load_config)
+            
+            # Start monitoring - this will queue existing files
+            start_time = time.time()
+            assert scanner.start_monitoring() is True
+            assert scanner.running is True
+            
+            # Wait briefly to let queue fill up
+            time.sleep(0.5)
+            
+            # Verify queue has work
+            initial_queue_size = scanner.get_queue_size()
+            assert initial_queue_size > 0, "Queue should have files to process"
+            
+            # Get initial performance stats
+            initial_stats = scanner.get_performance_statistics()
+            
+            # Trigger shutdown while under load
+            shutdown_start = time.time()
+            assert scanner.stop_monitoring() is True
+            shutdown_duration = time.time() - shutdown_start
+            
+            # Verify graceful shutdown
+            assert scanner.running is False
+            assert shutdown_duration < 10.0, f"Shutdown took too long: {shutdown_duration}s"
+            
+            # Verify final stats are accessible
+            final_stats = scanner.get_performance_statistics()
+            assert final_stats["uptime_seconds"] > 0
+            
+            # Verify no threads are left running
+            assert len(scanner.worker_threads) == 0
+            
+            print(f"Shutdown under load completed in {shutdown_duration:.2f}s")
+            print(f"Initial queue size: {initial_queue_size}")
+            print(f"Files processed before shutdown: {final_stats['files_processed']}")
+            
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    def test_queue_overflow_conditions(self, config):
+        """Test behavior when queue reaches maximum capacity"""
+        temp_dir = tempfile.mkdtemp()
+        
+        try:
+            # Configure scanner with very small queue
+            overflow_config = config.copy()
+            overflow_config["THREADS"] = 1  # Single thread to slow processing
+            overflow_config["MAX_QUEUE_SIZE"] = 5  # Very small queue
+            overflow_config["EXTRACT_DIR"] = temp_dir
+            overflow_config["QUEUE_TIMEOUT_NORMAL"] = 0.1  # Fast timeout
+            
+            scanner = MultiThreadScanner(overflow_config)
+            
+            # Start scanner
+            assert scanner.start_monitoring() is True
+            
+            # Create more files than queue can handle
+            file_count = 20
+            test_files = []
+            successful_queues = 0
+            failed_queues = 0
+            
+            for i in range(file_count):
+                file_path = os.path.join(temp_dir, f"overflow_test_{i}.txt")
+                with open(file_path, "w") as f:
+                    f.write(f"Overflow test content {i}\n")
+                test_files.append(file_path)
+                
+                # Try to queue file manually
+                if scanner.queue_file(file_path):
+                    successful_queues += 1
+                else:
+                    failed_queues += 1
+                    
+                # Check queue size
+                queue_size = scanner.get_queue_size()
+                assert queue_size <= overflow_config["MAX_QUEUE_SIZE"], \
+                    f"Queue size {queue_size} exceeded max {overflow_config['MAX_QUEUE_SIZE']}"
+            
+            print(f"Queue overflow test: {successful_queues} successful, {failed_queues} failed")
+            print(f"Max queue size: {overflow_config['MAX_QUEUE_SIZE']}")
+            
+            # Verify that some files were rejected due to queue overflow
+            assert failed_queues > 0, "Expected some files to be rejected due to queue overflow"
+            assert successful_queues > 0, "Expected some files to be successfully queued"
+            
+            # Wait for processing
+            time.sleep(2.0)
+            
+            # Stop scanner
+            scanner.stop_monitoring()
+            
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    def test_worker_thread_exception_handling(self, config):
+        """Test worker thread recovery from various exception scenarios"""
+        temp_dir = tempfile.mkdtemp()
+        
+        try:
+            # Configure scanner for exception testing
+            exception_config = config.copy()
+            exception_config["THREADS"] = 2
+            exception_config["EXTRACT_DIR"] = temp_dir
+            
+            scanner = MultiThreadScanner(exception_config)
+            
+            # Create problematic files that might cause exceptions
+            test_scenarios = [
+                ("normal_file.txt", "Normal content"),
+                ("empty_file.txt", ""),  # Empty file
+                ("large_filename_" + "x" * 200 + ".txt", "Content"),  # Long filename
+            ]
+            
+            test_files = []
+            for filename, content in test_scenarios:
+                file_path = os.path.join(temp_dir, filename)
+                try:
+                    with open(file_path, "w") as f:
+                        f.write(content)
+                    test_files.append(file_path)
+                except Exception as e:
+                    print(f"Could not create test file {filename}: {e}")
+            
+            # Start scanner
+            assert scanner.start_monitoring() is True
+            
+            # Monitor worker health
+            initial_health = scanner.get_worker_health_status()
+            assert len(initial_health) == 2, "Should have 2 workers"
+            
+            # Wait for processing
+            time.sleep(3.0)
+            
+            # Check that workers are still responsive
+            final_health = scanner.get_worker_health_status()
+            healthy_workers = sum(1 for status in final_health.values() 
+                                if status["status"] in ["healthy", "warning"])
+            
+            assert healthy_workers >= 1, "At least one worker should remain healthy"
+            
+            # Check performance stats for error tracking
+            stats = scanner.get_performance_statistics()
+            print(f"Worker error handling test:")
+            print(f"Files processed: {stats['files_processed']}")
+            print(f"Files failed: {stats['files_failed']}")
+            print(f"Healthy workers: {healthy_workers}/{len(final_health)}")
+            
+            # Verify error counts are tracked in worker stats
+            total_errors = sum(worker_stats["errors"] 
+                             for worker_stats in stats["worker_stats"].values())
+            print(f"Total worker errors: {total_errors}")
+            
+            # Stop scanner
+            scanner.stop_monitoring()
+            
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    def test_worker_health_monitoring(self, config):
+        """Test worker health monitoring and detection of unhealthy workers"""
+        temp_dir = tempfile.mkdtemp()
+        
+        try:
+            # Configure scanner with aggressive health monitoring
+            health_config = config.copy()
+            health_config["THREADS"] = 3
+            health_config["EXTRACT_DIR"] = temp_dir
+            health_config["HEALTH_CHECK_INTERVAL"] = 1  # Check every second
+            health_config["MAX_WORKER_IDLE_TIME"] = 5   # 5 second timeout
+            
+            scanner = MultiThreadScanner(health_config)
+            
+            # Start scanner
+            assert scanner.start_monitoring() is True
+            
+            # Initial health check
+            initial_health = scanner.get_worker_health_status()
+            assert len(initial_health) == 3, "Should have 3 workers"
+            
+            # All workers should start healthy
+            for worker_id, status in initial_health.items():
+                assert status["status"] == "healthy", f"Worker {worker_id} should start healthy"
+                assert status["last_heartbeat_ago"] < 2.0, "Heartbeat should be recent"
+            
+            # Create some work to keep workers active
+            for i in range(5):
+                file_path = os.path.join(temp_dir, f"health_test_{i}.txt")
+                with open(file_path, "w") as f:
+                    f.write(f"Health test content {i}\n")
+            
+            # Wait for processing and health monitoring
+            time.sleep(3.0)
+            
+            # Check health again
+            active_health = scanner.get_worker_health_status()
+            healthy_count = sum(1 for status in active_health.values() 
+                              if status["status"] == "healthy")
+            
+            print(f"Worker health monitoring:")
+            for worker_id, status in active_health.items():
+                print(f"  {worker_id}: {status['status']} (heartbeat {status['last_heartbeat_ago']:.1f}s ago)")
+            
+            # Most workers should be healthy during normal operation
+            assert healthy_count >= 2, f"Expected at least 2 healthy workers, got {healthy_count}"
+            
+            # Test performance stats integration
+            stats = scanner.get_performance_statistics()
+            assert "worker_health" in stats
+            assert len(stats["worker_health"]) == 3
+            
+            # Stop scanner
+            scanner.stop_monitoring()
+            
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    def test_scanner_recovery_from_interruption(self, config):
+        """Test scanner's ability to recover interrupted scans on startup"""
+        temp_dir = tempfile.mkdtemp()
+        
+        try:
+            # Configure scanner
+            recovery_config = config.copy()
+            recovery_config["EXTRACT_DIR"] = temp_dir
+            
+            # Create test files
+            test_files = []
+            for i in range(5):
+                file_path = os.path.join(temp_dir, f"recovery_test_{i}.txt")
+                with open(file_path, "w") as f:
+                    f.write(f"Recovery test content {i}\n")
+                test_files.append(file_path)
+            
+            # First scanner - simulate interrupted scanning
+            scanner1 = MultiThreadScanner(recovery_config)
+            
+            # Manually add some files to pending state in database
+            for file_path in test_files[:3]:
+                try:
+                    file_metadata = scanner1.file_analyzer.get_file_metadata(file_path)
+                    scanner1.db_manager.add_file_state(file_path, file_metadata)
+                    # Simulate scanning state (interrupted)
+                    scanner1.db_manager.update_file_state(file_path, 'scanning')
+                except Exception as e:
+                    print(f"Error setting up test state: {e}")
+            
+            # Test recovery mechanism
+            recovered_count = scanner1.recover_interrupted_scans(timeout_minutes=1)
+            print(f"Recovery test: {recovered_count} files recovered")
+            
+            # Start second scanner - should recover interrupted files  
+            scanner2 = MultiThreadScanner(recovery_config)
+            
+            # Check pending files
+            pending_files = scanner2.get_pending_files()
+            print(f"Pending files after recovery: {len(pending_files)}")
+            
+            # Start monitoring to process recovered files
+            assert scanner2.start_monitoring() is True
+            
+            # Wait for processing
+            time.sleep(2.0)
+            
+            # Check processing statistics
+            stats = scanner2.get_processing_statistics()
+            print(f"Processing statistics: {stats}")
+            
+            # Stop scanner
+            scanner2.stop_monitoring()
+            
+            # Verify some files were processed
+            final_stats = scanner2.get_processing_statistics()
+            assert final_stats.get('completed', 0) + final_stats.get('failed', 0) > 0, \
+                "Expected some files to be processed after recovery"
+            
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+    def test_memory_pressure_handling(self, config):
+        """Test scanner behavior under memory pressure conditions"""
+        temp_dir = tempfile.mkdtemp()
+        
+        try:
+            # Configure scanner for memory pressure testing
+            memory_config = config.copy()
+            memory_config["THREADS"] = 2
+            memory_config["MAX_FILE_SIZE"] = 1024 * 1024  # 1MB limit
+            memory_config["EXTRACT_DIR"] = temp_dir
+            
+            scanner = MultiThreadScanner(memory_config)
+            
+            # Create files of various sizes
+            test_scenarios = [
+                ("small_file.txt", 1024),        # 1KB - should process
+                ("medium_file.txt", 512 * 1024), # 512KB - should process
+                ("large_file.txt", 2 * 1024 * 1024), # 2MB - should be rejected
+            ]
+            
+            test_files = []
+            for filename, size in test_scenarios:
+                file_path = os.path.join(temp_dir, filename)
+                with open(file_path, "w") as f:
+                    f.write("x" * size)
+                test_files.append((file_path, size))
+            
+            # Start scanner
+            assert scanner.start_monitoring() is True
+            
+            # Wait for processing
+            time.sleep(3.0)
+            
+            # Check results
+            stats = scanner.get_performance_statistics()
+            
+            print(f"Memory pressure test results:")
+            print(f"Files processed: {stats['files_processed']}")
+            print(f"Files failed: {stats['files_failed']}")
+            
+            # Check file states in database
+            for file_path, size in test_files:
+                file_state = scanner.db_manager.get_file_state(file_path)
+                print(f"File {os.path.basename(file_path)} ({size} bytes): {file_state['state'] if file_state else 'not found'}")
+                
+                if size > memory_config["MAX_FILE_SIZE"]:
+                    # Large files should be marked as failed
+                    assert file_state and file_state['state'] == 'failed', \
+                        f"Large file should be marked as failed"
+                else:
+                    # Small files should be processed
+                    assert file_state and file_state['state'] in ['completed', 'scanning'], \
+                        f"Small file should be processed or in progress"
+            
+            # Stop scanner
+            scanner.stop_monitoring()
+            
+        finally:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
