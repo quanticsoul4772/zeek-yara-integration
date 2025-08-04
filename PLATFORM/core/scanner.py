@@ -465,6 +465,13 @@ class MultiThreadScanner(BaseScanner):
             "queue_size_samples": deque(maxlen=50),  # Queue size monitoring
             "worker_stats": {},  # Per-worker statistics
             "start_time": None,
+            # Running averages for performance optimization
+            "running_avg_scan_time": 0.0,
+            "running_avg_queue_size": 0.0,
+            "cached_median_scan_time": 0.0,
+            "last_median_calculation": 0,
+            "median_calculation_interval": 10,  # Recalculate median every 10 samples
+            "sample_count": 0,
             "lock": threading.Lock()
         }
 
@@ -510,6 +517,12 @@ class MultiThreadScanner(BaseScanner):
                 self.performance_stats["total_processing_time"] = 0.0
                 self.performance_stats["scan_times"].clear()
                 self.performance_stats["queue_size_samples"].clear()
+                # Reset running averages
+                self.performance_stats["running_avg_scan_time"] = 0.0
+                self.performance_stats["running_avg_queue_size"] = 0.0
+                self.performance_stats["cached_median_scan_time"] = 0.0
+                self.performance_stats["last_median_calculation"] = 0
+                self.performance_stats["sample_count"] = 0
 
             # Start worker threads
             for i in range(self.num_threads):
@@ -677,7 +690,7 @@ class MultiThreadScanner(BaseScanner):
     
     def get_performance_statistics(self):
         """
-        Get comprehensive performance statistics.
+        Get comprehensive performance statistics using optimized running averages.
         
         Returns:
             dict: Performance statistics including throughput, timing, and worker health
@@ -692,14 +705,10 @@ class MultiThreadScanner(BaseScanner):
             
         throughput = stats["files_processed"] / uptime if uptime > 0 else 0
         
-        # Calculate timing statistics
-        scan_times = list(stats["scan_times"])
-        avg_scan_time = statistics.mean(scan_times) if scan_times else 0
-        median_scan_time = statistics.median(scan_times) if scan_times else 0
-        
-        # Queue statistics
-        queue_samples = list(stats["queue_size_samples"])
-        avg_queue_size = statistics.mean(queue_samples) if queue_samples else 0
+        # Use running averages instead of calculating from entire deque
+        avg_scan_time = stats["running_avg_scan_time"]
+        median_scan_time = stats["cached_median_scan_time"]
+        avg_queue_size = stats["running_avg_queue_size"]
         
         return {
             "uptime_seconds": round(uptime, 1),
@@ -809,6 +818,29 @@ class MultiThreadScanner(BaseScanner):
                 with self.performance_stats["lock"]:
                     self.performance_stats["total_processing_time"] += scan_duration
                     self.performance_stats["scan_times"].append(scan_duration)
+                    
+                    # Update running average using exponential moving average
+                    # alpha = 0.1 gives more weight to recent samples
+                    alpha = 0.1
+                    if self.performance_stats["sample_count"] == 0:
+                        self.performance_stats["running_avg_scan_time"] = scan_duration
+                    else:
+                        self.performance_stats["running_avg_scan_time"] = (
+                            alpha * scan_duration + 
+                            (1 - alpha) * self.performance_stats["running_avg_scan_time"]
+                        )
+                    
+                    self.performance_stats["sample_count"] += 1
+                    
+                    # Update cached median periodically to avoid hot path calculation
+                    if (self.performance_stats["sample_count"] - 
+                        self.performance_stats["last_median_calculation"] >= 
+                        self.performance_stats["median_calculation_interval"]):
+                        
+                        scan_times_list = list(self.performance_stats["scan_times"])
+                        if scan_times_list:
+                            self.performance_stats["cached_median_scan_time"] = statistics.median(scan_times_list)
+                        self.performance_stats["last_median_calculation"] = self.performance_stats["sample_count"]
 
                 # Mark task as done
                 self.file_queue.task_done()
@@ -830,10 +862,24 @@ class MultiThreadScanner(BaseScanner):
         
         while not self.stop_event.is_set():
             try:
-                # Sample queue size for statistics
+                # Sample queue size for statistics and update running average
                 queue_size = self.get_queue_size()
                 with self.performance_stats["lock"]:
                     self.performance_stats["queue_size_samples"].append(queue_size)
+                    
+                    # Update running average for queue size
+                    alpha = 0.1  # Same smoothing factor as scan times
+                    if not hasattr(self, '_queue_sample_count'):
+                        self._queue_sample_count = 0
+                        
+                    if self._queue_sample_count == 0:
+                        self.performance_stats["running_avg_queue_size"] = queue_size
+                    else:
+                        self.performance_stats["running_avg_queue_size"] = (
+                            alpha * queue_size + 
+                            (1 - alpha) * self.performance_stats["running_avg_queue_size"]
+                        )
+                    self._queue_sample_count += 1
                 
                 # Check worker health
                 current_time = time.time()
