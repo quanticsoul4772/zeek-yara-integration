@@ -176,8 +176,18 @@ class RabbitMQMessageQueue(MessageQueueManager):
         self.queue_name = config.get("RABBITMQ_QUEUE", "zeek_yara_tasks")
         self.host = config.get("RABBITMQ_HOST", "localhost")
         self.port = config.get("RABBITMQ_PORT", 5672)
-        self.username = config.get("RABBITMQ_USERNAME", "guest")
-        self.password = config.get("RABBITMQ_PASSWORD", "guest")
+        
+        # Security: Require credentials from environment variables only
+        import os
+        self.username = os.environ.get("RABBITMQ_USERNAME")
+        self.password = os.environ.get("RABBITMQ_PASSWORD")
+        
+        if not self.username or not self.password:
+            raise ValueError(
+                "RabbitMQ credentials must be provided via RABBITMQ_USERNAME and "
+                "RABBITMQ_PASSWORD environment variables. Hard-coded credentials are "
+                "not allowed for security reasons."
+            )
         
     def connect(self) -> bool:
         """Connect to RabbitMQ"""
