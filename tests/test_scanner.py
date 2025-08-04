@@ -246,6 +246,55 @@ class TestScannerIntegration:
 class TestScannerPerformance:
     """Performance tests for Scanner optimizations"""
 
+    def test_performance_monitoring(self, config):
+        """Test performance monitoring features of multi-threaded scanner"""
+        # Create multi-threaded scanner with performance monitoring
+        thread_config = config.copy()
+        thread_config["THREADS"] = 2
+        thread_config["MAX_QUEUE_SIZE"] = 10
+        thread_config["HEALTH_CHECK_INTERVAL"] = 1
+        
+        multi_scanner = MultiThreadScanner(thread_config)
+        
+        # Test initial state
+        assert multi_scanner.num_threads == 2
+        assert multi_scanner.max_queue_size == 10
+        
+        # Start monitoring to initialize performance stats
+        assert multi_scanner.start_monitoring() is True
+        
+        # Wait briefly for initialization
+        time.sleep(0.5)
+        
+        try:
+            # Test performance statistics
+            stats = multi_scanner.get_performance_statistics()
+            assert isinstance(stats, dict)
+            assert "uptime_seconds" in stats
+            assert "files_processed" in stats
+            assert "throughput_files_per_second" in stats
+            assert "worker_stats" in stats
+            assert "worker_health" in stats
+            assert stats["active_threads"] == 2
+            
+            # Test worker health status
+            health = multi_scanner.get_worker_health_status()
+            assert isinstance(health, dict)
+            assert len(health) == 2  # Should have 2 workers
+            
+            for worker_id, status in health.items():
+                assert "status" in status
+                assert "last_heartbeat_ago" in status
+                assert "worker_status" in status
+                
+            # Test queue size monitoring
+            initial_queue_size = multi_scanner.get_queue_size()
+            assert initial_queue_size >= 0
+            
+        finally:
+            # Clean up
+            multi_scanner.stop_monitoring()
+
     def test_single_vs_multi_thread_performance(self, config, timer):
         """Test performance comparison between single and multi-threaded scanners"""
         # Create test files

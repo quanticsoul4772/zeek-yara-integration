@@ -289,6 +289,62 @@ async def get_status(_: bool = Depends(verify_api_key)):
     return status
 
 
+# Performance monitoring endpoints
+class PerformanceMetricsModel(BaseModel):
+    """Performance metrics model"""
+    uptime_seconds: float
+    files_processed: int
+    files_matched: int
+    files_failed: int
+    throughput_files_per_second: float
+    average_scan_time_ms: float
+    median_scan_time_ms: float
+    current_queue_size: int
+    average_queue_size: float
+    active_threads: int
+    worker_stats: Dict[str, Any]
+    worker_health: Dict[str, Any]
+
+
+class WorkerHealthModel(BaseModel):
+    """Worker health status model"""
+    worker_health: Dict[str, Dict[str, Any]]
+
+
+@app.get("/performance", response_model=PerformanceMetricsModel, tags=["Performance"])
+async def get_performance_metrics(_: bool = Depends(verify_api_key)):
+    """Get detailed performance metrics for multi-threaded scanner"""
+    if not scanner or not isinstance(scanner, MultiThreadScanner):
+        raise HTTPException(status_code=400, detail="Multi-threaded scanner not available")
+    
+    if not scanner.running:
+        raise HTTPException(status_code=400, detail="Scanner is not running")
+    
+    try:
+        metrics = scanner.get_performance_statistics()
+        return metrics
+    except Exception as e:
+        logger.error(f"Error getting performance metrics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve performance metrics")
+
+
+@app.get("/performance/workers", response_model=WorkerHealthModel, tags=["Performance"])
+async def get_worker_health(_: bool = Depends(verify_api_key)):
+    """Get health status of all worker threads"""
+    if not scanner or not isinstance(scanner, MultiThreadScanner):
+        raise HTTPException(status_code=400, detail="Multi-threaded scanner not available")
+    
+    if not scanner.running:
+        raise HTTPException(status_code=400, detail="Scanner is not running")
+    
+    try:
+        health_status = scanner.get_worker_health_status()
+        return {"worker_health": health_status}
+    except Exception as e:
+        logger.error(f"Error getting worker health: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve worker health status")
+
+
 @app.get("/alerts", response_model=AlertsResponse, tags=["Alerts"])
 async def get_alerts(
     page: int = Query(1, ge=1, description="Page number"),
