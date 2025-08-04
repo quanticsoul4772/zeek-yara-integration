@@ -22,12 +22,17 @@ from typing import Any, Dict, Optional
 import requests
 from fastapi import FastAPI, HTTPException
 import uvicorn
+import urllib3
+
+# Disable SSL warnings for development (still enforces SSL verification)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Add parent directories to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from config.config import Config
 from core.scanner import BaseScanner
+from PLATFORM.core.schemas import SchemaValidator
 from utils.file_utils import FileAnalyzer
 from utils.yara_utils import RuleManager, YaraMatcher
 
@@ -36,7 +41,7 @@ class DistributedWorker:
     """Distributed worker node implementation"""
     
     def __init__(self, config: Dict[str, Any], worker_id: str, master_host: str, master_port: int, 
-                 worker_port: int, max_tasks: int = 5, threads: int = 2):
+                 worker_port: int, max_tasks: int = 5, threads: int = 2, api_key: Optional[str] = None):
         self.config = config
         self.worker_id = worker_id
         self.master_host = master_host
@@ -44,8 +49,12 @@ class DistributedWorker:
         self.worker_port = worker_port
         self.max_tasks = max_tasks
         self.threads = threads
+        self.api_key = api_key or config.get("API_KEY", "")
         
         self.logger = logging.getLogger(f"zeek_yara.worker.{worker_id}")
+        
+        # Initialize schema validator
+        self.schema_validator = SchemaValidator()
         
         # Initialize scanner components
         self.file_analyzer = FileAnalyzer(max_file_size=config.get("MAX_FILE_SIZE"))
@@ -80,6 +89,13 @@ class DistributedWorker:
         
         # Prepare YARA rules
         self.rule_manager.compile_rules()
+        
+        # Determine if we should use HTTPS
+        self.use_https = self._should_use_https()
+        if self.use_https:
+            self.logger.info("Using HTTPS for secure communication")
+        else:
+            self.logger.warning("Using HTTP - not recommended for production")
         
     def setup_routes(self):
         """Setup FastAPI routes for task handling"""
@@ -204,10 +220,52 @@ class DistributedWorker:
             error_msg = f"Error scanning file: {str(e)}"
             self.logger.error(error_msg)
             return {"matched": False, "error": error_msg}
+    
+    def _should_use_https(self) -> bool:
+        """Determine if HTTPS should be used based on environment"""
+        environment = self.config.get("ENVIRONMENT", "development").lower()
+        
+        # Force HTTPS in production
+        if environment == "production":
+            return True
+        
+        # Allow HTTP in development and testing
+        if environment in ["development", "testing", "education"]:
+            # Check if HTTPS is explicitly configured
+            return self.config.get("FORCE_HTTPS", False)
+        
+        # Default to HTTPS for unknown environments
+        return True
+    
+    def _get_auth_headers(self) -> Dict[str, str]:
+        """Get authentication headers for API requests"""
+        headers = {"Content-Type": "application/json"}
+        
+        if self.api_key:
+            headers["X-API-Key"] = self.api_key
+        
+        return headers
+    
+    def _get_base_url(self) -> str:
+        """Get base URL for master node communication"""
+        protocol = "https" if self.use_https else "http"
+        return f"{protocol}://{self.master_host}:{self.master_port}"
+    
+    def _validate_registration_data(self, data: Dict[str, Any]) -> None:
+        """Validate worker registration data against schema"""
+        try:
+            self.schema_validator.validate("worker_registration", data)
+        except Exception as e:
+            raise ValueError(f"Invalid registration data: {e}")
             
     def register_with_master(self) -> bool:
         """Register this worker with the master node"""
         try:
+            # Check API key requirement
+            if not self.api_key:
+                self.logger.error("API key is required for worker registration")
+                return False
+            
             registration_data = {
                 "worker_id": self.worker_id,
                 "host": "localhost",  # Could be made configurable
@@ -217,23 +275,52 @@ class DistributedWorker:
                 "metadata": {
                     "threads": self.threads,
                     "start_time": self.start_time,
-                    "version": "1.0.0"
+                    "version": "1.0.0",
+                    "platform": sys.platform
                 }
             }
             
+            # Validate registration data against schema
+            try:
+                self._validate_registration_data(registration_data)
+            except ValueError as e:
+                self.logger.error(f"Registration data validation failed: {e}")
+                return False
+            
+            # Prepare request
+            url = f"{self._get_base_url()}/distributed/workers/register"
+            headers = self._get_auth_headers()
+            
+            # Configure SSL verification
+            verify_ssl = self.use_https and self.config.get("VERIFY_SSL", True)
+            
             response = requests.post(
-                f"http://{self.master_host}:{self.master_port}/distributed/workers/register",
+                url,
                 json=registration_data,
-                timeout=10
+                headers=headers,
+                timeout=10,
+                verify=verify_ssl
             )
             
             if response.status_code == 200:
-                self.logger.info(f"Successfully registered with master at {self.master_host}:{self.master_port}")
+                self.logger.info(f"Successfully registered with master at {self._get_base_url()}")
                 return True
+            elif response.status_code == 401:
+                self.logger.error("Authentication failed - invalid API key")
+                return False
+            elif response.status_code == 400:
+                self.logger.error(f"Registration failed - invalid data: {response.text}")
+                return False
             else:
                 self.logger.error(f"Failed to register with master: {response.status_code} - {response.text}")
                 return False
                 
+        except requests.exceptions.SSLError as e:
+            self.logger.error(f"SSL/TLS error during registration: {e}")
+            return False
+        except requests.exceptions.ConnectionError as e:
+            self.logger.error(f"Connection error during registration: {e}")
+            return False
         except Exception as e:
             self.logger.error(f"Error registering with master: {e}")
             return False
@@ -241,9 +328,15 @@ class DistributedWorker:
     def unregister_from_master(self) -> bool:
         """Unregister this worker from the master node"""
         try:
+            url = f"{self._get_base_url()}/distributed/workers/{self.worker_id}"
+            headers = self._get_auth_headers()
+            verify_ssl = self.use_https and self.config.get("VERIFY_SSL", True)
+            
             response = requests.delete(
-                f"http://{self.master_host}:{self.master_port}/distributed/workers/{self.worker_id}",
-                timeout=10
+                url,
+                headers=headers,
+                timeout=10,
+                verify=verify_ssl
             )
             
             if response.status_code == 200:
@@ -267,10 +360,23 @@ class DistributedWorker:
                 "average_processing_time": sum(self.processing_times) / len(self.processing_times) if self.processing_times else 0
             }
             
+            # Validate heartbeat data
+            try:
+                self.schema_validator.validate("worker_heartbeat", heartbeat_data)
+            except Exception as e:
+                self.logger.error(f"Heartbeat data validation failed: {e}")
+                return
+            
+            url = f"{self._get_base_url()}/distributed/workers/{self.worker_id}/heartbeat"
+            headers = self._get_auth_headers()
+            verify_ssl = self.use_https and self.config.get("VERIFY_SSL", True)
+            
             response = requests.put(
-                f"http://{self.master_host}:{self.master_port}/distributed/workers/{self.worker_id}/heartbeat",
+                url,
                 json=heartbeat_data,
-                timeout=5
+                headers=headers,
+                timeout=5,
+                verify=verify_ssl
             )
             
             if response.status_code != 200:
@@ -362,6 +468,8 @@ def main():
                        help="Number of processing threads")
     parser.add_argument("--config", "-c", 
                        help="Configuration file path")
+    parser.add_argument("--api-key", 
+                       help="API key for authentication with master node")
     parser.add_argument("--verbose", "-v", action="store_true", 
                        help="Enable verbose logging")
     
@@ -395,7 +503,8 @@ def main():
             master_port=args.master_port,
             worker_port=args.worker_port,
             max_tasks=args.max_tasks,
-            threads=args.threads
+            threads=args.threads,
+            api_key=args.api_key
         )
         
         # Set up signal handlers for graceful shutdown
