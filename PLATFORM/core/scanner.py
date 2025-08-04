@@ -449,6 +449,8 @@ class MultiThreadScanner(BaseScanner):
         # Threading components
         self.num_threads = config.get("THREADS", 2)
         self.max_queue_size = config.get("MAX_QUEUE_SIZE", 1000)
+        self.queue_timeout_normal = config.get("QUEUE_TIMEOUT_NORMAL", 1.0)
+        self.queue_timeout_priority = config.get("QUEUE_TIMEOUT_PRIORITY", 0.1)
         self.file_queue = Queue(maxsize=self.max_queue_size)
         self.worker_threads = []
         self.stop_event = threading.Event()
@@ -542,7 +544,7 @@ class MultiThreadScanner(BaseScanner):
                 file_path = os.path.join(self.extract_dir, filename)
                 if os.path.isfile(file_path):
                     try:
-                        self.file_queue.put(file_path, timeout=1.0)
+                        self.file_queue.put(file_path, timeout=self.queue_timeout_normal)
                         queued_existing += 1
                         self.logger.debug(f"Queued existing file: {file_path}")
                     except:
@@ -556,7 +558,7 @@ class MultiThreadScanner(BaseScanner):
                 file_path = file_record['file_path']
                 if os.path.exists(file_path) and os.path.isfile(file_path):
                     try:
-                        self.file_queue.put(file_path, timeout=0.1)
+                        self.file_queue.put(file_path, timeout=self.queue_timeout_priority)
                         queued_pending += 1
                         self.logger.debug(f"Queued pending file: {file_path}")
                     except:
@@ -644,7 +646,7 @@ class MultiThreadScanner(BaseScanner):
         """
         try:
             # Use timeout to avoid blocking indefinitely if queue is full
-            timeout = 0.1 if priority else 1.0
+            timeout = self.queue_timeout_priority if priority else self.queue_timeout_normal
             self.file_queue.put(file_path, timeout=timeout)
             return True
         except:
