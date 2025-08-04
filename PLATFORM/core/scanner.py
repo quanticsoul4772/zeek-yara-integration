@@ -563,34 +563,7 @@ class MultiThreadScanner(BaseScanner):
                 self.performance_stats["last_median_calculation"] = 0
                 self.performance_stats["sample_count"] = 0
 
-            # Start worker threads
-            for i in range(self.num_threads):
-                thread = threading.Thread(target=self._worker_thread, args=(i + 1,), daemon=True)
-                thread.start()
-                self.worker_threads.append(thread)
-                self.logger.info(f"Started scanner thread {i + 1}")
-
-            # Start performance monitoring thread
-            monitor_thread = threading.Thread(target=self._performance_monitor, daemon=True)
-            monitor_thread.start()
-            self.worker_threads.append(monitor_thread)
-
-            # Set up file watching
-            event_handler = FileEventHandler(self)
-            self.observer = Observer()
-            self.observer.schedule(event_handler, self.extract_dir, recursive=False)
-            self.observer.start()
-
-            self.running = True
-            self.logger.info(
-                f"Started monitoring directory with {self.num_threads} threads (max queue: {self.max_queue_size}): {self.extract_dir}"
-            )
-
-            # Start cleanup manager
-            if not self.cleanup_manager.start_cleanup_scheduler():
-                self.logger.warning("Failed to start file cleanup scheduler")
-
-            # Queue existing files for scanning
+            # Queue existing files for scanning BEFORE starting threads
             queued_existing = 0
             for filename in os.listdir(self.extract_dir):
                 file_path = os.path.join(self.extract_dir, filename)
@@ -620,7 +593,34 @@ class MultiThreadScanner(BaseScanner):
                     # File no longer exists, mark as failed
                     self.db_manager.update_file_state(file_path, 'failed', 'File no longer exists')
 
-            self.logger.info(f"Queued {queued_existing} existing files and {queued_pending} pending files for processing")
+            self.logger.info(f"Pre-queued {queued_existing} existing files and {queued_pending} pending files for processing")
+
+            # Start worker threads after queueing files to avoid race condition
+            for i in range(self.num_threads):
+                thread = threading.Thread(target=self._worker_thread, args=(i + 1,), daemon=True)
+                thread.start()
+                self.worker_threads.append(thread)
+                self.logger.info(f"Started scanner thread {i + 1}")
+
+            # Start performance monitoring thread
+            monitor_thread = threading.Thread(target=self._performance_monitor, daemon=True)
+            monitor_thread.start()
+            self.worker_threads.append(monitor_thread)
+
+            # Set up file watching
+            event_handler = FileEventHandler(self)
+            self.observer = Observer()
+            self.observer.schedule(event_handler, self.extract_dir, recursive=False)
+            self.observer.start()
+
+            self.running = True
+            self.logger.info(
+                f"Started monitoring directory with {self.num_threads} threads (max queue: {self.max_queue_size}): {self.extract_dir}"
+            )
+
+            # Start cleanup manager
+            if not self.cleanup_manager.start_cleanup_scheduler():
+                self.logger.warning("Failed to start file cleanup scheduler")
             return True
 
         except Exception as e:
