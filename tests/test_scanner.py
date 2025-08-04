@@ -18,8 +18,8 @@ from queue import Queue
 
 import pytest
 
-from core.database import DatabaseManager
-from core.scanner import FileEventHandler, MultiThreadScanner, SingleThreadScanner
+from PLATFORM.core.database import DatabaseManager
+from PLATFORM.core.scanner import FileEventHandler, MultiThreadScanner, SingleThreadScanner
 from utils.file_utils import FileAnalyzer
 from utils.yara_utils import RuleManager, YaraMatcher
 
@@ -247,12 +247,19 @@ class TestScannerPerformance:
     """Performance tests for Scanner optimizations"""
 
     def test_performance_monitoring(self, config):
-        """Test performance monitoring features of multi-threaded scanner"""
+        """Test performance monitoring features with proper metric validation"""
+        import tempfile
+        import shutil
+        
         # Create multi-threaded scanner with performance monitoring
         thread_config = config.copy()
         thread_config["THREADS"] = 2
         thread_config["MAX_QUEUE_SIZE"] = 10
         thread_config["HEALTH_CHECK_INTERVAL"] = 1
+        
+        # Create temporary directory for test files
+        temp_dir = tempfile.mkdtemp()
+        thread_config["EXTRACT_DIR"] = temp_dir
         
         multi_scanner = MultiThreadScanner(thread_config)
         
@@ -267,33 +274,94 @@ class TestScannerPerformance:
         time.sleep(0.5)
         
         try:
-            # Test performance statistics
-            stats = multi_scanner.get_performance_statistics()
-            assert isinstance(stats, dict)
-            assert "uptime_seconds" in stats
-            assert "files_processed" in stats
-            assert "throughput_files_per_second" in stats
-            assert "worker_stats" in stats
-            assert "worker_health" in stats
-            assert stats["active_threads"] == 2
+            # Test initial performance statistics - validate actual values
+            initial_stats = multi_scanner.get_performance_statistics()
+            assert isinstance(initial_stats, dict)
             
-            # Test worker health status
+            # Validate metric structure and initial values
+            assert "uptime_seconds" in initial_stats
+            assert "files_processed" in initial_stats
+            assert "throughput_files_per_second" in initial_stats
+            assert "worker_stats" in initial_stats
+            assert "worker_health" in initial_stats
+            assert initial_stats["active_threads"] == 2
+            
+            # Validate initial metric values are sensible
+            assert initial_stats["uptime_seconds"] > 0, "Uptime should be positive after initialization"
+            assert initial_stats["files_processed"] == 0, "No files should be processed initially"
+            assert initial_stats["throughput_files_per_second"] == 0, "Throughput should be 0 initially"
+            assert len(initial_stats["worker_stats"]) == 2, "Should have stats for 2 workers"
+            
+            # Create test files to simulate processing activity
+            test_files = []
+            for i in range(3):
+                test_file = os.path.join(temp_dir, f"test_file_{i}.txt")
+                with open(test_file, "w") as f:
+                    f.write(f"Test content {i}")
+                test_files.append(test_file)
+            
+            # Wait for files to be processed
+            time.sleep(2.0)
+            
+            # Test metrics after processing activity
+            post_processing_stats = multi_scanner.get_performance_statistics()
+            
+            # Validate metrics reflect actual processing
+            assert post_processing_stats["uptime_seconds"] > initial_stats["uptime_seconds"], \
+                "Uptime should increase over time"
+            assert post_processing_stats["files_processed"] >= len(test_files), \
+                f"Should have processed at least {len(test_files)} files"
+            
+            # If files were processed, throughput should be positive
+            if post_processing_stats["files_processed"] > 0:
+                assert post_processing_stats["throughput_files_per_second"] > 0, \
+                    "Throughput should be positive when files are processed"
+            
+            # Test worker health status with validation
             health = multi_scanner.get_worker_health_status()
             assert isinstance(health, dict)
-            assert len(health) == 2  # Should have 2 workers
+            assert len(health) == 2, "Should have health status for 2 workers"
             
             for worker_id, status in health.items():
                 assert "status" in status
                 assert "last_heartbeat_ago" in status
                 assert "worker_status" in status
                 
-            # Test queue size monitoring
+                # Validate health metrics are reasonable
+                assert status["last_heartbeat_ago"] >= 0, "Heartbeat age should be non-negative"
+                assert status["status"] in ["healthy", "warning", "unhealthy"], \
+                    f"Invalid health status: {status['status']}"
+                assert status["worker_status"] in ["idle", "processing"], \
+                    f"Invalid worker status: {status['worker_status']}"
+            
+            # Test queue size monitoring with validation
             initial_queue_size = multi_scanner.get_queue_size()
-            assert initial_queue_size >= 0
+            assert initial_queue_size >= 0, "Queue size should be non-negative"
+            
+            # Test queue size consistency - multiple calls should be consistent
+            queue_size_2 = multi_scanner.get_queue_size()
+            assert abs(queue_size_2 - initial_queue_size) <= len(test_files), \
+                "Queue size should not vary drastically between consecutive calls"
+            
+            # Test worker statistics validation
+            worker_stats = post_processing_stats["worker_stats"]
+            total_files_by_workers = sum(stats["files_processed"] for stats in worker_stats.values())
+            assert total_files_by_workers <= post_processing_stats["files_processed"], \
+                "Sum of worker processed files should not exceed total processed files"
+            
+            # Test metric consistency over time
+            time.sleep(0.5)
+            consistency_stats = multi_scanner.get_performance_statistics()
+            assert consistency_stats["uptime_seconds"] >= post_processing_stats["uptime_seconds"], \
+                "Uptime should be monotonically increasing"
+            assert consistency_stats["files_processed"] >= post_processing_stats["files_processed"], \
+                "Files processed should be monotonically increasing"
             
         finally:
             # Clean up
             multi_scanner.stop_monitoring()
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
 
     def test_single_vs_multi_thread_performance(self, config, timer):
         """Test performance comparison between single and multi-threaded scanners"""
