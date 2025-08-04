@@ -33,6 +33,8 @@ from api.suricata_api import get_alert_correlator, get_suricata_runner, suricata
 from config.config import Config
 from core.database import DatabaseManager
 from core.scanner import MultiThreadScanner, SingleThreadScanner
+from core.distributed import DistributedScanner, WorkerNode, TaskPriority
+from core.monitoring import MonitoringSystem, AlertLevel
 from suricata.alert_correlation import AlertCorrelator
 from suricata.suricata_integration import SuricataRunner
 from utils.file_utils import FileAnalyzer
@@ -97,6 +99,16 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
 # Scanner instance (for on-demand scanning)
 scanner = None
+
+# Distributed components (initialized if distributed mode is enabled)
+distributed_scanner = None
+monitoring_system = None
+
+# Initialize distributed components if enabled
+if config.get("DISTRIBUTED_ENABLED", False):
+    distributed_scanner = DistributedScanner(config)
+    if config.get("MONITORING_ENABLED", True):
+        monitoring_system = MonitoringSystem(config)
 
 
 # Pydantic models for API
@@ -198,6 +210,53 @@ class CleanupResultModel(BaseModel):
     space_freed_bytes: int = Field(..., description="Space freed in bytes")
     errors: List[str] = Field(..., description="List of error messages")
     disk_usage_before: Optional[Dict[str, Any]] = Field(None, description="Disk usage before cleanup")
+
+
+# Distributed scanning models
+class WorkerRegistrationModel(BaseModel):
+    """Worker node registration model"""
+    
+    worker_id: str = Field(..., description="Unique worker identifier")
+    host: str = Field(..., description="Worker host address")
+    port: int = Field(..., description="Worker port number")
+    max_tasks: int = Field(5, description="Maximum concurrent tasks")
+    capabilities: List[str] = Field([], description="Worker capabilities")
+    metadata: Dict[str, Any] = Field({}, description="Additional worker metadata")
+
+
+class WorkerHeartbeatModel(BaseModel):
+    """Worker heartbeat model"""
+    
+    current_tasks: int = Field(0, description="Current number of active tasks")
+    total_processed: int = Field(0, description="Total tasks processed")
+    error_count: int = Field(0, description="Number of errors encountered")
+    average_processing_time: float = Field(0.0, description="Average processing time in seconds")
+
+
+class DistributedScanRequestModel(BaseModel):
+    """Distributed scan request model"""
+    
+    file_path: str = Field(..., description="Path to file to scan")
+    priority: int = Field(5, description="Task priority (1-10)")
+    metadata: Dict[str, Any] = Field({}, description="Additional metadata")
+
+
+class DistributedSystemStatusModel(BaseModel):
+    """Distributed system status model"""
+    
+    running: bool = Field(..., description="Whether distributed system is running")
+    message_queue: Dict[str, Any] = Field(..., description="Message queue status")
+    workers: Dict[str, Any] = Field(..., description="Worker status information")
+    load_balancer: Dict[str, Any] = Field(..., description="Load balancer configuration")
+    config: Dict[str, Any] = Field(..., description="System configuration")
+
+
+class MetricsExportModel(BaseModel):
+    """Metrics export request model"""
+    
+    file_path: str = Field(..., description="Path to export metrics file")
+    format: str = Field("json", description="Export format (json)")
+    time_window: int = Field(3600, description="Time window in seconds")
     disk_usage_after: Optional[Dict[str, Any]] = Field(None, description="Disk usage after cleanup")
 
 
@@ -985,6 +1044,254 @@ async def get_webhook_config(_: bool = Depends(verify_api_key)):
             status_code=500,
              detail=f"Error retrieving webhook config: {str(e)}",
         )
+
+
+# Distributed scanning endpoints
+@app.post("/distributed/start", tags=["Distributed"])
+async def start_distributed_system(_: bool = Depends(verify_api_key)):
+    """
+    Start the distributed scanning system
+    """
+    if not distributed_scanner:
+        raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
+        
+    try:
+        success = distributed_scanner.start()
+        if monitoring_system:
+            monitoring_system.start_monitoring()
+            
+        return {"success": success, "message": "Distributed system started" if success else "Failed to start distributed system"}
+    except Exception as e:
+        logger.error(f"Error starting distributed system: {e}")
+        raise HTTPException(status_code=500, detail=f"Error starting distributed system: {str(e)}")
+
+
+@app.post("/distributed/stop", tags=["Distributed"])
+async def stop_distributed_system(_: bool = Depends(verify_api_key)):
+    """
+    Stop the distributed scanning system
+    """
+    if not distributed_scanner:
+        raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
+        
+    try:
+        distributed_scanner.stop()
+        if monitoring_system:
+            monitoring_system.stop_monitoring()
+            
+        return {"success": True, "message": "Distributed system stopped"}
+    except Exception as e:
+        logger.error(f"Error stopping distributed system: {e}")
+        raise HTTPException(status_code=500, detail=f"Error stopping distributed system: {str(e)}")
+
+
+@app.get("/distributed/status", response_model=DistributedSystemStatusModel, tags=["Distributed"])
+async def get_distributed_status(_: bool = Depends(verify_api_key)):
+    """
+    Get comprehensive distributed system status
+    """
+    if not distributed_scanner:
+        raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
+        
+    try:
+        status = distributed_scanner.get_system_status()
+        return DistributedSystemStatusModel(**status)
+    except Exception as e:
+        logger.error(f"Error getting distributed status: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting distributed status: {str(e)}")
+
+
+@app.post("/distributed/workers/register", tags=["Distributed"])
+async def register_worker(worker_data: WorkerRegistrationModel, _: bool = Depends(verify_api_key)):
+    """
+    Register a new worker node
+    """
+    if not distributed_scanner:
+        raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
+        
+    try:
+        success = distributed_scanner.worker_manager.register_worker(worker_data.dict())
+        return {"success": success, "worker_id": worker_data.worker_id, "message": "Worker registered" if success else "Failed to register worker"}
+    except Exception as e:
+        logger.error(f"Error registering worker: {e}")
+        raise HTTPException(status_code=500, detail=f"Error registering worker: {str(e)}")
+
+
+@app.delete("/distributed/workers/{worker_id}", tags=["Distributed"])
+async def unregister_worker(worker_id: str, _: bool = Depends(verify_api_key)):
+    """
+    Unregister a worker node
+    """
+    if not distributed_scanner:
+        raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
+        
+    try:
+        success = distributed_scanner.worker_manager.unregister_worker(worker_id)
+        return {"success": success, "worker_id": worker_id, "message": "Worker unregistered" if success else "Worker not found"}
+    except Exception as e:
+        logger.error(f"Error unregistering worker: {e}")
+        raise HTTPException(status_code=500, detail=f"Error unregistering worker: {str(e)}")
+
+
+@app.get("/distributed/workers", tags=["Distributed"])
+async def get_workers(_: bool = Depends(verify_api_key)):
+    """
+    Get list of all registered workers
+    """
+    if not distributed_scanner:
+        raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
+        
+    try:
+        workers = distributed_scanner.worker_manager.get_workers()
+        return {"workers": [worker.to_dict() for worker in workers]}
+    except Exception as e:
+        logger.error(f"Error getting workers: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting workers: {str(e)}")
+
+
+@app.put("/distributed/workers/{worker_id}/heartbeat", tags=["Distributed"])
+async def worker_heartbeat(worker_id: str, heartbeat_data: WorkerHeartbeatModel, _: bool = Depends(verify_api_key)):
+    """
+    Update worker heartbeat
+    """
+    if not distributed_scanner:
+        raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
+        
+    try:
+        success = distributed_scanner.worker_manager.update_worker_heartbeat(worker_id, heartbeat_data.dict())
+        return {"success": success, "worker_id": worker_id, "message": "Heartbeat updated" if success else "Worker not found"}
+    except Exception as e:
+        logger.error(f"Error updating worker heartbeat: {e}")
+        raise HTTPException(status_code=500, detail=f"Error updating worker heartbeat: {str(e)}")
+
+
+@app.post("/distributed/scan", tags=["Distributed"])
+async def submit_distributed_scan(scan_request: DistributedScanRequestModel, _: bool = Depends(verify_api_key)):
+    """
+    Submit a file scan task to the distributed system
+    """
+    if not distributed_scanner:
+        raise HTTPException(status_code=400, detail="Distributed scanning is not enabled")
+        
+    try:
+        task_id = distributed_scanner.submit_scan_task(
+            file_path=scan_request.file_path,
+            priority=scan_request.priority,
+            metadata=scan_request.metadata
+        )
+        
+        if task_id:
+            return {"success": True, "task_id": task_id, "message": "Scan task submitted"}
+        else:
+            return {"success": False, "message": "Failed to submit scan task"}
+    except Exception as e:
+        logger.error(f"Error submitting distributed scan: {e}")
+        raise HTTPException(status_code=500, detail=f"Error submitting distributed scan: {str(e)}")
+
+
+# Monitoring endpoints
+@app.get("/monitoring/metrics", tags=["Monitoring"])
+async def get_current_metrics(_: bool = Depends(verify_api_key)):
+    """
+    Get current system metrics
+    """
+    if not monitoring_system:
+        raise HTTPException(status_code=400, detail="Monitoring is not enabled")
+        
+    try:
+        metrics = monitoring_system.metrics_collector.get_current_metrics()
+        return {"metrics": metrics, "timestamp": time.time()}
+    except Exception as e:
+        logger.error(f"Error getting metrics: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting metrics: {str(e)}")
+
+
+@app.get("/monitoring/metrics/summary", tags=["Monitoring"])
+async def get_metrics_summary(time_window: int = Query(3600, description="Time window in seconds"), _: bool = Depends(verify_api_key)):
+    """
+    Get metrics summary for a time window
+    """
+    if not monitoring_system:
+        raise HTTPException(status_code=400, detail="Monitoring is not enabled")
+        
+    try:
+        summary = monitoring_system.metrics_collector.get_metrics_summary(time_window)
+        return {"summary": summary, "time_window": time_window, "timestamp": time.time()}
+    except Exception as e:
+        logger.error(f"Error getting metrics summary: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting metrics summary: {str(e)}")
+
+
+@app.get("/monitoring/alerts", tags=["Monitoring"])
+async def get_alerts(_: bool = Depends(verify_api_key)):
+    """
+    Get active alerts and alert history
+    """
+    if not monitoring_system:
+        raise HTTPException(status_code=400, detail="Monitoring is not enabled")
+        
+    try:
+        active_alerts = monitoring_system.alert_manager.get_active_alerts()
+        alert_history = monitoring_system.alert_manager.get_alert_history(50)
+        summary = monitoring_system.alert_manager.get_alerts_summary()
+        
+        return {
+            "active_alerts": [alert.__dict__ for alert in active_alerts],
+            "alert_history": [alert.__dict__ for alert in alert_history],
+            "summary": summary,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        logger.error(f"Error getting alerts: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting alerts: {str(e)}")
+
+
+@app.post("/monitoring/alerts/{alert_id}/resolve", tags=["Monitoring"])
+async def resolve_alert(alert_id: str, _: bool = Depends(verify_api_key)):
+    """
+    Resolve an alert
+    """
+    if not monitoring_system:
+        raise HTTPException(status_code=400, detail="Monitoring is not enabled")
+        
+    try:
+        success = monitoring_system.alert_manager.resolve_alert(alert_id)
+        return {"success": success, "alert_id": alert_id, "message": "Alert resolved" if success else "Alert not found"}
+    except Exception as e:
+        logger.error(f"Error resolving alert: {e}")
+        raise HTTPException(status_code=500, detail=f"Error resolving alert: {str(e)}")
+
+
+@app.post("/monitoring/export", tags=["Monitoring"])
+async def export_metrics(export_request: MetricsExportModel, _: bool = Depends(verify_api_key)):
+    """
+    Export metrics to file
+    """
+    if not monitoring_system:
+        raise HTTPException(status_code=400, detail="Monitoring is not enabled")
+        
+    try:
+        success = monitoring_system.export_metrics(export_request.file_path, export_request.format)
+        return {"success": success, "file_path": export_request.file_path, "message": "Metrics exported" if success else "Failed to export metrics"}
+    except Exception as e:
+        logger.error(f"Error exporting metrics: {e}")
+        raise HTTPException(status_code=500, detail=f"Error exporting metrics: {str(e)}")
+
+
+@app.get("/monitoring/dashboard", tags=["Monitoring"])
+async def get_monitoring_dashboard(_: bool = Depends(verify_api_key)):
+    """
+    Get comprehensive monitoring dashboard data
+    """
+    if not monitoring_system:
+        raise HTTPException(status_code=400, detail="Monitoring is not enabled")
+        
+    try:
+        dashboard = monitoring_system.get_monitoring_dashboard()
+        return dashboard
+    except Exception as e:
+        logger.error(f"Error getting monitoring dashboard: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting monitoring dashboard: {str(e)}")
 
 
 # Main entry point for running the API server

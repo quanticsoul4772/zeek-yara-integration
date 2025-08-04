@@ -176,6 +176,50 @@ This is a **network security monitoring toolkit** that integrates three main com
 - **Suricata Rules**: Managed in `rules/suricata/`
 - **Alert Correlation**: Time and IP-based correlation between systems
 
+### Distributed Scanning Architecture
+
+#### Core Distributed Components (`PLATFORM/core/distributed.py`)
+- **DistributedScanner**: Main orchestrator for distributed operations
+- **MessageQueueManager**: Abstract interface supporting RabbitMQ, Kafka, and in-memory queues
+- **WorkerNodeManager**: Manages worker registration, health monitoring, and lifecycle
+- **LoadBalancer**: Distributes tasks using load-based, round-robin, or capability-based algorithms
+- **CentralizedConfigManager**: JSON-based configuration management for distributed deployments
+
+#### Monitoring System (`PLATFORM/core/monitoring.py`)
+- **MetricsCollector**: Real-time metrics collection with time-series storage
+- **AlertManager**: Configurable alerting with multiple severity levels and thresholds
+- **PerformanceTracker**: Trend analysis and baseline performance tracking
+- **HealthChecker**: Comprehensive health checks across all distributed components
+
+#### Worker Nodes (`TOOLS/cli/distributed_worker.py`)
+- **DistributedWorker**: Standalone worker implementation with FastAPI-based task reception
+- Automatic registration and heartbeat mechanism with master node
+- Configurable task capacity and thread pools
+- Graceful shutdown and error handling
+
+#### Distributed Configuration
+```bash
+# Enable distributed mode
+export DISTRIBUTED_ENABLED=true
+export MESSAGE_QUEUE_TYPE=rabbitmq  # or kafka, memory
+export MONITORING_ENABLED=true
+
+# Start master node
+python -m PLATFORM.api.api_server
+
+# Start worker nodes
+python TOOLS/cli/distributed_worker.py \
+  --worker-id worker-01 \
+  --master-host localhost --master-port 8000 \
+  --worker-port 8001 --max-tasks 5 --threads 2
+```
+
+#### Distributed API Endpoints
+- **System Management**: `/distributed/start`, `/distributed/stop`, `/distributed/status`
+- **Worker Management**: `/distributed/workers/register`, `/distributed/workers/{id}/heartbeat`
+- **Task Management**: `/distributed/scan` with priority and metadata support
+- **Monitoring**: `/monitoring/metrics`, `/monitoring/alerts`, `/monitoring/dashboard`
+
 ## Important Development Notes
 
 ### Project Structure and Key Files
