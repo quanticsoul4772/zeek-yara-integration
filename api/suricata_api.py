@@ -16,6 +16,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from suricata.alert_correlation import AlertCorrelator
+
 # Import application components
 from suricata.suricata_integration import SuricataRunner
 

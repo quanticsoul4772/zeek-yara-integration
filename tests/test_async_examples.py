@@ -5,6 +5,7 @@ This file shows the basic pattern requested in the GitHub issue
 
 import asyncio
 import os
+
 # Import the FastAPI app
 import sys
 from unittest.mock import patch

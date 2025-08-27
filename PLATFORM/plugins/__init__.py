@@ -6,8 +6,7 @@ educational platform with custom functionality, educational content, and
 integrations.
 """
 
-from .base import (BasePlugin, EducationalPlugin, IntegrationPlugin,
-                   ScannerPlugin)
+from .base import BasePlugin, EducationalPlugin, IntegrationPlugin, ScannerPlugin
 from .registry import PluginRegistry, plugin_registry
 
 __all__ = [
