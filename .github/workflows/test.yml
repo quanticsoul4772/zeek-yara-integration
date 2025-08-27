@@ -68,7 +68,10 @@ jobs:
 
     - name: Install package in development mode
       run: |
+        pip cache purge || true
         pip install -e .
+        python -c "import sys; print(f'Python path: {sys.path}')"
+        python -c "from PLATFORM.core.cleanup_manager import FileCleanupManager; print('Package import verification successful')"
 
     # Run different test suites
     - name: Run unit tests
@@ -125,7 +128,10 @@ jobs:
 
     - name: Install package in development mode
       run: |
+        pip cache purge || true
         pip install -e .
+        python -c "import sys; print(f'Python path: {sys.path}')"
+        python -c "from PLATFORM.core.cleanup_manager import FileCleanupManager; print('Package import verification successful')"
 
     - name: Create test results directory
       run: |
