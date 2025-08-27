@@ -11,7 +11,10 @@ from unittest.mock import patch
 # Import the FastAPI app
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "PLATFORM")))
+
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "PLATFORM"))
+)
 
 from api.api_server import app
 
@@ -23,7 +26,7 @@ async def test_api_endpoint():
         # Test the root endpoint
         response = await client.get("/")
         assert response.status_code == 200
-        
+
         data = response.json()
         assert "name" in data
         assert "version" in data
@@ -34,10 +37,10 @@ async def test_status_endpoint():
     """Test async status endpoint"""
     async with AsyncClient(app=app, base_url="http://test") as client:
         # Disable API key auth for this test
-        with patch('api.api_server.API_KEY', ''):
+        with patch("api.api_server.API_KEY", ""):
             response = await client.get("/status")
             assert response.status_code == 200
-            
+
             data = response.json()
             assert "status" in data
             assert "uptime" in data
@@ -47,14 +50,15 @@ async def test_status_endpoint():
 async def test_concurrent_api_calls():
     """Test multiple concurrent async API calls"""
     async with AsyncClient(app=app, base_url="http://test") as client:
+
         async def make_api_call():
             """Helper function to make an API call"""
             return await client.get("/")
-        
+
         # Make multiple concurrent requests
         tasks = [make_api_call() for _ in range(5)]
         responses = await asyncio.gather(*tasks)
-        
+
         # Verify all responses
         for response in responses:
             assert response.status_code == 200
@@ -67,14 +71,14 @@ async def test_alerts_endpoint_basic():
     """Test async alerts endpoint - basic usage"""
     async with AsyncClient(app=app, base_url="http://test") as client:
         # Mock the database to avoid dependencies
-        with patch('api.api_server.db_manager') as mock_db:
+        with patch("api.api_server.db_manager") as mock_db:
             mock_db.get_alerts.return_value = []
-            
+
             # Disable API key for test
-            with patch('api.api_server.API_KEY', ''):
+            with patch("api.api_server.API_KEY", ""):
                 response = await client.get("/alerts")
                 assert response.status_code == 200
-                
+
                 data = response.json()
                 assert "alerts" in data
                 assert isinstance(data["alerts"], list)
@@ -104,10 +108,7 @@ async def test_async_with_timeout():
     async with AsyncClient(app=app, base_url="http://test") as client:
         # Use asyncio.wait_for to test with timeout
         try:
-            response = await asyncio.wait_for(
-                client.get("/"),
-                timeout=5.0
-            )
+            response = await asyncio.wait_for(client.get("/"), timeout=5.0)
             assert response.status_code == 200
         except asyncio.TimeoutError:
             pytest.fail("API call timed out")
@@ -119,7 +120,7 @@ async def test_async_setup_and_teardown():
     # Async setup
     setup_data = await asyncio.sleep(0.1, result="setup_complete")
     assert setup_data == "setup_complete"
-    
+
     try:
         # Test the actual functionality
         async with AsyncClient(app=app, base_url="http://test") as client:

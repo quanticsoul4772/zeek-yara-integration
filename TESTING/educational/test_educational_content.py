@@ -25,7 +25,9 @@ class TestEducationalContent:
 
         for file_name in required_files:
             file_path = education_dir / file_name
-            assert file_path.exists(), f"Required educational file {file_name} should exist"
+            assert (
+                file_path.exists()
+            ), f"Required educational file {file_name} should exist"
 
     def test_tutorial_directories_exist(self):
         """Test that tutorial directory structure exists"""

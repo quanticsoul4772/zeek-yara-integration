@@ -306,10 +306,16 @@ class DatabaseManager:
                         alert_record.update(
                             {
                                 "rule_name": first_match.get("rule", "unknown"),
-                                "rule_namespace": first_match.get("namespace", "unknown"),
+                                "rule_namespace": first_match.get(
+                                    "namespace", "unknown"
+                                ),
                                 "rule_meta": json.dumps(first_match.get("meta", {})),
-                                "strings_matched": json.dumps(first_match.get("strings", [])),
-                                "severity": first_match.get("meta", {}).get("severity", 0),
+                                "strings_matched": json.dumps(
+                                    first_match.get("strings", [])
+                                ),
+                                "severity": first_match.get("meta", {}).get(
+                                    "severity", 0
+                                ),
                             }
                         )
 
@@ -381,7 +387,9 @@ class DatabaseManager:
                         c.execute(
                             insert_query,
                             (
-                                alert.get("timestamp", datetime.datetime.now().isoformat()),
+                                alert.get(
+                                    "timestamp", datetime.datetime.now().isoformat()
+                                ),
                                 alert.get("file_path", ""),
                                 alert.get("file_name", ""),
                                 alert.get("file_size", 0),
@@ -509,33 +517,35 @@ class DatabaseManager:
     def add_file_state(self, file_path, file_metadata=None):
         """
         Add a new file to processing state tracking with 'pending' state
-        
+
         Args:
             file_path (str): Path to the file
             file_metadata (dict, optional): File metadata including size, hashes, etc.
-            
+
         Returns:
             bool: True if state was added successfully
         """
         try:
             with self.connection_pool.connection() as conn:
                 c = conn.cursor()
-                
+
                 # Ensure absolute path
                 if not os.path.isabs(file_path):
                     file_path = os.path.abspath(file_path)
-                
+
                 # Extract metadata
                 file_name = os.path.basename(file_path)
                 file_size = None
                 md5 = None
                 sha256 = None
-                
+
                 if file_metadata:
-                    file_size = file_metadata.get("size", file_metadata.get("file_size"))
+                    file_size = file_metadata.get(
+                        "size", file_metadata.get("file_size")
+                    )
                     md5 = file_metadata.get("md5", "")
                     sha256 = file_metadata.get("sha256", "")
-                
+
                 # Insert with pending state
                 c.execute(
                     """
@@ -543,50 +553,52 @@ class DatabaseManager:
                     (file_path, file_name, file_size, md5, sha256, state, created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                     """,
-                    (file_path, file_name, file_size, md5, sha256)
+                    (file_path, file_name, file_size, md5, sha256),
                 )
-                
+
                 conn.commit()
                 self.logger.debug(f"Added file state for: {file_path}")
                 return True
-                
+
         except Exception as e:
             self.logger.error(f"Error adding file state for {file_path}: {e}")
             return False
 
     @performance_track()
-    def update_file_state(self, file_path, new_state, error_message=None, scan_duration_ms=None):
+    def update_file_state(
+        self, file_path, new_state, error_message=None, scan_duration_ms=None
+    ):
         """
         Update the processing state of a file
-        
+
         Args:
             file_path (str): Path to the file
             new_state (str): New state (pending, scanning, completed, failed, quarantined)
             error_message (str, optional): Error message if state is 'failed'
             scan_duration_ms (int, optional): Scan duration in milliseconds
-            
+
         Returns:
             bool: True if state was updated successfully
         """
         try:
             with self.connection_pool.connection() as conn:
                 c = conn.cursor()
-                
+
                 # Ensure absolute path
                 if not os.path.isabs(file_path):
                     file_path = os.path.abspath(file_path)
-                
+
                 # Build update query based on new state
-                if new_state == 'scanning':
+                if new_state == "scanning":
                     c.execute(
                         """
                         UPDATE file_processing_states 
                         SET state = ?, started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
                         WHERE file_path = ?
                         """,
-                        (new_state, file_path)
+                        (new_state, file_path),
                     )
-                elif new_state in ['completed', 'failed', 'quarantined']:
+                elif new_state in ["completed", "failed", "quarantined"]:
                     c.execute(
                         """
                         UPDATE file_processing_states 
@@ -594,7 +606,7 @@ class DatabaseManager:
                             error_message = ?, scan_duration_ms = ?
                         WHERE file_path = ?
                         """,
-                        (new_state, error_message, scan_duration_ms, file_path)
+                        (new_state, error_message, scan_duration_ms, file_path),
                     )
                 else:
                     c.execute(
@@ -603,18 +615,20 @@ class DatabaseManager:
                         SET state = ?, updated_at = CURRENT_TIMESTAMP
                         WHERE file_path = ?
                         """,
-                        (new_state, file_path)
+                        (new_state, file_path),
                     )
-                
+
                 conn.commit()
-                
+
                 if c.rowcount > 0:
-                    self.logger.debug(f"Updated file state to '{new_state}' for: {file_path}")
+                    self.logger.debug(
+                        f"Updated file state to '{new_state}' for: {file_path}"
+                    )
                     return True
                 else:
                     self.logger.warning(f"No file state record found for: {file_path}")
                     return False
-                
+
         except Exception as e:
             self.logger.error(f"Error updating file state for {file_path}: {e}")
             return False
@@ -623,33 +637,33 @@ class DatabaseManager:
     def get_file_state(self, file_path):
         """
         Get the current processing state of a file
-        
+
         Args:
             file_path (str): Path to the file
-            
+
         Returns:
             dict: File state record or None if not found
         """
         try:
             with self.connection_pool.connection() as conn:
                 c = conn.cursor()
-                
+
                 # Ensure absolute path
                 if not os.path.isabs(file_path):
                     file_path = os.path.abspath(file_path)
-                
+
                 c.execute(
                     "SELECT * FROM file_processing_states WHERE file_path = ?",
-                    (file_path,)
+                    (file_path,),
                 )
-                
+
                 row = c.fetchone()
                 if row:
                     columns = [column[0] for column in c.description]
                     return dict(zip(columns, row))
                 else:
                     return None
-                    
+
         except Exception as e:
             self.logger.error(f"Error getting file state for {file_path}: {e}")
             return None
@@ -658,30 +672,30 @@ class DatabaseManager:
     def get_files_by_state(self, state, limit=None):
         """
         Get all files in a specific processing state
-        
+
         Args:
             state (str): State to filter by
             limit (int, optional): Maximum number of results
-            
+
         Returns:
             list: List of file state records
         """
         try:
             with self.connection_pool.connection() as conn:
                 c = conn.cursor()
-                
+
                 query = "SELECT * FROM file_processing_states WHERE state = ? ORDER BY updated_at DESC"
                 params = [state]
-                
+
                 if limit:
                     query += " LIMIT ?"
                     params.append(limit)
-                
+
                 c.execute(query, params)
-                
+
                 columns = [column[0] for column in c.description]
                 return [dict(zip(columns, row)) for row in c.fetchall()]
-                
+
         except Exception as e:
             self.logger.error(f"Error getting files by state '{state}': {e}")
             return []
@@ -690,17 +704,17 @@ class DatabaseManager:
     def get_interrupted_scans(self, timeout_minutes=30):
         """
         Find files that may have been interrupted during scanning
-        
+
         Args:
             timeout_minutes (int): Minutes after which a scanning state is considered interrupted
-            
+
         Returns:
             list: List of potentially interrupted file records
         """
         try:
             with self.connection_pool.connection() as conn:
                 c = conn.cursor()
-                
+
                 # Find files in 'scanning' state that haven't been updated recently
                 c.execute(
                     """
@@ -709,12 +723,12 @@ class DatabaseManager:
                     AND datetime(updated_at) < datetime('now', '-' || ? || ' minutes')
                     ORDER BY updated_at ASC
                     """,
-                    (timeout_minutes,)
+                    (timeout_minutes,),
                 )
-                
+
                 columns = [column[0] for column in c.description]
                 return [dict(zip(columns, row)) for row in c.fetchall()]
-                
+
         except Exception as e:
             self.logger.error(f"Error finding interrupted scans: {e}")
             return []
@@ -723,17 +737,17 @@ class DatabaseManager:
     def recover_interrupted_scans(self, timeout_minutes=30):
         """
         Reset interrupted scans back to 'pending' state for retry
-        
+
         Args:
             timeout_minutes (int): Minutes after which a scanning state is considered interrupted
-            
+
         Returns:
             int: Number of files recovered
         """
         try:
             with self.connection_pool.connection() as conn:
                 c = conn.cursor()
-                
+
                 # Update interrupted scans back to pending and increment retry count
                 c.execute(
                     """
@@ -745,17 +759,17 @@ class DatabaseManager:
                     WHERE state = 'scanning' 
                     AND datetime(updated_at) < datetime('now', '-' || ? || ' minutes')
                     """,
-                    (timeout_minutes,)
+                    (timeout_minutes,),
                 )
-                
+
                 recovered_count = c.rowcount
                 conn.commit()
-                
+
                 if recovered_count > 0:
                     self.logger.info(f"Recovered {recovered_count} interrupted scans")
-                
+
                 return recovered_count
-                
+
         except Exception as e:
             self.logger.error(f"Error recovering interrupted scans: {e}")
             return 0
@@ -764,34 +778,36 @@ class DatabaseManager:
     def cleanup_completed_states(self, retention_hours=24):
         """
         Clean up old completed file state records
-        
+
         Args:
             retention_hours (int): Hours to retain completed records
-            
+
         Returns:
             int: Number of records cleaned up
         """
         try:
             with self.connection_pool.connection() as conn:
                 c = conn.cursor()
-                
+
                 c.execute(
                     """
                     DELETE FROM file_processing_states 
                     WHERE state = 'completed' 
                     AND datetime(completed_at) < datetime('now', '-' || ? || ' hours')
                     """,
-                    (retention_hours,)
+                    (retention_hours,),
                 )
-                
+
                 deleted_count = c.rowcount
                 conn.commit()
-                
+
                 if deleted_count > 0:
-                    self.logger.info(f"Cleaned up {deleted_count} completed file state records")
-                
+                    self.logger.info(
+                        f"Cleaned up {deleted_count} completed file state records"
+                    )
+
                 return deleted_count
-                
+
         except Exception as e:
             self.logger.error(f"Error cleaning up completed states: {e}")
             return 0
@@ -800,14 +816,14 @@ class DatabaseManager:
     def get_state_statistics(self):
         """
         Get statistics about file processing states
-        
+
         Returns:
             dict: Statistics about current file processing states
         """
         try:
             with self.connection_pool.connection() as conn:
                 c = conn.cursor()
-                
+
                 # Get counts by state
                 c.execute(
                     """
@@ -816,9 +832,9 @@ class DatabaseManager:
                     GROUP BY state
                     """
                 )
-                
+
                 state_counts = {row[0]: row[1] for row in c.fetchall()}
-                
+
                 # Get oldest pending file
                 c.execute(
                     """
@@ -828,7 +844,7 @@ class DatabaseManager:
                     """
                 )
                 oldest_pending = c.fetchone()[0]
-                
+
                 # Get average scan duration
                 c.execute(
                     """
@@ -838,14 +854,14 @@ class DatabaseManager:
                     """
                 )
                 avg_duration = c.fetchone()[0]
-                
+
                 return {
                     "state_counts": state_counts,
                     "oldest_pending": oldest_pending,
                     "average_scan_duration_ms": avg_duration,
-                    "total_files": sum(state_counts.values())
+                    "total_files": sum(state_counts.values()),
                 }
-                
+
         except Exception as e:
             self.logger.error(f"Error getting state statistics: {e}")
             return {}

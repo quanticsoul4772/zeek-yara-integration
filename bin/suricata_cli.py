@@ -33,21 +33,32 @@ logger = logging.getLogger("suricata_cli")
 
 # Parse arguments
 def parse_args():
-    parser = argparse.ArgumentParser(description="Suricata CLI for Zeek-YARA Integration")
+    parser = argparse.ArgumentParser(
+        description="Suricata CLI for Zeek-YARA Integration"
+    )
 
     # Main operation modes
     mode_group = parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument("--interface", "-i", help="Monitor network interface")
     mode_group.add_argument("--pcap", "-r", help="Analyze PCAP file")
-    mode_group.add_argument("--status", action="store_true", help="Show Suricata status")
-    mode_group.add_argument("--update-rules", action="store_true", help="Update Suricata rules")
-    mode_group.add_argument("--stop", action="store_true", help="Stop running Suricata instance")
+    mode_group.add_argument(
+        "--status", action="store_true", help="Show Suricata status"
+    )
+    mode_group.add_argument(
+        "--update-rules", action="store_true", help="Update Suricata rules"
+    )
+    mode_group.add_argument(
+        "--stop", action="store_true", help="Stop running Suricata instance"
+    )
     mode_group.add_argument("--correlate", action="store_true", help="Correlate alerts")
 
     # Additional options
     parser.add_argument("--config", help="Custom configuration file")
     parser.add_argument(
-        "--duration", type=int, default=0, help="Monitoring duration in seconds (0 = continuous)"
+        "--duration",
+        type=int,
+        default=0,
+        help="Monitoring duration in seconds (0 = continuous)",
     )
     parser.add_argument(
         "--correlation-window",
@@ -85,7 +96,9 @@ def main():
                         f"Completed monitoring on {args.interface} for {args.duration} seconds"
                     )
                 else:
-                    logger.info(f"Suricata started in background mode on {args.interface}")
+                    logger.info(
+                        f"Suricata started in background mode on {args.interface}"
+                    )
                     logger.info("Press Ctrl+C to stop when finished")
 
                     try:
@@ -166,9 +179,11 @@ def main():
 
         elif args.correlate:
             logger.info(
-                 f"Correlating alerts with time window: {args.correlation_window} seconds"
+                f"Correlating alerts with time window: {args.correlation_window} seconds"
             )
-            correlated_groups = alert_correlator.correlate_alerts(args.correlation_window)
+            correlated_groups = alert_correlator.correlate_alerts(
+                args.correlation_window
+            )
 
             if correlated_groups:
                 logger.info(f"Found {len(correlated_groups)} correlated alert groups")
@@ -177,13 +192,15 @@ def main():
                 for i, group in enumerate(correlated_groups[:5], 1):
                     logger.info(f"Group {i}:")
                     logger.info(
-                         f" Correlation type: {group.get( 'correlation_type', 'unknown')}"
+                        f" Correlation type: {group.get( 'correlation_type', 'unknown')}"
                     )
                     logger.info(f"  Confidence: {group.get('confidence', 0)}%")
                     logger.info(
-                         f" Primary alert: {group.get( 'primary_alert', {}).get( 'source', 'unknown')} - {group.get( 'primary_alert', {}).get( 'rule_name', 'unknown')}"
+                        f" Primary alert: {group.get( 'primary_alert', {}).get( 'source', 'unknown')} - {group.get( 'primary_alert', {}).get( 'rule_name', 'unknown')}"
                     )
-                    logger.info(f"  Related alerts: {len(group.get('related_alerts', []))}")
+                    logger.info(
+                        f"  Related alerts: {len(group.get('related_alerts', []))}"
+                    )
 
                 if len(correlated_groups) > 5:
                     logger.info(f"And {len(correlated_groups) - 5} more groups...")

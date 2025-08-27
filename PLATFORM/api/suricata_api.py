@@ -138,13 +138,17 @@ async def get_suricata_status(suricata_runner=Depends(get_suricata_runner)):
 
         # Add interface information if running
         if status.get("running", False):
-            status["interface"] = suricata_runner.config.get("SURICATA_INTERFACE", "unknown")
+            status["interface"] = suricata_runner.config.get(
+                "SURICATA_INTERFACE", "unknown"
+            )
 
         return status
 
     except Exception as e:
         logging.error(f"Error getting Suricata status: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting Suricata status: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting Suricata status: {str(e)}"
+        )
 
 
 @suricata_router.post("/start")
@@ -166,7 +170,7 @@ async def start_suricata(
 
             return {
                 "success": True,
-                 "message": f"Started Suricata on interface {request.interface} in background mode",
+                "message": f"Started Suricata on interface {request.interface} in background mode",
                 "interface": request.interface,
             }
         else:
@@ -176,7 +180,7 @@ async def start_suricata(
             if success:
                 return {
                     "success": True,
-                     "message": f"Completed Suricata monitoring on interface {request.interface} for {request.duration} seconds",
+                    "message": f"Completed Suricata monitoring on interface {request.interface} for {request.duration} seconds",
                     "interface": request.interface,
                 }
             else:
@@ -184,7 +188,9 @@ async def start_suricata(
 
     except Exception as e:
         logging.error(f"Error starting Suricata: {e}")
-        raise HTTPException(status_code=500, detail=f"Error starting Suricata: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error starting Suricata: {str(e)}"
+        )
 
 
 @suricata_router.post("/stop")
@@ -205,11 +211,15 @@ async def stop_suricata(suricata_runner=Depends(get_suricata_runner)):
 
     except Exception as e:
         logging.error(f"Error stopping Suricata: {e}")
-        raise HTTPException(status_code=500, detail=f"Error stopping Suricata: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error stopping Suricata: {str(e)}"
+        )
 
 
 @suricata_router.post("/pcap")
-async def analyze_pcap(request: SuricataPcapRequest, suricata_runner=Depends(get_suricata_runner)):
+async def analyze_pcap(
+    request: SuricataPcapRequest, suricata_runner=Depends(get_suricata_runner)
+):
     """
     Analyze a PCAP file with Suricata
     """
@@ -217,7 +227,9 @@ async def analyze_pcap(request: SuricataPcapRequest, suricata_runner=Depends(get
         # Validate PCAP file path
         pcap_file = request.pcap_file
         if not os.path.exists(pcap_file):
-            raise HTTPException(status_code=404, detail=f"PCAP file not found: {pcap_file}")
+            raise HTTPException(
+                status_code=404, detail=f"PCAP file not found: {pcap_file}"
+            )
 
         # Run analysis
         success = suricata_runner.run_pcap(pcap_file)
@@ -242,12 +254,18 @@ async def analyze_pcap(request: SuricataPcapRequest, suricata_runner=Depends(get
 async def get_suricata_alerts(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
-    severity: Optional[int] = Query(None, ge=0, le=10, description="Filter by severity"),
+    severity: Optional[int] = Query(
+        None, ge=0, le=10, description="Filter by severity"
+    ),
     signature: Optional[str] = Query(None, description="Filter by signature"),
     src_ip: Optional[str] = Query(None, description="Filter by source IP"),
     dest_ip: Optional[str] = Query(None, description="Filter by destination IP"),
-    start_date: Optional[str] = Query(None, description="Filter by start date (ISO format)"),
-    end_date: Optional[str] = Query(None, description="Filter by end date (ISO format)"),
+    start_date: Optional[str] = Query(
+        None, description="Filter by start date (ISO format)"
+    ),
+    end_date: Optional[str] = Query(
+        None, description="Filter by end date (ISO format)"
+    ),
     suricata_runner=Depends(get_suricata_runner),
 ):
     """
@@ -315,7 +333,7 @@ async def get_suricata_alerts(
         logging.error(f"Error retrieving Suricata alerts: {e}")
         raise HTTPException(
             status_code=500,
-             detail=f"Error retrieving Suricata alerts: {str(e)}",
+            detail=f"Error retrieving Suricata alerts: {str(e)}",
         )
 
 
@@ -334,7 +352,9 @@ async def update_suricata_rules(suricata_runner=Depends(get_suricata_runner)):
 
     except Exception as e:
         logging.error(f"Error updating Suricata rules: {e}")
-        raise HTTPException(status_code=500, detail=f"Error updating Suricata rules: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error updating Suricata rules: {str(e)}"
+        )
 
 
 @suricata_router.post("/correlate", response_model=CorrelatedAlertsResponse)
@@ -392,14 +412,18 @@ async def correlate_alerts(
 
     except Exception as e:
         logging.error(f"Error correlating alerts: {e}")
-        raise HTTPException(status_code=500, detail=f"Error correlating alerts: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error correlating alerts: {str(e)}"
+        )
 
 
 @suricata_router.get("/correlation", response_model=CorrelatedAlertsResponse)
 async def get_correlated_alerts(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
-    confidence: Optional[int] = Query(None, ge=0, le=100, description="Filter by confidence level"),
+    confidence: Optional[int] = Query(
+        None, ge=0, le=100, description="Filter by confidence level"
+    ),
     alert_type: Optional[str] = Query(None, description="Filter by alert type"),
     alert_correlator=Depends(get_alert_correlator),
 ):
@@ -457,5 +481,5 @@ async def get_correlated_alerts(
         logging.error(f"Error retrieving correlated alerts: {e}")
         raise HTTPException(
             status_code=500,
-             detail=f"Error retrieving correlated alerts: {str(e)}",
+            detail=f"Error retrieving correlated alerts: {str(e)}",
         )

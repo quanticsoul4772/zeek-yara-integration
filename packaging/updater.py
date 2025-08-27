@@ -447,7 +447,11 @@ class UpdateManager:
         """Get current update status."""
         info = self.load_update_info()
         if not info:
-            return {"checked": False, "available": False, "current_version": self.current_version}
+            return {
+                "checked": False,
+                "available": False,
+                "current_version": self.current_version,
+            }
 
         return {
             "checked": True,
@@ -463,12 +467,18 @@ async def main():
     """Main update CLI interface."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Zeek-YARA Educational Platform Updater")
+    parser = argparse.ArgumentParser(
+        description="Zeek-YARA Educational Platform Updater"
+    )
     parser.add_argument("--check", action="store_true", help="Check for updates")
-    parser.add_argument("--download", action="store_true", help="Download available update")
+    parser.add_argument(
+        "--download", action="store_true", help="Download available update"
+    )
     parser.add_argument("--install", metavar="FILE", help="Install update from file")
     parser.add_argument("--status", action="store_true", help="Show update status")
-    parser.add_argument("--auto", action="store_true", help="Perform automatic update check")
+    parser.add_argument(
+        "--auto", action="store_true", help="Perform automatic update check"
+    )
 
     args = parser.parse_args()
 

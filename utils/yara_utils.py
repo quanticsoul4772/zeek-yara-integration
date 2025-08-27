@@ -217,7 +217,9 @@ class YaraMatcher:
                                     }
                                 )
                         except Exception as e:
-                            self.logger.warning(f"Error extracting matched strings: {str(e)}")
+                            self.logger.warning(
+                                f"Error extracting matched strings: {str(e)}"
+                            )
 
                     result["matches"].append(match_info)
 

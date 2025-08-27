@@ -75,7 +75,8 @@ class TutorialWebServer:
 
         # Initialize FastAPI app
         self.app = FastAPI(
-            title="Security Learning Platform", description="Interactive Security Education"
+            title="Security Learning Platform",
+            description="Interactive Security Education",
         )
         self.setup_middleware()
         self.setup_routes()
@@ -104,7 +105,9 @@ class TutorialWebServer:
         """Setup web routes."""
 
         # Serve static files
-        self.app.mount("/static", StaticFiles(directory=str(self.static_dir)), name="static")
+        self.app.mount(
+            "/static", StaticFiles(directory=str(self.static_dir)), name="static"
+        )
 
         # Main routes
         self.app.get("/")(self.home)
@@ -112,14 +115,18 @@ class TutorialWebServer:
         self.app.get("/tutorial/{tutorial_id}")(self.tutorial_detail)
         self.app.get("/tutorial/{tutorial_id}/step/{step_id}")(self.tutorial_step)
         self.app.post("/api/tutorial/{tutorial_id}/start")(self.start_tutorial)
-        self.app.post("/api/tutorial/{tutorial_id}/step/{step_id}/complete")(self.complete_step)
+        self.app.post("/api/tutorial/{tutorial_id}/step/{step_id}/complete")(
+            self.complete_step
+        )
         self.app.get("/api/progress")(self.get_progress)
         self.app.get("/api/achievements")(self.get_achievements)
         self.app.websocket("/ws/{session_id}")(self.websocket_endpoint)
 
         # Tutorial content API
         self.app.get("/api/tutorials")(self.api_get_tutorials)
-        self.app.get("/api/tutorial/{tutorial_id}/content")(self.api_get_tutorial_content)
+        self.app.get("/api/tutorial/{tutorial_id}/content")(
+            self.api_get_tutorial_content
+        )
 
     async def home(self, request: Request):
         """Home page with learning dashboard."""
@@ -220,7 +227,11 @@ class TutorialWebServer:
         achievements = self.check_step_achievements(session, step_id)
 
         return JSONResponse(
-            {"status": "completed", "achievements": achievements, "progress": session.progress_data}
+            {
+                "status": "completed",
+                "achievements": achievements,
+                "progress": session.progress_data,
+            }
         )
 
     async def get_progress(self, request: Request):
@@ -231,7 +242,9 @@ class TutorialWebServer:
         """Get user achievements."""
         return JSONResponse(
             {
-                "achievements": self.tutorial_manager.user_progress.get("achievements", []),
+                "achievements": self.tutorial_manager.user_progress.get(
+                    "achievements", []
+                ),
                 "experience_points": self.tutorial_manager.user_progress.get(
                     "experience_points", 0
                 ),
@@ -271,7 +284,9 @@ class TutorialWebServer:
             if session_id in self.websocket_connections:
                 del self.websocket_connections[session_id]
 
-    async def handle_step_progress(self, session_id: str, message: Dict, websocket: WebSocket):
+    async def handle_step_progress(
+        self, session_id: str, message: Dict, websocket: WebSocket
+    ):
         """Handle step progress updates via WebSocket."""
         if session_id in self.active_sessions:
             session = self.active_sessions[session_id]
@@ -279,7 +294,9 @@ class TutorialWebServer:
 
             # Send progress update
             await websocket.send_text(
-                json.dumps({"type": "progress_update", "progress": session.progress_data})
+                json.dumps(
+                    {"type": "progress_update", "progress": session.progress_data}
+                )
             )
 
     async def send_hint(self, session_id: str, message: Dict, websocket: WebSocket):
@@ -287,7 +304,9 @@ class TutorialWebServer:
         step_id = message.get("step_id")
         hints = self.get_step_hints(step_id)
 
-        await websocket.send_text(json.dumps({"type": "hint", "step_id": step_id, "hints": hints}))
+        await websocket.send_text(
+            json.dumps({"type": "hint", "step_id": step_id, "hints": hints})
+        )
 
     def get_enhanced_tutorials(self) -> List[Dict[str, Any]]:
         """Get enhanced tutorial list with additional metadata."""
@@ -463,7 +482,10 @@ class TutorialWebServer:
                             </div>
                         </div>
                         """,
-                        "interactive_elements": {"tool_demo": True, "progress_check": True},
+                        "interactive_elements": {
+                            "tool_demo": True,
+                            "progress_check": True,
+                        },
                     },
                     {
                         "id": "threat_types",
@@ -535,7 +557,12 @@ class TutorialWebServer:
                             "threat_quiz": {
                                 "question": "Which security tool would be MOST effective at detecting a large file being secretly uploaded to an external server?",
                                 "type": "multiple_choice",
-                                "options": ["YARA", "Zeek", "Suricata", "All three equally"],
+                                "options": [
+                                    "YARA",
+                                    "Zeek",
+                                    "Suricata",
+                                    "All three equally",
+                                ],
                                 "correct": 1,
                                 "explanation": "Zeek excels at monitoring network traffic patterns and would be most likely to detect unusual file transfer activity.",
                             },
@@ -621,7 +648,10 @@ class TutorialWebServer:
                             "clickable_exercise": True,
                             "immediate_feedback": True,
                         },
-                        "completion_criteria": {"threats_identified": 2, "false_positives_max": 1},
+                        "completion_criteria": {
+                            "threats_identified": 2,
+                            "false_positives_max": 1,
+                        },
                     },
                     {
                         "id": "summary",
@@ -711,7 +741,12 @@ class TutorialWebServer:
                             {
                                 "question": "Which security tool is primarily responsible for analyzing network traffic patterns and extracting files?",
                                 "type": "multiple_choice",
-                                "options": ["YARA", "Zeek", "Suricata", "All three equally"],
+                                "options": [
+                                    "YARA",
+                                    "Zeek",
+                                    "Suricata",
+                                    "All three equally",
+                                ],
                                 "correct": 1,
                                 "explanation": "Zeek is specifically designed for network traffic analysis and file extraction.",
                             },
@@ -740,7 +775,10 @@ class TutorialWebServer:
                                 "explanation": "Command & Control (C&C) communications involve infected systems regularly contacting attacker servers for instructions.",
                             },
                         ],
-                        "completion_criteria": {"quiz_score_min": 2, "quiz_attempts_max": 3},
+                        "completion_criteria": {
+                            "quiz_score_min": 2,
+                            "quiz_attempts_max": 3,
+                        },
                     },
                 ],
             },
@@ -799,7 +837,10 @@ class TutorialWebServer:
                             </div>
                         </div>
                         """,
-                        "interactive_elements": {"code_display": True, "safety_emphasis": True},
+                        "interactive_elements": {
+                            "code_display": True,
+                            "safety_emphasis": True,
+                        },
                     },
                     {
                         "id": "yara_rules_intro",
@@ -938,7 +979,10 @@ class TutorialWebServer:
                             "real_time_monitoring": True,
                             "detection_visualization": True,
                         },
-                        "completion_criteria": {"file_created": True, "detection_observed": True},
+                        "completion_criteria": {
+                            "file_created": True,
+                            "detection_observed": True,
+                        },
                     },
                     {
                         "id": "alert_analysis",
@@ -1055,7 +1099,9 @@ class TutorialWebServer:
         }
         return base_xp.get(tutorial_id, 100)
 
-    def check_step_achievements(self, session: LearningSession, step_id: str) -> List[str]:
+    def check_step_achievements(
+        self, session: LearningSession, step_id: str
+    ) -> List[str]:
         """Check for achievements earned by completing a step."""
         achievements = []
 
@@ -1063,7 +1109,10 @@ class TutorialWebServer:
         if len(session.progress_data["steps_completed"]) == 1:
             achievements.append("first_step")
 
-        if step_id.endswith("_quiz") and "quiz_master" not in session.achievements_earned:
+        if (
+            step_id.endswith("_quiz")
+            and "quiz_master" not in session.achievements_earned
+        ):
             achievements.append("quiz_master")
 
         # Add achievements to session

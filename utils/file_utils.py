@@ -108,7 +108,9 @@ class FileAnalyzer:
     """
 
     def __init__(
-        self, max_file_size: Optional[int] = None, logger: Optional[logging.Logger] = None
+        self,
+        max_file_size: Optional[int] = None,
+        logger: Optional[logging.Logger] = None,
     ):
         """
         Initialize the file analyzer.
@@ -307,7 +309,9 @@ class FileAnalyzer:
 
         return False
 
-    def filter_file_by_extension(self, file_path: str, allowed_extensions: list) -> bool:
+    def filter_file_by_extension(
+        self, file_path: str, allowed_extensions: list
+    ) -> bool:
         """
         Filter file by extension.
 

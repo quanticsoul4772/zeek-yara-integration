@@ -330,7 +330,9 @@ class VisualizationPlugin(BasePlugin):
     """
 
     @abstractmethod
-    def generate_visualization(self, data: Dict[str, Any], viz_type: str) -> Dict[str, Any]:
+    def generate_visualization(
+        self, data: Dict[str, Any], viz_type: str
+    ) -> Dict[str, Any]:
         """Generate a visualization from provided data
 
         Args:

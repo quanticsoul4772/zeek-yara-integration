@@ -28,7 +28,9 @@ logger = logging.getLogger("api_server")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="API Server for Zeek-YARA-Suricata Integration")
+    parser = argparse.ArgumentParser(
+        description="API Server for Zeek-YARA-Suricata Integration"
+    )
     parser.add_argument("--host", default="127.0.0.1", help="Bind address")
     parser.add_argument("--port", type=int, default=8000, help="Port to listen on")
     parser.add_argument("--config", default=None, help="Path to configuration file")

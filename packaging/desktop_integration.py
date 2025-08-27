@@ -130,7 +130,10 @@ class DesktopIntegrator:
         # Update MIME database
         try:
             subprocess.run(
-                ["update-mime-database", str(Path.home() / ".local" / "share" / "mime")],
+                [
+                    "update-mime-database",
+                    str(Path.home() / ".local" / "share" / "mime"),
+                ],
                 check=False,
                 capture_output=True,
             )
@@ -143,7 +146,10 @@ class DesktopIntegrator:
         """Update Linux desktop database."""
         try:
             subprocess.run(
-                ["update-desktop-database", str(Path.home() / ".local" / "share" / "applications")],
+                [
+                    "update-desktop-database",
+                    str(Path.home() / ".local" / "share" / "applications"),
+                ],
                 check=False,
                 capture_output=True,
             )
@@ -259,7 +265,9 @@ python3 main.py "$@"
                 shutil.copytree(source_app, dest_app)
                 print(f"Installed app to {dest_app}")
             except PermissionError:
-                print(f"Permission denied. Please manually copy {source_app} to /Applications/")
+                print(
+                    f"Permission denied. Please manually copy {source_app} to /Applications/"
+                )
 
     def install_windows_desktop(self):
         """Install Windows desktop integration."""
@@ -365,14 +373,18 @@ pause
             self.register_windows_file_type(".yara", "YARARule", "YARA Rule File")
 
             # Suricata rules
-            self.register_windows_file_type(".rules", "SuricataRule", "Suricata Rule File")
+            self.register_windows_file_type(
+                ".rules", "SuricataRule", "Suricata Rule File"
+            )
 
             print("Registered file associations")
 
         except ImportError:
             print("winreg not available, file associations not registered")
 
-    def register_windows_file_type(self, extension: str, prog_id: str, description: str):
+    def register_windows_file_type(
+        self, extension: str, prog_id: str, description: str
+    ):
         """Register a single Windows file type."""
         try:
             import winreg
@@ -387,7 +399,9 @@ pause
 
                 # Create shell command
                 with winreg.CreateKey(key, "shell\\open\\command") as cmd_key:
-                    command = f'"{sys.executable}" "{self.project_root / "main.py"}" "%1"'
+                    command = (
+                        f'"{sys.executable}" "{self.project_root / "main.py"}" "%1"'
+                    )
                     winreg.SetValueEx(cmd_key, "", 0, winreg.REG_SZ, command)
 
         except Exception as e:
@@ -405,8 +419,17 @@ pause
     def uninstall_linux_desktop(self):
         """Remove Linux desktop integration."""
         files_to_remove = [
-            Path.home() / ".local" / "share" / "applications" / "zeek-yara-educational.desktop",
-            Path.home() / ".local" / "share" / "mime" / "packages" / "zeek-yara-educational.xml",
+            Path.home()
+            / ".local"
+            / "share"
+            / "applications"
+            / "zeek-yara-educational.desktop",
+            Path.home()
+            / ".local"
+            / "share"
+            / "mime"
+            / "packages"
+            / "zeek-yara-educational.xml",
         ]
 
         for file_path in files_to_remove:
@@ -463,8 +486,12 @@ def main():
     parser = argparse.ArgumentParser(
         description="Desktop Integration for Zeek-YARA Educational Platform"
     )
-    parser.add_argument("--install", action="store_true", help="Install desktop integration")
-    parser.add_argument("--uninstall", action="store_true", help="Remove desktop integration")
+    parser.add_argument(
+        "--install", action="store_true", help="Install desktop integration"
+    )
+    parser.add_argument(
+        "--uninstall", action="store_true", help="Remove desktop integration"
+    )
 
     args = parser.parse_args()
 

@@ -19,9 +19,11 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+
 # Custom error classes
 class APIError(Exception):
     """Base API exception"""
+
     def __init__(self, message: str, status_code: int = 500, details: Dict = None):
         self.message = message
         self.status_code = status_code
@@ -32,41 +34,43 @@ class APIError(Exception):
 # Pydantic models with validation
 class ScanRequest(BaseModel):
     """Validated scan request model"""
+
     target: str = Field(..., min_length=1, max_length=4096)
     rules_dir: Optional[str] = Field(None, max_length=4096)
     recursive: bool = Field(True)
     max_file_size: int = Field(104857600, ge=1024, le=1073741824)  # 1KB to 1GB
     threads: int = Field(4, ge=1, le=32)
-    
-    @validator('target')
+
+    @validator("target")
     def validate_target_path(cls, v):
         """Validate target path doesn't contain dangerous patterns"""
-        dangerous_patterns = ['..', '~', '${', '$(', '`']
+        dangerous_patterns = ["..", "~", "${", "$(", "`"]
         for pattern in dangerous_patterns:
             if pattern in v:
                 raise ValueError(f"Invalid path: contains '{pattern}'")
         return v
-    
-    @validator('rules_dir')
+
+    @validator("rules_dir")
     def validate_rules_dir(cls, v):
         """Validate rules directory path"""
-        if v and '..' in v:
+        if v and ".." in v:
             raise ValueError("Invalid rules directory path")
         return v
 
 
 class AlertQuery(BaseModel):
     """Validated alert query parameters"""
+
     limit: int = Field(100, ge=1, le=1000)
     offset: int = Field(0, ge=0)
-    severity: Optional[str] = Field(None, regex='^(low|medium|high|critical)$')
+    severity: Optional[str] = Field(None, regex="^(low|medium|high|critical)$")
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
-    
-    @validator('end_time')
+
+    @validator("end_time")
     def validate_time_range(cls, v, values):
         """Ensure end_time is after start_time"""
-        start = values.get('start_time')
+        start = values.get("start_time")
         if start and v and v <= start:
             raise ValueError("end_time must be after start_time")
         return v
@@ -74,7 +78,8 @@ class AlertQuery(BaseModel):
 
 class ScannerControl(BaseModel):
     """Scanner control commands"""
-    command: str = Field(..., regex='^(start|stop|restart|status)$')
+
+    command: str = Field(..., regex="^(start|stop|restart|status)$")
     directory: Optional[str] = Field(None, max_length=4096)
     threads: int = Field(4, ge=1, le=32)
 
@@ -93,16 +98,16 @@ async def lifespan(app: FastAPI):
     # Startup
     logger = logging.getLogger("api")
     logger.info("Starting API server...")
-    
+
     # Initialize services
     app.state.scanner = None  # Initialize scanner here
     app.state.metrics = {"requests": 0, "errors": 0}
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down API server...")
-    if hasattr(app.state, 'scanner') and app.state.scanner:
+    if hasattr(app.state, "scanner") and app.state.scanner:
         # Cleanup scanner resources
         pass
 
@@ -112,7 +117,7 @@ app = FastAPI(
     title="Zeek-YARA Integration API",
     description="Enhanced security monitoring platform API",
     version="2.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add middleware
@@ -140,9 +145,9 @@ async def api_error_handler(request, exc: APIError):
             "error": {
                 "message": exc.message,
                 "details": exc.details,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
-        }
+        },
     )
 
 
@@ -155,9 +160,9 @@ async def value_error_handler(request, exc: ValueError):
             "error": {
                 "message": str(exc),
                 "type": "validation_error",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
-        }
+        },
     )
 
 
@@ -166,25 +171,27 @@ async def general_exception_handler(request, exc: Exception):
     """Handle unexpected errors"""
     logger = logging.getLogger("api")
     logger.error(f"Unexpected error: {exc}", exc_info=True)
-    
+
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": {
                 "message": "An unexpected error occurred",
                 "type": "internal_error",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
-        }
+        },
     )
 
 
 # Dependency for optional authentication
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)):
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+):
     """Validate authentication token (optional)"""
     if not credentials:
         return None  # Anonymous access allowed
-    
+
     # In production, validate the token here
     # For now, just return a mock user
     return {"username": "authenticated_user"}
@@ -199,42 +206,45 @@ async def health_check():
         checks = {
             "api": "healthy",
             "database": "healthy",  # Add actual database check
-            "scanner": "healthy" if app.state.scanner else "not_initialized"
+            "scanner": "healthy" if app.state.scanner else "not_initialized",
         }
-        
+
         # Overall health
         overall_health = all(v == "healthy" for v in checks.values())
-        
+
         return {
             "status": "healthy" if overall_health else "degraded",
             "timestamp": datetime.utcnow().isoformat(),
             "components": checks,
-            "metrics": app.state.metrics
+            "metrics": app.state.metrics,
         }
     except Exception as e:
-        raise APIError("Health check failed", status_code=503, details={"error": str(e)})
+        raise APIError(
+            "Health check failed", status_code=503, details={"error": str(e)}
+        )
 
 
 # Scanner endpoints with validation and error handling
 @app.post("/scan", tags=["Scanner"])
 @limiter.limit("10/minute")
 async def scan_target(
-    request: ScanRequest,
-    current_user: Optional[Dict] = Security(get_current_user)
+    request: ScanRequest, current_user: Optional[Dict] = Security(get_current_user)
 ):
     """Scan a file or directory with YARA rules"""
     try:
         # Log the scan request
         logger = logging.getLogger("api")
-        logger.info(f"Scan request from {current_user or 'anonymous'}: {request.target}")
-        
+        logger.info(
+            f"Scan request from {current_user or 'anonymous'}: {request.target}"
+        )
+
         # Validate scanner is available
         if not app.state.scanner:
             raise APIError(
                 "Scanner not initialized",
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-        
+
         # Perform scan (mock implementation)
         result = {
             "status": "completed",
@@ -242,14 +252,14 @@ async def scan_target(
             "files_scanned": 10,
             "threats_detected": 0,
             "scan_time": 1.23,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
-        
+
         # Update metrics
         app.state.metrics["requests"] += 1
-        
+
         return result
-        
+
     except APIError:
         raise
     except Exception as e:
@@ -258,7 +268,7 @@ async def scan_target(
         raise APIError(
             "Scan operation failed",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            details={"error": str(e)}
+            details={"error": str(e)},
         )
 
 
@@ -266,7 +276,7 @@ async def scan_target(
 @limiter.limit("100/minute")
 async def get_alerts(
     query: AlertQuery = Query(),
-    current_user: Optional[Dict] = Security(get_current_user)
+    current_user: Optional[Dict] = Security(get_current_user),
 ):
     """Retrieve alerts with advanced filtering"""
     try:
@@ -277,31 +287,30 @@ async def get_alerts(
                 "timestamp": datetime.utcnow().isoformat(),
                 "severity": "medium",
                 "rule_name": f"Rule_{i}",
-                "file_path": f"/path/to/file_{i}"
+                "file_path": f"/path/to/file_{i}",
             }
             for i in range(1, min(11, query.limit + 1))
         ]
-        
+
         return {
             "alerts": alerts,
             "total": 100,
             "page": query.offset // query.limit + 1,
-            "page_size": query.limit
+            "page_size": query.limit,
         }
-        
+
     except Exception as e:
         raise APIError(
             "Failed to retrieve alerts",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            details={"error": str(e)}
+            details={"error": str(e)},
         )
 
 
 @app.post("/scanner/control", tags=["Scanner"])
 @limiter.limit("5/minute")
 async def control_scanner(
-    control: ScannerControl,
-    current_user: Optional[Dict] = Security(get_current_user)
+    control: ScannerControl, current_user: Optional[Dict] = Security(get_current_user)
 ):
     """Control scanner service (start/stop/restart/status)"""
     try:
@@ -309,37 +318,37 @@ async def control_scanner(
             return {
                 "status": "running" if app.state.scanner else "stopped",
                 "uptime": 3600,
-                "files_processed": 1000
+                "files_processed": 1000,
             }
-        
+
         elif control.command == "start":
             if app.state.scanner:
                 raise APIError("Scanner already running", status_code=400)
-            
+
             # Initialize scanner (mock)
             app.state.scanner = {"started_at": datetime.utcnow()}
             return {"status": "started", "message": "Scanner started successfully"}
-        
+
         elif control.command == "stop":
             if not app.state.scanner:
                 raise APIError("Scanner not running", status_code=400)
-            
+
             app.state.scanner = None
             return {"status": "stopped", "message": "Scanner stopped successfully"}
-        
+
         elif control.command == "restart":
             app.state.scanner = None
             await asyncio.sleep(0.1)  # Brief pause
             app.state.scanner = {"started_at": datetime.utcnow()}
             return {"status": "restarted", "message": "Scanner restarted successfully"}
-        
+
     except APIError:
         raise
     except Exception as e:
         raise APIError(
             f"Scanner control failed: {control.command}",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            details={"error": str(e)}
+            details={"error": str(e)},
         )
 
 
@@ -353,19 +362,19 @@ async def get_metrics(current_user: Optional[Dict] = Security(get_current_user))
             "scanner_metrics": {
                 "files_scanned": 10000,
                 "threats_detected": 50,
-                "avg_scan_time": 0.25
+                "avg_scan_time": 0.25,
             },
             "system_metrics": {
                 "cpu_usage": 25.5,
                 "memory_usage": 45.2,
-                "disk_usage": 60.0
-            }
+                "disk_usage": 60.0,
+            },
         }
     except Exception as e:
         raise APIError(
             "Failed to retrieve metrics",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            details={"error": str(e)}
+            details={"error": str(e)},
         )
 
 
@@ -375,25 +384,29 @@ async def websocket_alerts(websocket):
     await websocket.accept()
     try:
         # Send initial connection message
-        await websocket.send_json({
-            "type": "connection",
-            "message": "Connected to alert stream",
-            "timestamp": datetime.utcnow().isoformat()
-        })
-        
+        await websocket.send_json(
+            {
+                "type": "connection",
+                "message": "Connected to alert stream",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
+
         # Stream alerts (mock implementation)
         while True:
             await asyncio.sleep(5)  # Send alert every 5 seconds
-            await websocket.send_json({
-                "type": "alert",
-                "data": {
-                    "id": 1,
-                    "severity": "medium",
-                    "rule_name": "Test_Rule",
-                    "timestamp": datetime.utcnow().isoformat()
+            await websocket.send_json(
+                {
+                    "type": "alert",
+                    "data": {
+                        "id": 1,
+                        "severity": "medium",
+                        "rule_name": "Test_Rule",
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
                 }
-            })
-            
+            )
+
     except Exception as e:
         logger = logging.getLogger("api")
         logger.error(f"WebSocket error: {e}")

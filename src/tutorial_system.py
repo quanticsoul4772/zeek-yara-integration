@@ -90,7 +90,11 @@ class TutorialManager:
                     "description": "Learn the basics of network security monitoring",
                     "duration": "15 minutes",
                     "difficulty": "Beginner",
-                    "topics": ["Network Traffic", "Security Monitoring", "Threat Detection"],
+                    "topics": [
+                        "Network Traffic",
+                        "Security Monitoring",
+                        "Threat Detection",
+                    ],
                 },
                 {
                     "id": "first_detection",
@@ -217,7 +221,9 @@ class TutorialManager:
 
             choices = [str(i) for i in range(1, len(tutorials) + 1)] + ["0"]
             choice = Prompt.ask(
-                "Select a tutorial (0 to return to main menu)", choices=choices, default="1"
+                "Select a tutorial (0 to return to main menu)",
+                choices=choices,
+                default="1",
             )
         else:
             print("\nAvailable Tutorials:")
@@ -551,7 +557,9 @@ You're on your way to becoming a security analyst!
             self.log(f"Tutorial error: {e}", "error")
             return False
 
-    def run_tutorial_step(self, step: TutorialStep, step_num: int, total_steps: int) -> bool:
+    def run_tutorial_step(
+        self, step: TutorialStep, step_num: int, total_steps: int
+    ) -> bool:
         """Run a single tutorial step."""
         if self.console:
             # Show step panel
@@ -566,7 +574,9 @@ You're on your way to becoming a security analyst!
 
             # Show learning objectives if available
             if step.learning_objectives:
-                objectives_text = "\n".join([f"• {obj}" for obj in step.learning_objectives])
+                objectives_text = "\n".join(
+                    [f"• {obj}" for obj in step.learning_objectives]
+                )
                 objectives_panel = Panel(
                     objectives_text,
                     title="🎯 Learning Objectives",
@@ -626,14 +636,18 @@ You're on your way to becoming a security analyst!
     def show_welcome_message(self):
         """Show tutorial welcome message."""
         if self.console:
-            welcome_text = Text("Welcome to your security learning journey! 🚀", style="bold green")
+            welcome_text = Text(
+                "Welcome to your security learning journey! 🚀", style="bold green"
+            )
             self.console.print(welcome_text)
             self.console.print(
                 "You're about to learn skills used by professional security analysts."
             )
         else:
             print("Welcome to your security learning journey!")
-            print("You're about to learn skills used by professional security analysts.")
+            print(
+                "You're about to learn skills used by professional security analysts."
+            )
 
     def demonstrate_network_concepts(self):
         """Demonstrate basic network concepts."""
@@ -676,7 +690,9 @@ You're on your way to becoming a security analyst!
         self.log("Each tool has a specific role in your security monitoring:")
         self.log("• Zeek: 'I see a file being downloaded...'")
         self.log("• YARA: 'Let me check if this file is malicious...'")
-        self.log("• Suricata: 'I'm watching for attack patterns in the network traffic...'")
+        self.log(
+            "• Suricata: 'I'm watching for attack patterns in the network traffic...'"
+        )
         self.log("Together they provide comprehensive protection!", "success")
 
     def display_threat_examples(self):
@@ -688,8 +704,12 @@ You're on your way to becoming a security analyst!
             threat_table.add_column("Detection Method", style="green")
 
             threat_table.add_row("Malware", "virus.exe downloaded", "YARA rules")
-            threat_table.add_row("Port Scan", "Probing ports 1-1000", "Suricata patterns")
-            threat_table.add_row("Data Theft", "Large file upload", "Zeek traffic analysis")
+            threat_table.add_row(
+                "Port Scan", "Probing ports 1-1000", "Suricata patterns"
+            )
+            threat_table.add_row(
+                "Data Theft", "Large file upload", "Zeek traffic analysis"
+            )
             threat_table.add_row(
                 "C&C Communication", "Regular beacons to attacker", "All tools combined"
             )
@@ -700,7 +720,9 @@ You're on your way to becoming a security analyst!
             print("• Malware: virus.exe downloaded → Detected by YARA rules")
             print("• Port Scan: Probing ports 1-1000 → Detected by Suricata patterns")
             print("• Data Theft: Large file upload → Detected by Zeek traffic analysis")
-            print("• C&C Communication: Regular beacons → Detected by all tools combined")
+            print(
+                "• C&C Communication: Regular beacons → Detected by all tools combined"
+            )
 
     def show_completion_message(self):
         """Show tutorial completion message."""
@@ -713,17 +735,23 @@ You're on your way to becoming a security analyst!
 
     def explain_eicar_file(self):
         """Explain the EICAR test file."""
-        eicar_signature = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+        eicar_signature = (
+            "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+        )
 
         self.log("The EICAR test file contains this harmless text string:")
         self.log(f"'{eicar_signature}'")
-        self.log("Even though it's just text, all antivirus tools treat it as malware for testing!")
+        self.log(
+            "Even though it's just text, all antivirus tools treat it as malware for testing!"
+        )
 
     def create_and_scan_eicar(self):
         """Create EICAR file and demonstrate detection."""
         extract_dir = Path(self.config.get("EXTRACT_DIR", "/tmp"))
         eicar_path = extract_dir / "eicar_test.txt"
-        eicar_content = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+        eicar_content = (
+            "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+        )
 
         try:
             # Ensure directory exists
@@ -760,7 +788,10 @@ You're on your way to becoming a security analyst!
 
     def show_detection_completion(self):
         """Show detection tutorial completion."""
-        self.log("🎉 Excellent work! You've completed your first threat detection!", "success")
+        self.log(
+            "🎉 Excellent work! You've completed your first threat detection!",
+            "success",
+        )
         self.log("You now know how to:")
         self.log("✅ Create test files for security validation")
         self.log("✅ Trigger malware detection systems")
@@ -775,15 +806,22 @@ You're on your way to becoming a security analyst!
         total_time = self.user_progress["total_time_spent"]
 
         # Tutorial completion achievements
-        if completed_count >= 1 and "first_tutorial" not in self.user_progress["achievements"]:
+        if (
+            completed_count >= 1
+            and "first_tutorial" not in self.user_progress["achievements"]
+        ):
             achievements.append("first_tutorial")
 
-        if completed_count >= 3 and "tutorial_expert" not in self.user_progress["achievements"]:
+        if (
+            completed_count >= 3
+            and "tutorial_expert" not in self.user_progress["achievements"]
+        ):
             achievements.append("tutorial_expert")
 
         # Time-based achievements
         if (
-            total_time >= 1800 and "dedicated_learner" not in self.user_progress["achievements"]
+            total_time >= 1800
+            and "dedicated_learner" not in self.user_progress["achievements"]
         ):  # 30 minutes
             achievements.append("dedicated_learner")
 
@@ -836,7 +874,9 @@ Total XP: {self.user_progress['experience_points']}
             )
             self.console.print(panel)
         else:
-            print(f"\n🎉 ACHIEVEMENT UNLOCKED: {info.get('title', 'Unknown Achievement')}")
+            print(
+                f"\n🎉 ACHIEVEMENT UNLOCKED: {info.get('title', 'Unknown Achievement')}"
+            )
             print(info.get("description", "Great job!"))
             print(f"Bonus XP: +{xp_bonus}")
             print(f"Total XP: {self.user_progress['experience_points']}")
@@ -849,12 +889,15 @@ Total XP: {self.user_progress['experience_points']}
             progress_table.add_column("Value", style="green")
 
             progress_table.add_row(
-                "Tutorials Completed", str(len(self.user_progress["tutorials_completed"]))
+                "Tutorials Completed",
+                str(len(self.user_progress["tutorials_completed"])),
             )
             progress_table.add_row(
                 "Experience Points", str(self.user_progress["experience_points"])
             )
-            progress_table.add_row("Achievements", str(len(self.user_progress["achievements"])))
+            progress_table.add_row(
+                "Achievements", str(len(self.user_progress["achievements"]))
+            )
             progress_table.add_row(
                 "Time Spent Learning",
                 f"{self.user_progress['total_time_spent'] / 60:.1f} minutes",
@@ -868,13 +911,13 @@ Total XP: {self.user_progress['experience_points']}
         else:
             print("\nYour Learning Progress:")
             print("-" * 30)
-            print(f"Tutorials Completed: {len(self.user_progress['tutorials_completed'])}")
             print(
-                 f"Experience Points: {self.user_progress['experience_points']}"
+                f"Tutorials Completed: {len(self.user_progress['tutorials_completed'])}"
             )
+            print(f"Experience Points: {self.user_progress['experience_points']}")
             print(f"Achievements: {len(self.user_progress['achievements'])}")
             print(
-                 f"Time Spent Learning: {self.user_progress['total_time_spent'] / 60:.1f} minutes"
+                f"Time Spent Learning: {self.user_progress['total_time_spent'] / 60:.1f} minutes"
             )
 
             if self.user_progress["achievements"]:

@@ -77,19 +77,28 @@ class BaseScanner:
             self.logger.debug(f"File metadata: {file_metadata}")
         except Exception as e:
             self.logger.error(f"Error getting file metadata: {e}")
-            file_metadata = {"file_path": file_path, "name": os.path.basename(file_path)}
+            file_metadata = {
+                "file_path": file_path,
+                "name": os.path.basename(file_path),
+            }
 
         # Log basic file info
-        self.logger.info(f"Scanning: {file_path} ({file_metadata.get('size', 0)} bytes)")
+        self.logger.info(
+            f"Scanning: {file_path} ({file_metadata.get('size', 0)} bytes)"
+        )
 
         # Apply mime-type or extension filtering if configured
-        if self.config.get("SCAN_MIME_TYPES") and not self.file_analyzer.filter_file_by_mime(
+        if self.config.get(
+            "SCAN_MIME_TYPES"
+        ) and not self.file_analyzer.filter_file_by_mime(
             file_path, self.config.get("SCAN_MIME_TYPES")
         ):
             self.logger.info(f"Skipping file with excluded MIME type: {file_path}")
             return {"matched": False, "error": "Excluded MIME type"}
 
-        if self.config.get("SCAN_EXTENSIONS") and not self.file_analyzer.filter_file_by_extension(
+        if self.config.get(
+            "SCAN_EXTENSIONS"
+        ) and not self.file_analyzer.filter_file_by_extension(
             file_path, self.config.get("SCAN_EXTENSIONS")
         ):
             self.logger.info(f"Skipping file with excluded extension: {file_path}")
@@ -128,7 +137,9 @@ class BaseScanner:
                 self.logger.error(f"Exception adding alert to database: {e}")
         else:
             if scan_result.get("error"):
-                self.logger.warning(f"Error scanning {file_path}: {scan_result.get('error')}")
+                self.logger.warning(
+                    f"Error scanning {file_path}: {scan_result.get('error')}"
+                )
             else:
                 self.logger.info(f"No matches for file: {file_path}")
 
@@ -321,7 +332,9 @@ class MultiThreadScanner(BaseScanner):
 
             # Start worker threads
             for i in range(self.num_threads):
-                thread = threading.Thread(target=self._worker_thread, args=(i + 1,), daemon=True)
+                thread = threading.Thread(
+                    target=self._worker_thread, args=(i + 1,), daemon=True
+                )
                 thread.start()
                 self.worker_threads.append(thread)
                 self.logger.info(f"Started scanner thread {i + 1}")
@@ -437,7 +450,9 @@ class MultiThreadScanner(BaseScanner):
                 try:
                     self.scan_file(file_path)
                 except Exception as e:
-                    self.logger.error(f"Thread {thread_id} error scanning {file_path}: {str(e)}")
+                    self.logger.error(
+                        f"Thread {thread_id} error scanning {file_path}: {str(e)}"
+                    )
 
                 # Mark task as done
                 self.file_queue.task_done()

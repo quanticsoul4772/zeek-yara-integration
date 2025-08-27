@@ -155,7 +155,10 @@ Our platform includes step-by-step tutorials designed for hands-on learning.
                 related_topics=["getting_started", "achievements"],
                 quick_actions=[
                     {"action": "show_tutorials", "label": "View Available Tutorials"},
-                    {"action": "start_beginner_tutorial", "label": "Start Beginner Tutorial"},
+                    {
+                        "action": "start_beginner_tutorial",
+                        "label": "Start Beginner Tutorial",
+                    },
                     {"action": "show_progress", "label": "Show My Progress"},
                 ],
             ),
@@ -666,7 +669,12 @@ If automatic detection fails:
                 "dashboard",
             ]
         else:  # advanced
-            relevant_topics = ["configuration", "troubleshooting", "tools_overview", "tutorials"]
+            relevant_topics = [
+                "configuration",
+                "troubleshooting",
+                "tools_overview",
+                "tutorials",
+            ]
 
         return {
             topic_id: self.help_topics[topic_id]
@@ -683,7 +691,9 @@ If automatic detection fails:
         }
         return suggestions.get(issue, f"Issue detected: {issue}")
 
-    def process_help_choice(self, choice: str, topics: Dict[str, HelpTopic]) -> Optional[str]:
+    def process_help_choice(
+        self, choice: str, topics: Dict[str, HelpTopic]
+    ) -> Optional[str]:
         """Process user's help menu choice."""
         choice = choice.strip().lower()
 
@@ -710,7 +720,9 @@ If automatic detection fails:
                     return self.show_help_topic(topic_id)
 
         if self.console:
-            self.console.print(f"❌ Unknown help topic or command: {choice}", style="red")
+            self.console.print(
+                f"❌ Unknown help topic or command: {choice}", style="red"
+            )
         else:
             print(f"Unknown help topic or command: {choice}")
 
@@ -993,9 +1005,7 @@ If automatic detection fails:
         diagnostics = []
 
         # Check Python version
-        python_version = (
-            f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-        )
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         diagnostics.append(f"Python version: {python_version}")
 
         # Check project directory
@@ -1008,7 +1018,9 @@ If automatic detection fails:
         # Check configuration
         config_path = self.project_root / "config" / "educational_config.json"
         config_exists = config_path.exists()
-        diagnostics.append(f"Configuration: {'✅ Found' if config_exists else '❌ Missing'}")
+        diagnostics.append(
+            f"Configuration: {'✅ Found' if config_exists else '❌ Missing'}"
+        )
 
         # Check virtual environment
         venv_path = self.project_root / "venv"

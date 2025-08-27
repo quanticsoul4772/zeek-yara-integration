@@ -65,16 +65,24 @@ class WindowsInstallerBuilder:
         ET.SubElement(
             product,
             "Package",
-            {"InstallerVersion": "200", "Compressed": "yes", "InstallScope": "perMachine"},
+            {
+                "InstallerVersion": "200",
+                "Compressed": "yes",
+                "InstallScope": "perMachine",
+            },
         )
 
         # Media
         ET.SubElement(product, "MediaTemplate", {"EmbedCab": "yes"})
 
         # Directory structure
-        target_dir = ET.SubElement(product, "Directory", {"Id": "TARGETDIR", "Name": "SourceDir"})
+        target_dir = ET.SubElement(
+            product, "Directory", {"Id": "TARGETDIR", "Name": "SourceDir"}
+        )
 
-        program_files = ET.SubElement(target_dir, "Directory", {"Id": "ProgramFilesFolder"})
+        program_files = ET.SubElement(
+            target_dir, "Directory", {"Id": "ProgramFilesFolder"}
+        )
 
         install_folder = ET.SubElement(
             program_files, "Directory", {"Id": "INSTALLFOLDER", "Name": self.app_name}

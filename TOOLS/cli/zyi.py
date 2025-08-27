@@ -2,6 +2,7 @@
 """CLI for Zeek-YARA Integration"""
 import sys
 
+
 def main():
     """Main CLI entry point"""
     if len(sys.argv) > 1:
@@ -21,6 +22,7 @@ def main():
             print(f"Unknown command: {command}")
     else:
         print("ZYI CLI - Use --version, info, status, or demo")
+
 
 if __name__ == "__main__":
     main()

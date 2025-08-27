@@ -13,15 +13,9 @@ import pytest
 
 def pytest_configure(config):
     """Configure pytest with custom markers for platform-specific tests."""
-    config.addinivalue_line(
-        "markers", "linux: mark test to run only on Linux"
-    )
-    config.addinivalue_line(
-        "markers", "macos: mark test to run only on macOS"
-    )
-    config.addinivalue_line(
-        "markers", "windows: mark test to run only on Windows"
-    )
+    config.addinivalue_line("markers", "linux: mark test to run only on Linux")
+    config.addinivalue_line("markers", "macos: mark test to run only on macOS")
+    config.addinivalue_line("markers", "windows: mark test to run only on Windows")
     config.addinivalue_line(
         "markers", "unix: mark test to run only on Unix-like systems (Linux/macOS)"
     )

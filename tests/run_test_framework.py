@@ -48,7 +48,9 @@ def parse_args():
         help="Type of tests to run",
     )
 
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
+    )
 
     return parser.parse_args()
 

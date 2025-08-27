@@ -27,13 +27,13 @@ class TestEducationalContentJob:
 
     def test_required_python_packages_for_educational_tests(self):
         """Test that required packages for educational content testing are available."""
-        required_packages = ['pytest', 'requests', 'markdown']
-        
+        required_packages = ["pytest", "requests", "markdown"]
+
         for package in required_packages:
             result = subprocess.run(
-                ['python', '-c', f'import {package}; print("{package} available")'], 
-                capture_output=True, 
-                text=True
+                ["python", "-c", f'import {package}; print("{package} available")'],
+                capture_output=True,
+                text=True,
             )
             assert result.returncode == 0, f"{package} should be available"
 
@@ -41,7 +41,7 @@ class TestEducationalContentJob:
         """Test that tutorial validation tests exist."""
         project_root = Path(__file__).parent.parent.parent
         testing_dir = project_root / "TESTING" / "educational"
-        
+
         # Look for test files in the educational testing directory
         test_files = list(testing_dir.glob("test_*.py"))
         assert len(test_files) > 0, "Should have educational test files"
@@ -49,8 +49,14 @@ class TestEducationalContentJob:
     def test_code_examples_validation_script_exists(self):
         """Test that code examples validation script exists."""
         project_root = Path(__file__).parent.parent.parent
-        validation_script = project_root / "TOOLS" / "dev-tools" / "documentation" / "validate_examples.py"
-        
+        validation_script = (
+            project_root
+            / "TOOLS"
+            / "dev-tools"
+            / "documentation"
+            / "validate_examples.py"
+        )
+
         # Check if the validation script exists
         if validation_script.exists():
             assert validation_script.is_file(), "validate_examples.py should be a file"
@@ -61,14 +67,14 @@ class TestEducationalContentJob:
         """Test that educational tests are discoverable by pytest."""
         project_root = Path(__file__).parent.parent.parent
         testing_dir = project_root / "TESTING" / "educational"
-        
+
         result = subprocess.run(
-            ['python', '-m', 'pytest', str(testing_dir), '--collect-only', '-q'], 
-            capture_output=True, 
+            ["python", "-m", "pytest", str(testing_dir), "--collect-only", "-q"],
+            capture_output=True,
             text=True,
-            cwd=project_root
+            cwd=project_root,
         )
-        
+
         # It's OK if there are no tests or collection fails - this is validation
         assert result.returncode in [0, 1, 2], "pytest collection should complete"
 
@@ -76,7 +82,7 @@ class TestEducationalContentJob:
         """Test that there are markdown files in EDUCATION directory."""
         project_root = Path(__file__).parent.parent.parent
         education_dir = project_root / "EDUCATION"
-        
+
         if education_dir.exists():
             markdown_files = list(education_dir.rglob("*.md"))
             # It's OK if there are no markdown files yet - this is informational
@@ -88,17 +94,17 @@ class TestEducationalContentJob:
         """Test that external link checking commands work."""
         project_root = Path(__file__).parent.parent.parent
         education_dir = project_root / "EDUCATION"
-        
+
         if not education_dir.exists():
             pytest.skip("EDUCATION directory not found")
-        
+
         # Test the find command structure
         result = subprocess.run(
-            ['find', str(education_dir), '-name', '*.md'], 
-            capture_output=True, 
-            text=True
+            ["find", str(education_dir), "-name", "*.md"],
+            capture_output=True,
+            text=True,
         )
-        
+
         # Should run without error even if no files found
         assert result.returncode == 0, "find command should execute successfully"
 
@@ -106,17 +112,13 @@ class TestEducationalContentJob:
         """Test that grep can find HTTP links in markdown files."""
         project_root = Path(__file__).parent.parent.parent
         education_dir = project_root / "EDUCATION"
-        
+
         if not education_dir.exists():
             pytest.skip("EDUCATION directory not found")
-        
+
         # Test grep command structure
-        result = subprocess.run(
-            ['grep', '--help'], 
-            capture_output=True, 
-            text=True
-        )
-        
+        result = subprocess.run(["grep", "--help"], capture_output=True, text=True)
+
         # Platform-specific behavior: Linux grep --help returns 0, macOS returns 2
         assert result.returncode in [0, 2], "grep should be available"
 
@@ -124,19 +126,21 @@ class TestEducationalContentJob:
         """Test PYTHONPATH configuration for educational tests."""
         project_root = Path(__file__).parent.parent.parent
         platform_path = project_root / "PLATFORM"
-        
+
         if platform_path.exists():
             env = os.environ.copy()
-            env['PYTHONPATH'] = str(platform_path)
-            
+            env["PYTHONPATH"] = str(platform_path)
+
             result = subprocess.run(
-                ['python', '-c', 'import sys; print(sys.path)'], 
-                capture_output=True, 
+                ["python", "-c", "import sys; print(sys.path)"],
+                capture_output=True,
                 text=True,
-                env=env
+                env=env,
             )
-            
-            assert result.returncode == 0, "Should be able to set PYTHONPATH for educational tests"
+
+            assert (
+                result.returncode == 0
+            ), "Should be able to set PYTHONPATH for educational tests"
         else:
             pytest.skip("PLATFORM directory not found")
 
@@ -145,26 +149,26 @@ class TestEducationalContentJob:
         """Test that educational tests can actually run."""
         project_root = Path(__file__).parent.parent.parent
         testing_dir = project_root / "TESTING" / "educational"
-        
+
         if not testing_dir.exists():
             pytest.skip("TESTING/educational directory not found")
-        
+
         # Set up environment
         env = os.environ.copy()
         platform_path = project_root / "PLATFORM"
         if platform_path.exists():
-            env['PYTHONPATH'] = str(platform_path)
-        
+            env["PYTHONPATH"] = str(platform_path)
+
         # Try to run educational tests
         result = subprocess.run(
-            ['python', '-m', 'pytest', str(testing_dir), '-v', '--tb=short'], 
-            capture_output=True, 
+            ["python", "-m", "pytest", str(testing_dir), "-v", "--tb=short"],
+            capture_output=True,
             text=True,
             cwd=project_root,
             env=env,
-            timeout=60  # 1 minute timeout
+            timeout=60,  # 1 minute timeout
         )
-        
+
         # Educational tests may not exist or may fail - this is informational
         if result.returncode != 0:
             print(f"Educational tests output:")
@@ -173,37 +177,45 @@ class TestEducationalContentJob:
             print(f"Stderr: {result.stderr}")
             pytest.skip("Educational tests not available or failing - this is expected")
 
-    @pytest.mark.integration 
+    @pytest.mark.integration
     def test_code_examples_validation_can_run(self):
         """Test that code examples validation can run."""
         project_root = Path(__file__).parent.parent.parent
-        validation_script = project_root / "TOOLS" / "dev-tools" / "documentation" / "validate_examples.py"
+        validation_script = (
+            project_root
+            / "TOOLS"
+            / "dev-tools"
+            / "documentation"
+            / "validate_examples.py"
+        )
         education_dir = project_root / "EDUCATION"
-        
+
         if not validation_script.exists():
             pytest.skip("Code examples validation script not found")
-        
+
         if not education_dir.exists():
             pytest.skip("EDUCATION directory not found")
-        
+
         # Set up environment
         env = os.environ.copy()
-        env['PYTHONPATH'] = str(project_root)
-        
+        env["PYTHONPATH"] = str(project_root)
+
         # Try to run validation script
         result = subprocess.run(
             [
-                'python', str(validation_script), 
-                '--directory', str(education_dir), 
-                '--verbose'
-            ], 
-            capture_output=True, 
+                "python",
+                str(validation_script),
+                "--directory",
+                str(education_dir),
+                "--verbose",
+            ],
+            capture_output=True,
             text=True,
             cwd=project_root,
             env=env,
-            timeout=60  # 1 minute timeout
+            timeout=60,  # 1 minute timeout
         )
-        
+
         # Validation script may not work - this is informational
         if result.returncode != 0:
             print(f"Code examples validation output:")
@@ -216,20 +228,28 @@ class TestEducationalContentJob:
         """Test simulation of external link checking."""
         project_root = Path(__file__).parent.parent.parent
         education_dir = project_root / "EDUCATION"
-        
+
         if not education_dir.exists():
             pytest.skip("EDUCATION directory not found")
-        
+
         # Simulate the CI link checking command
         result = subprocess.run(
             [
-                'find', str(education_dir), '-name', '*.md', 
-                '-exec', 'grep', '-H', 'http', '{}', ';'
-            ], 
-            capture_output=True, 
-            text=True
+                "find",
+                str(education_dir),
+                "-name",
+                "*.md",
+                "-exec",
+                "grep",
+                "-H",
+                "http",
+                "{}",
+                ";",
+            ],
+            capture_output=True,
+            text=True,
         )
-        
+
         # Command should complete (even if no files or links found)
         # Return code 1 is OK if no matches found
         assert result.returncode in [0, 1], "Link checking command should complete"
@@ -237,30 +257,32 @@ class TestEducationalContentJob:
     def test_educational_content_job_requirements(self):
         """Test that educational content job has proper requirements."""
         # Test logical requirements for educational content validation
-        
+
         required_components = {
-            'pytest': 'Test framework',
-            'requests': 'HTTP requests for link checking',
-            'markdown': 'Markdown processing'
+            "pytest": "Test framework",
+            "requests": "HTTP requests for link checking",
+            "markdown": "Markdown processing",
         }
-        
+
         for component, description in required_components.items():
             try:
                 __import__(component)
             except ImportError:
-                pytest.fail(f"Required component {component} ({description}) not available")
+                pytest.fail(
+                    f"Required component {component} ({description}) not available"
+                )
 
     def test_continue_on_error_behavior(self):
         """Test that educational content validation continues on error."""
         # This test validates the continue-on-error behavior from CI
-        
+
         # Educational content validation should be advisory
         # We simulate a command that might fail but should continue
         result = subprocess.run(
-            ['python', '-c', 'print("Educational validation complete")'], 
-            capture_output=True, 
-            text=True
+            ["python", "-c", 'print("Educational validation complete")'],
+            capture_output=True,
+            text=True,
         )
-        
+
         assert result.returncode == 0, "Basic educational validation should work"
         assert "Educational validation complete" in result.stdout

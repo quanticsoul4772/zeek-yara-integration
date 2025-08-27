@@ -267,7 +267,9 @@ class ScannerIntegrationTestCase(CustomTestCase):
 
         # Validate scan results
         assert "scanned" in scan_results, "Scan results missing 'scanned' field"
-        assert scan_results["scanned"] >= len(self.test_files), "Not all files were scanned"
+        assert scan_results["scanned"] >= len(
+            self.test_files
+        ), "Not all files were scanned"
 
         # Record metrics
         result.add_metric("files_scanned", scan_results["scanned"])

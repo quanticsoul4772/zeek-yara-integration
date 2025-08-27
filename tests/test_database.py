@@ -250,14 +250,14 @@ class TestDatabasePerformance:
         speedup = single_time / bulk_time if bulk_time > 0 else float("inf")
 
         # Print results
-        print(
-            f"Single insert time: {single_time:.6f}s for {single_inserts} inserts"
-        )
+        print(f"Single insert time: {single_time:.6f}s for {single_inserts} inserts")
         print(f"Bulk insert time: {bulk_time:.6f}s for {bulk_size} inserts")
         print(f"Speedup: {speedup:.2f}x")
 
         # Verify performance improvement
-        assert speedup > 1.5, "Bulk insert should be at least 50% faster than single inserts"
+        assert (
+            speedup > 1.5
+        ), "Bulk insert should be at least 50% faster than single inserts"
 
     def test_query_performance(self, db_manager, timer):
         """Test query performance with different database sizes"""
@@ -285,7 +285,9 @@ class TestDatabasePerformance:
                     "rule_name": f"rule_{i % 10}",  # 10 different rules
                     # 5 different namespaces
                     "rule_namespace": f"namespace_{i % 5}",
-                    "rule_meta": json.dumps({"description": f"Test rule {i}", "severity": i % 10}),
+                    "rule_meta": json.dumps(
+                        {"description": f"Test rule {i}", "severity": i % 10}
+                    ),
                     "strings_matched": json.dumps([f"string_{i}"]),
                     "severity": i % 10,
                 }
@@ -302,7 +304,9 @@ class TestDatabasePerformance:
 
             # Measure query time with filter
             timer.start()
-            filtered_alerts = db_manager.get_alerts(filters={"rule_namespace": "namespace_1"})
+            filtered_alerts = db_manager.get_alerts(
+                filters={"rule_namespace": "namespace_1"}
+            )
             filter_time = timer.stop().duration
 
             # Record results
@@ -312,7 +316,9 @@ class TestDatabasePerformance:
                     "all_time": all_time,
                     "filter_time": filter_time,
                     "all_per_row": all_time / size if size > 0 else 0,
-                    "filter_per_row": filter_time / len(filtered_alerts) if filtered_alerts else 0,
+                    "filter_per_row": (
+                        filter_time / len(filtered_alerts) if filtered_alerts else 0
+                    ),
                 }
             )
 
@@ -329,7 +335,9 @@ class TestDatabasePerformance:
             )
 
         # Verify performance is acceptable
-        assert query_times[-1]["all_per_row"] < 0.001, "Query time per row should be less than 1ms"
+        assert (
+            query_times[-1]["all_per_row"] < 0.001
+        ), "Query time per row should be less than 1ms"
 
     def test_performance_tracking_decorator(self, db_manager):
         """Test the performance tracking decorator"""

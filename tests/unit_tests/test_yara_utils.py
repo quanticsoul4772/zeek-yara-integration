@@ -244,14 +244,21 @@ rule WhitelistRule {
             whitelisted_file.write("safe_pattern here")
             whitelisted_path = whitelisted_file.name
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as non_whitelisted_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False
+        ) as non_whitelisted_file:
             non_whitelisted_file.write("other content")
             non_whitelisted_path = non_whitelisted_file.name
 
         try:
             # Test whitelisting
-            assert matcher.is_file_whitelisted(whitelisted_path, whitelist_rules) is True
-            assert matcher.is_file_whitelisted(non_whitelisted_path, whitelist_rules) is False
+            assert (
+                matcher.is_file_whitelisted(whitelisted_path, whitelist_rules) is True
+            )
+            assert (
+                matcher.is_file_whitelisted(non_whitelisted_path, whitelist_rules)
+                is False
+            )
 
             # Test with no whitelist rules
             assert matcher.is_file_whitelisted(whitelisted_path, None) is False

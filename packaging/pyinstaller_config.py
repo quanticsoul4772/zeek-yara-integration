@@ -65,7 +65,9 @@ def get_platform_specific_config():
         config.update(
             {
                 "icon": str(PROJECT_ROOT / "packaging" / "assets" / "icon.ico"),
-                "version_file": str(PROJECT_ROOT / "packaging" / "assets" / "version_info.txt"),
+                "version_file": str(
+                    PROJECT_ROOT / "packaging" / "assets" / "version_info.txt"
+                ),
                 "runtime_tmpdir": None,  # Use temp directory
             }
         )

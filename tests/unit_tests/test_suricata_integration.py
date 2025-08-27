@@ -30,7 +30,9 @@ def suricata_config():
     config_file = os.path.join(tempfile.mkdtemp(), "suricata.yaml")
 
     # Create configuration
-    config = SuricataConfig(config_file=config_file, rules_dir=rules_dir, log_dir=log_dir)
+    config = SuricataConfig(
+        config_file=config_file, rules_dir=rules_dir, log_dir=log_dir
+    )
 
     yield config
 
@@ -132,7 +134,9 @@ class TestSuricataRunner:
         c = conn.cursor()
 
         # Check if suricata_alerts table exists
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='suricata_alerts'")
+        c.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='suricata_alerts'"
+        )
         assert c.fetchone() is not None
 
         conn.close()

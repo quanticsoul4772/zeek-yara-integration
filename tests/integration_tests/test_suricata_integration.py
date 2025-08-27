@@ -44,7 +44,9 @@ def test_pcap():
 
             # Try to capture a few packets
             try:
-                subprocess.run(["tcpdump", "-c", "10", "-w", pcap_path], timeout=5, check=False)
+                subprocess.run(
+                    ["tcpdump", "-c", "10", "-w", pcap_path], timeout=5, check=False
+                )
 
                 # Check if PCAP was created
                 if os.path.exists(pcap_path) and os.path.getsize(pcap_path) > 0:
@@ -62,7 +64,9 @@ def test_pcap():
                 b"\xd4\xc3\xb2\xa1\x02\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\x00\x00\x01\x00\x00\x00"
             )
             # Add some dummy packet data
-            f.write(b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00")
+            f.write(
+                b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00"
+            )
             f.write(
                 b"\x45\x00\x00\x1c\x00\x01\x00\x00\x40\x11\x7a\x83\xc0\xa8\x01\x01\xc0\xa8\x01\x02"
             )

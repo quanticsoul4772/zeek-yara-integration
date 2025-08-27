@@ -22,7 +22,9 @@ def read_requirements(filename):
     req_path = PROJECT_ROOT / filename
     if req_path.exists():
         with open(req_path, "r") as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            return [
+                line.strip() for line in f if line.strip() and not line.startswith("#")
+            ]
     return []
 
 
@@ -105,7 +107,8 @@ setup_config = {
     },
     # Package discovery
     "packages": find_packages(
-        where=str(PROJECT_ROOT), exclude=["tests", "tests.*", "packaging", "packaging.*"]
+        where=str(PROJECT_ROOT),
+        exclude=["tests", "tests.*", "packaging", "packaging.*"],
     ),
     "package_dir": {"": str(PROJECT_ROOT)},
     "package_data": {

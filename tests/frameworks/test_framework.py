@@ -26,7 +26,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(os.path.join("logs", "tests.log")), logging.StreamHandler()],
+    handlers=[
+        logging.FileHandler(os.path.join("logs", "tests.log")),
+        logging.StreamHandler(),
+    ],
 )
 
 logger = logging.getLogger("zeek_yara.test_framework")

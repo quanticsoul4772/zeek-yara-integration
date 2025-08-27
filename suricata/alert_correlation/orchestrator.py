@@ -36,7 +36,9 @@ class AlertCorrelator:
 
         # Database configuration
         self.db_file = config.get("DB_FILE", "logs/alerts.db")
-        self.correlation_window = config.get("CORRELATION_WINDOW", 300)  # 5 minutes by default
+        self.correlation_window = config.get(
+            "CORRELATION_WINDOW", 300
+        )  # 5 minutes by default
         self.min_alert_confidence = config.get("MIN_ALERT_CONFIDENCE", 70)
 
         # Initialize database manager
@@ -50,10 +52,14 @@ class AlertCorrelator:
         self.correlation_strategies = [
             IPCorrelationStrategy(connection_info_resolver=self._get_connection_info),
             HashCorrelationStrategy(),
-            TimeProximityCorrelationStrategy(time_window=config.get("TIME_PROXIMITY_WINDOW", 60)),
+            TimeProximityCorrelationStrategy(
+                time_window=config.get("TIME_PROXIMITY_WINDOW", 60)
+            ),
         ]
 
-    def correlate_alerts(self, time_window: Optional[int] = None) -> List[Dict[str, Any]]:
+    def correlate_alerts(
+        self, time_window: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """
         Correlate alerts from different sources based on various correlation factors
 
@@ -89,7 +95,9 @@ class AlertCorrelator:
             correlated_groups.extend(hash_groups)
 
             # 3. Time-proximity correlation
-            time_groups = self._correlate_by_time_proximity(yara_alerts, suricata_alerts)
+            time_groups = self._correlate_by_time_proximity(
+                yara_alerts, suricata_alerts
+            )
             correlated_groups.extend(time_groups)
 
             # Store correlated alerts in database
@@ -102,7 +110,10 @@ class AlertCorrelator:
             return []
 
     def get_correlated_alerts(
-        self, filters: Optional[Dict[str, Any]] = None, limit: Optional[int] = None, offset: int = 0
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: Optional[int] = None,
+        offset: int = 0,
     ) -> List[Dict[str, Any]]:
         """
         Retrieve correlated alerts from database
@@ -169,7 +180,9 @@ class AlertCorrelator:
         """
         try:
             # Use the IP correlation strategy
-            return self.correlation_strategies[0].correlate(yara_alerts, suricata_alerts)
+            return self.correlation_strategies[0].correlate(
+                yara_alerts, suricata_alerts
+            )
         except Exception as e:
             self.logger.error(f"Error in IP correlation: {e}")
             return []
@@ -189,7 +202,9 @@ class AlertCorrelator:
         """
         try:
             # Use the hash correlation strategy
-            return self.correlation_strategies[1].correlate(yara_alerts, suricata_alerts)
+            return self.correlation_strategies[1].correlate(
+                yara_alerts, suricata_alerts
+            )
         except Exception as e:
             self.logger.error(f"Error in hash correlation: {e}")
             return []
@@ -209,7 +224,9 @@ class AlertCorrelator:
         """
         try:
             # Use the time proximity correlation strategy
-            return self.correlation_strategies[2].correlate(yara_alerts, suricata_alerts)
+            return self.correlation_strategies[2].correlate(
+                yara_alerts, suricata_alerts
+            )
         except Exception as e:
             self.logger.error(f"Error in time proximity correlation: {e}")
             return []

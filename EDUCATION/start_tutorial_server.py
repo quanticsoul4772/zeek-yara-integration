@@ -13,7 +13,9 @@ sys.path.append(str(Path(__file__).parent.parent))
 try:
     from tutorial_web_server import TutorialWebServer
 except ImportError:
-    print("Error: Could not import tutorial_web_server. Please check your installation.")
+    print(
+        "Error: Could not import tutorial_web_server. Please check your installation."
+    )
     sys.exit(1)
 
 

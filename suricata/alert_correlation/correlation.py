@@ -23,7 +23,9 @@ class IPCorrelationStrategy(CorrelationStrategy):
         Args:
             connection_info_resolver (callable, optional): Function to resolve connection info
         """
-        self._connection_info_resolver = connection_info_resolver or self._default_connection_info
+        self._connection_info_resolver = (
+            connection_info_resolver or self._default_connection_info
+        )
 
     def correlate(
         self, yara_alerts: List[Dict[str, Any]], suricata_alerts: List[Dict[str, Any]]
@@ -86,7 +88,8 @@ class IPCorrelationStrategy(CorrelationStrategy):
             if matching_alerts:
                 # Deduplicate alerts
                 unique_alerts = {
-                    f"{alert['source']}_{alert['id']}": alert for alert in matching_alerts
+                    f"{alert['source']}_{alert['id']}": alert
+                    for alert in matching_alerts
                 }
 
                 # Create correlation group
@@ -105,7 +108,9 @@ class IPCorrelationStrategy(CorrelationStrategy):
 
         return correlated_groups
 
-    def _default_connection_info(self, alert: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _default_connection_info(
+        self, alert: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """
         Default method to generate connection information
 
@@ -195,7 +200,8 @@ class HashCorrelationStrategy(CorrelationStrategy):
             if matching_alerts:
                 # Deduplicate alerts
                 unique_alerts = {
-                    f"{alert['source']}_{alert['id']}": alert for alert in matching_alerts
+                    f"{alert['source']}_{alert['id']}": alert
+                    for alert in matching_alerts
                 }
 
                 # Create correlation group
@@ -269,7 +275,8 @@ class TimeProximityCorrelationStrategy(CorrelationStrategy):
             matching_alerts = [
                 suricata_alert
                 for suricata_alert in suricata_alerts
-                if abs((yara_time - suricata_alert["datetime"]).total_seconds()) <= self.time_window
+                if abs((yara_time - suricata_alert["datetime"]).total_seconds())
+                <= self.time_window
             ]
 
             # If matches found, create a correlation group

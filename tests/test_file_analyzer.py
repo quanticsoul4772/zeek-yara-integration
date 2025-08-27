@@ -55,7 +55,9 @@ class TestFileAnalyzer:
             assert len(mime_type) > 0
 
         # Specific checks
-        assert file_analyzer.get_mime_type(test_files["paths"]["text.txt"]).startswith("text/")
+        assert file_analyzer.get_mime_type(test_files["paths"]["text.txt"]).startswith(
+            "text/"
+        )
         assert (
             file_analyzer.get_mime_type(test_files["paths"]["binary.bin"])
             == "application/octet-stream"

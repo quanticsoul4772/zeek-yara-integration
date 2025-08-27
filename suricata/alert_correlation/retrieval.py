@@ -13,7 +13,9 @@ from .base import AlertRetriever
 class YaraAlertRetriever(AlertRetriever):
     """Retrieves YARA alerts from the database"""
 
-    def get_alerts(self, conn: sqlite3.Connection, start_time: str) -> List[Dict[str, Any]]:
+    def get_alerts(
+        self, conn: sqlite3.Connection, start_time: str
+    ) -> List[Dict[str, Any]]:
         """
         Retrieve YARA alerts from database
 
@@ -71,7 +73,9 @@ class YaraAlertRetriever(AlertRetriever):
 class SuricataAlertRetriever(AlertRetriever):
     """Retrieves Suricata alerts from the database"""
 
-    def get_alerts(self, conn: sqlite3.Connection, start_time: str) -> List[Dict[str, Any]]:
+    def get_alerts(
+        self, conn: sqlite3.Connection, start_time: str
+    ) -> List[Dict[str, Any]]:
         """
         Retrieve Suricata alerts from database
 

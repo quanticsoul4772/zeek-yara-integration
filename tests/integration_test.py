@@ -32,14 +32,18 @@ def parse_args():
 
     parser.add_argument("--config", "-c", help="Config file to use")
 
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose output"
+    )
 
     parser.add_argument(
         "--multi-threaded", "-m", action="store_true", help="Use multi-threaded scanner"
     )
 
     parser.add_argument(
-        "--clean", action="store_true", help="Clean extracted files directory before testing"
+        "--clean",
+        action="store_true",
+        help="Clean extracted files directory before testing",
     )
 
     return parser.parse_args()
@@ -131,7 +135,9 @@ def main():
 
     # Run the test
     logger.info("Starting integration test")
-    success = run_test(config, use_multi_threaded=args.multi_threaded, verbose=args.verbose)
+    success = run_test(
+        config, use_multi_threaded=args.multi_threaded, verbose=args.verbose
+    )
 
     if success:
         logger.info("Integration test passed!")

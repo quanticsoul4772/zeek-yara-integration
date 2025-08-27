@@ -113,7 +113,9 @@ class ConfigManager:
 
     def is_first_run(self) -> bool:
         """Check if this is the first run."""
-        return not self.config_path.exists() or not self.config.get("SETUP_COMPLETED", False)
+        return not self.config_path.exists() or not self.config.get(
+            "SETUP_COMPLETED", False
+        )
 
     def get_mode(self) -> str:
         """Get current platform mode."""
@@ -188,7 +190,9 @@ class ServiceManager:
             from core.scanner import YaraScanner
 
             scanner = YaraScanner(self.config)
-            scanner_thread = threading.Thread(target=scanner.start_monitoring, daemon=True)
+            scanner_thread = threading.Thread(
+                target=scanner.start_monitoring, daemon=True
+            )
             scanner_thread.start()
             self.services["yara_scanner"] = scanner_thread
 
@@ -311,7 +315,9 @@ Let's explore each section together!
 
                 return Confirm.ask("Continue to next step?", default=True)
             else:
-                self.console.print("🎉 Tutorial completed! You're ready to explore on your own.")
+                self.console.print(
+                    "🎉 Tutorial completed! You're ready to explore on your own."
+                )
                 return False
         else:
             print(f"\n=== Tutorial: {step['title']} ===")
@@ -351,10 +357,14 @@ Let's explore each section together!
             tools_table.add_column("What it does", style="yellow")
 
             tools_table.add_row(
-                "Zeek", "Network Monitoring", "Watches traffic, extracts files, logs connections"
+                "Zeek",
+                "Network Monitoring",
+                "Watches traffic, extracts files, logs connections",
             )
             tools_table.add_row(
-                "YARA", "Malware Detection", "Scans files for malicious patterns and signatures"
+                "YARA",
+                "Malware Detection",
+                "Scans files for malicious patterns and signatures",
             )
             tools_table.add_row(
                 "Suricata",
@@ -370,7 +380,9 @@ Let's explore each section together!
 
         # Create EICAR test file for demonstration
         eicar_path = Path(self.config.get("EXTRACT_DIR", "/tmp")) / "eicar_test.txt"
-        eicar_content = "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+        eicar_content = (
+            "X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+        )
 
         try:
             eicar_path.parent.mkdir(exist_ok=True)
@@ -459,7 +471,9 @@ Perfect for students, educators, and security professionals.
 
                 from rich.prompt import Confirm
 
-                run_setup = Confirm.ask("Would you like to run the setup wizard?", default=True)
+                run_setup = Confirm.ask(
+                    "Would you like to run the setup wizard?", default=True
+                )
             else:
                 print("First time setup required!")
                 response = input("Run setup wizard? (y/n) [y]: ").strip().lower()
@@ -504,7 +518,9 @@ Perfect for students, educators, and security professionals.
             # Platform info
             mode = config.get("PLATFORM_MODE", "educational")
             experience = config.get("EXPERIENCE_LEVEL", "beginner")
-            status_table.add_row("Platform Mode", mode.title(), f"Experience: {experience}")
+            status_table.add_row(
+                "Platform Mode", mode.title(), f"Experience: {experience}"
+            )
 
             # Tools status
             tools = config.get("TOOLS_ENABLED", {})
@@ -523,7 +539,7 @@ Perfect for students, educators, and security professionals.
             print("-" * 40)
             print(f"Mode: {config.get('PLATFORM_MODE', 'educational').title()}")
             print(
-                 f"Experience Level: {config.get( 'EXPERIENCE_LEVEL', 'beginner').title()}"
+                f"Experience Level: {config.get( 'EXPERIENCE_LEVEL', 'beginner').title()}"
             )
 
             tools = config.get("TOOLS_ENABLED", {})
@@ -570,7 +586,9 @@ Perfect for students, educators, and security professionals.
             from rich.prompt import Prompt
 
             choice = Prompt.ask(
-                "Choose an option", choices=[opt[0] for opt in menu_options], default="2"
+                "Choose an option",
+                choices=[opt[0] for opt in menu_options],
+                default="2",
             )
         else:
             print("\nMain Menu:")
@@ -579,9 +597,7 @@ Perfect for students, educators, and security professionals.
 
             valid_choices = [opt[0] for opt in menu_options]
             choice = (
-                input(
-                     f"Choose an option ({'/'.join(valid_choices)}) [2]: "
-                ).strip()
+                input(f"Choose an option ({'/'.join(valid_choices)}) [2]: ").strip()
                 or "2"
             )
 
@@ -631,7 +647,9 @@ Perfect for students, educators, and security professionals.
             webbrowser.open(url)
 
             if self.config_manager.is_beginner_mode():
-                self.log("💡 Tip: The dashboard shows real-time security monitoring!", "info")
+                self.log(
+                    "💡 Tip: The dashboard shows real-time security monitoring!", "info"
+                )
 
         except Exception as e:
             self.log(f"Failed to open dashboard: {e}", "error")
@@ -718,9 +736,15 @@ Perfect for students, educators, and security professionals.
                 if self.console:
                     from rich.prompt import Confirm
 
-                    start_tutorial = Confirm.ask("Start the beginner tutorial?", default=True)
+                    start_tutorial = Confirm.ask(
+                        "Start the beginner tutorial?", default=True
+                    )
                 else:
-                    response = input("Start the beginner tutorial? (y/n) [y]: ").strip().lower()
+                    response = (
+                        input("Start the beginner tutorial? (y/n) [y]: ")
+                        .strip()
+                        .lower()
+                    )
                     start_tutorial = response != "n"
 
                 if start_tutorial:
@@ -755,11 +779,15 @@ Perfect for students, educators, and security professionals.
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Zeek-YARA Educational Security Platform")
+    parser = argparse.ArgumentParser(
+        description="Zeek-YARA Educational Security Platform"
+    )
     parser.add_argument("--setup", action="store_true", help="Run setup wizard")
     parser.add_argument("--demo", action="store_true", help="Run detection demo")
     parser.add_argument("--tutorial", action="store_true", help="Start tutorial")
-    parser.add_argument("--web-only", action="store_true", help="Start web interface only")
+    parser.add_argument(
+        "--web-only", action="store_true", help="Start web interface only"
+    )
 
     args = parser.parse_args()
 

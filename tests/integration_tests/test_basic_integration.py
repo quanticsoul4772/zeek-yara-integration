@@ -1,4 +1,5 @@
 """Basic integration tests"""
+
 import os
 import tempfile
 

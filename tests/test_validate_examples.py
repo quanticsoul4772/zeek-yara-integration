@@ -16,7 +16,10 @@ from unittest.mock import patch
 import pytest
 
 sys.path.insert(
-    0, os.path.join(os.path.dirname(__file__), "..", "TOOLS", "dev-tools", "documentation")
+    0,
+    os.path.join(
+        os.path.dirname(__file__), "..", "TOOLS", "dev-tools", "documentation"
+    ),
 )
 
 from validate_examples import (
@@ -38,7 +41,10 @@ class TestCodeBlock:
     def test_code_block_initialization(self):
         """Test CodeBlock initialization"""
         block = CodeBlock(
-            code="print('hello')", language="python", file_path="/test/file.md", line_number=5
+            code="print('hello')",
+            language="python",
+            file_path="/test/file.md",
+            line_number=5,
         )
 
         assert block.code == "print('hello')"
@@ -410,7 +416,9 @@ name: test
         block = CodeBlock(yaml_code, "yaml", "/test.md", 1)
 
         # Mock the import to raise ImportError
-        with patch("builtins.__import__", side_effect=ImportError("No module named yaml")):
+        with patch(
+            "builtins.__import__", side_effect=ImportError("No module named yaml")
+        ):
             result = validate_json_yaml(block)
 
             assert result.is_valid is True  # No error, just warning
