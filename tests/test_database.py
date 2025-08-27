@@ -251,8 +251,7 @@ class TestDatabasePerformance:
 
         # Print results
         print(
-            f"Single insert time: {
-                single_time:.6f}s for {single_inserts} inserts"
+            f"Single insert time: {single_time:.6f}s for {single_inserts} inserts"
         )
         print(f"Bulk insert time: {bulk_time:.6f}s for {bulk_size} inserts")
         print(f"Speedup: {speedup:.2f}x")
@@ -321,16 +320,12 @@ class TestDatabasePerformance:
         for result in query_times:
             print(f"Database size: {result['size']} alerts")
             print(
-                f"  All alerts query: {
-                    result['all_time']:.6f}s ({
-                    result['all_per_row'] *
-                    1000:.2f}ms per row)"
+                f"  All alerts query: {result['all_time']:.6f}s "
+                f"({result['all_per_row'] * 1000:.2f}ms per row)"
             )
             print(
-                f"  Filtered query: {
-                    result['filter_time']:.6f}s ({
-                    result['filter_per_row'] *
-                    1000:.2f}ms per row)"
+                f"  Filtered query: {result['filter_time']:.6f}s "
+                f"({result['filter_per_row'] * 1000:.2f}ms per row)"
             )
 
         # Verify performance is acceptable
