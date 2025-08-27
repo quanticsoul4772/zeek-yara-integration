@@ -150,9 +150,8 @@ class TestFileAnalyzerPerformance:
         # Calculate improvement percentage
         improvement = (1 - (cached_time / uncached_time)) * 100
         print(
-            f"LRU Cache Performance: Uncached: {
-                uncached_time:.6f}s, Cached: {
-                cached_time:.6f}s"
+            f"LRU Cache Performance: Uncached: {uncached_time:.6f}s, "
+            f"Cached: {cached_time:.6f}s"
         )
         print(f"Performance improvement: {improvement:.2f}%")
 
@@ -172,9 +171,8 @@ class TestFileAnalyzerPerformance:
         # Calculate per-file time
         per_file_time = duration / (5 * len(test_files["files"]))
         print(
-            f"Metadata extraction: {
-                duration:.6f}s total, {
-                per_file_time:.6f}s per file"
+            f"Metadata extraction: {duration:.6f}s total, "
+            f"{per_file_time:.6f}s per file"
         )
 
         # Should be reasonably fast (<50ms per file)

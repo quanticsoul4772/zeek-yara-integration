@@ -529,9 +529,10 @@ class TestScannerPerformance:
                 unfiltered_per_file = unfiltered_time / unfiltered_result["scanned"]
                 assert (
                     filtered_per_file <= unfiltered_per_file * 2.5
-                ), f"Filtered scan ({filtered_per_file *
-                                                1000:.2f}ms/file) should be efficient compared to unfiltered ({unfiltered_per_file *
-                                                                                                               1000:.2f}ms/file)"
+                ), (
+                    f"Filtered scan ({filtered_per_file * 1000:.2f}ms/file) should be efficient "
+                    f"compared to unfiltered ({unfiltered_per_file * 1000:.2f}ms/file)"
+                )
 
         finally:
             # Clean up
