@@ -95,6 +95,7 @@ sqlalchemy>=2.0.0
 requests>=2.28.0
 ```
 
+<a id="cross-platform-installation"></a>
 ## Installation
 
 The platform supports Windows, macOS, Linux, and containerized deployments. Choose your preferred installation method:
