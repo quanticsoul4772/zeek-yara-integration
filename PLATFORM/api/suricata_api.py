@@ -16,6 +16,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from suricata.alert_correlation import AlertCorrelator
+
 # Import application components
 from suricata.suricata_integration import SuricataRunner
 
@@ -286,9 +287,9 @@ async def get_suricata_alerts(
         if dest_ip:
             filters["dest_ip"] = dest_ip
         if start_date:
-            filters[
-                "timestamp"
-            ] = start_date  # This is a simplification, actual implementation might need more logic
+            filters["timestamp"] = (
+                start_date  # This is a simplification, actual implementation might need more logic
+            )
 
         # Get alerts
         alerts = suricata_runner.get_alerts(filters, limit, offset)

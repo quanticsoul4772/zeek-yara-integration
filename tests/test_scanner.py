@@ -19,8 +19,11 @@ from queue import Queue
 import pytest
 
 from PLATFORM.core.database import DatabaseManager
-from PLATFORM.core.scanner import (FileEventHandler, MultiThreadScanner,
-                                   SingleThreadScanner)
+from PLATFORM.core.scanner import (
+    FileEventHandler,
+    MultiThreadScanner,
+    SingleThreadScanner,
+)
 from utils.file_utils import FileAnalyzer
 from utils.yara_utils import RuleManager, YaraMatcher
 

@@ -1011,8 +1011,7 @@ If automatic detection fails:
         # Check project directory
         project_exists = self.project_root.exists()
         diagnostics.append(
-            f"Project directory: {
-                '✅ Found' if project_exists else '❌ Missing'}"
+            f"Project directory: {'✅ Found' if project_exists else '❌ Missing'}"
         )
 
         # Check configuration
@@ -1026,8 +1025,7 @@ If automatic detection fails:
         venv_path = self.project_root / "venv"
         venv_exists = venv_path.exists()
         diagnostics.append(
-            f"Virtual environment: {
-                '✅ Found' if venv_exists else '❌ Missing'}"
+            f"Virtual environment: {'✅ Found' if venv_exists else '❌ Missing'}"
         )
 
         # Display results

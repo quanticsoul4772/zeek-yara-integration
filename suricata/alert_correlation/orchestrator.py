@@ -10,8 +10,11 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from .base import AlertDatabaseManager
-from .correlation import (HashCorrelationStrategy, IPCorrelationStrategy,
-                          TimeProximityCorrelationStrategy)
+from .correlation import (
+    HashCorrelationStrategy,
+    IPCorrelationStrategy,
+    TimeProximityCorrelationStrategy,
+)
 from .retrieval import SuricataAlertRetriever, YaraAlertRetriever
 
 
