@@ -9,12 +9,16 @@ Tests for the automated file cleanup functionality.
 
 import datetime
 import os
+import sys
 import tempfile
 import threading
 import time
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
+
+# Add project root to Python path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import pytest
 

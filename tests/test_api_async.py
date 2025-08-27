@@ -14,13 +14,14 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient
 
+# Add project root to Python path for imports
 sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "PLATFORM"))
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
 
-from api.api_server import app
-from core.database import DatabaseManager
-from core.scanner import SingleThreadScanner
+from PLATFORM.api.api_server import app
+from PLATFORM.core.database import DatabaseManager
+from PLATFORM.core.scanner import SingleThreadScanner
 
 
 @pytest.fixture

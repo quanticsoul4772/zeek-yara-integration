@@ -16,6 +16,9 @@ import threading
 import time
 from queue import Queue
 
+# Ensure project root is in path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import pytest
 
 from PLATFORM.core.database import DatabaseManager
@@ -26,9 +29,6 @@ from PLATFORM.core.scanner import (
 )
 from utils.file_utils import FileAnalyzer
 from utils.yara_utils import RuleManager, YaraMatcher
-
-# Ensure project root is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 # Unit tests for the Scanner
