@@ -287,9 +287,9 @@ async def get_suricata_alerts(
         if dest_ip:
             filters["dest_ip"] = dest_ip
         if start_date:
-            filters["timestamp"] = (
-                start_date  # This is a simplification, actual implementation might need more logic
-            )
+            filters[
+                "timestamp"
+            ] = start_date  # This is a simplification, actual implementation might need more logic
 
         # Get alerts
         alerts = suricata_runner.get_alerts(filters, limit, offset)

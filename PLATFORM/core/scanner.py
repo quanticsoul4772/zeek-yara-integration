@@ -949,12 +949,12 @@ class MultiThreadScanner(BaseScanner):
                     ):
                         scan_times_list = list(self.performance_stats["scan_times"])
                         if scan_times_list:
-                            self.performance_stats["cached_median_scan_time"] = (
-                                statistics.median(scan_times_list)
-                            )
-                        self.performance_stats["last_median_calculation"] = (
-                            self.performance_stats["sample_count"]
-                        )
+                            self.performance_stats[
+                                "cached_median_scan_time"
+                            ] = statistics.median(scan_times_list)
+                        self.performance_stats[
+                            "last_median_calculation"
+                        ] = self.performance_stats["sample_count"]
 
                 # Mark task as done
                 self.file_queue.task_done()
