@@ -15,9 +15,7 @@ import pytest_asyncio
 from httpx import AsyncClient
 
 # Add project root to Python path for imports
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from PLATFORM.api.api_server import app
 from PLATFORM.core.database import DatabaseManager
