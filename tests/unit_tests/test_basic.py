@@ -13,6 +13,9 @@ def test_placeholder():
     assert 1 + 1 == 2
 
 def test_no_py_typed_files():
-    """Ensure no py.typed files exist in repository."""
-    py_typed_files = list(Path('.').rglob('py.typed'))
+    """Ensure no py.typed files exist in repository (excluding venv)."""
+    py_typed_files = [
+        f for f in Path('.').rglob('py.typed') 
+        if 'venv' not in str(f) and '.git' not in str(f)
+    ]
     assert len(py_typed_files) == 0, f"Found py.typed files: {py_typed_files}"
