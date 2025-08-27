@@ -23,8 +23,14 @@ wheels/
 # Log files
 *.log
 
-# Runtime directories (optional - uncomment if needed)
-# extracted_files/
+# Runtime directories 
+extracted_files/*
+!extracted_files/.gitkeep
+extract_files/*
+!extract_files/__init__.py
+zeek_files/*
+logs/*.log
+logs/suricata/*.json
 
 # Test coverage
 .coverage
@@ -73,3 +79,6 @@ test_results/
 
 # Documentation site
 site/
+
+# Claude development file
+CLAUDE.md
