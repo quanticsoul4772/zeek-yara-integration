@@ -332,8 +332,7 @@ async def get_suricata_alerts(
         logging.error(f"Error retrieving Suricata alerts: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving Suricata alerts: {
-                str(e)}",
+            detail=f"Error retrieving Suricata alerts: {str(e)}",
         )
 
 
@@ -481,6 +480,5 @@ async def get_correlated_alerts(
         logging.error(f"Error retrieving correlated alerts: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving correlated alerts: {
-                str(e)}",
+            detail=f"Error retrieving correlated alerts: {str(e)}",
         )

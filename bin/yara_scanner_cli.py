@@ -171,8 +171,7 @@ def main():
 
             logger.info(
                 f"Directory scan complete: {results.get( 'scanned', 0)} files scanned, "
-                f"{results.get( 'matched',
-                        0)} matches found"
+                f"{results.get('matched', 0)} matches found"
             )
 
             if results.get("error"):

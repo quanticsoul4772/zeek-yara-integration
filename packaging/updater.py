@@ -224,8 +224,7 @@ class UpdateManager:
                         if total_size > 0:
                             progress = (downloaded / total_size) * 100
                             print(
-                                f"\\rDownload progress: {
-                                    progress:.1f}%",
+                                f"\\rDownload progress: {progress:.1f}%",
                                 end="",
                                 flush=True,
                             )

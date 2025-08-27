@@ -30,8 +30,7 @@ class MacOSDMGBuilder:
         # Package metadata
         self.app_name = VERSION_INFO["name"]
         self.app_version = VERSION_INFO["version"]
-        self.bundle_id = f"com.{
-            VERSION_INFO['author'].lower()}.zeekyaraeducational"
+        self.bundle_id = f"com.{VERSION_INFO['author'].lower()}.zeekyaraeducational"
 
         # Derived paths
         self.app_bundle = self.macos_dir / f"{self.app_name}.app"

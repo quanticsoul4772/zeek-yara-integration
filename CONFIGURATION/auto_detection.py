@@ -1110,9 +1110,7 @@ def main():
 
     print("\n=== System Environment ===")
     print(
-        f"Platform: {
-            env_info['platform']['system']} {
-            env_info['platform']['release']}"
+        f"Platform: {env_info['platform']['system']} {env_info['platform']['release']}"
     )
     print(f"Python: {env_info['platform']['python_version']}")
     print(f"Architecture: {env_info['platform']['architecture'][0]}")
