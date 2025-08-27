@@ -2,10 +2,11 @@
 Test CI workflow configuration and structure.
 """
 
-import pytest
-import yaml
 import os
 from pathlib import Path
+
+import pytest
+import yaml
 
 
 class TestWorkflowConfiguration:

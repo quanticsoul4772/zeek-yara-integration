@@ -2,13 +2,14 @@
 Test CI environment simulation and end-to-end workflow validation.
 """
 
-import pytest
-import subprocess
 import os
 import platform
+import subprocess
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
 
 
 class TestCIEnvironmentSimulation:

@@ -2,10 +2,11 @@
 Test CI documentation build job validation.
 """
 
-import pytest
-import subprocess
 import os
+import subprocess
 from pathlib import Path
+
+import pytest
 
 
 class TestDocumentationBuildJob:

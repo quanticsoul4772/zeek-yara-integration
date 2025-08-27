@@ -20,9 +20,9 @@ import uuid
 from typing import Any, Dict, Optional
 
 import requests
-from fastapi import FastAPI, HTTPException
-import uvicorn
 import urllib3
+import uvicorn
+from fastapi import FastAPI, HTTPException
 
 # Disable SSL warnings for development (still enforces SSL verification)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

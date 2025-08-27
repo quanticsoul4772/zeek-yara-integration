@@ -20,8 +20,8 @@ from queue import Empty, Queue
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from core.database import DatabaseManager
 from core.cleanup_manager import FileCleanupManager
+from core.database import DatabaseManager
 from utils.file_utils import FileAnalyzer
 from utils.yara_utils import RuleManager, YaraMatcher
 
@@ -947,15 +947,14 @@ class MultiThreadScanner(BaseScanner):
                         - self.performance_stats["last_median_calculation"]
                         >= self.performance_stats["median_calculation_interval"]
                     ):
-
                         scan_times_list = list(self.performance_stats["scan_times"])
                         if scan_times_list:
-                            self.performance_stats["cached_median_scan_time"] = (
-                                statistics.median(scan_times_list)
-                            )
-                        self.performance_stats["last_median_calculation"] = (
-                            self.performance_stats["sample_count"]
-                        )
+                            self.performance_stats[
+                                "cached_median_scan_time"
+                            ] = statistics.median(scan_times_list)
+                        self.performance_stats[
+                            "last_median_calculation"
+                        ] = self.performance_stats["sample_count"]
 
                 # Mark task as done
                 self.file_queue.task_done()

@@ -29,14 +29,14 @@ except ImportError:
     RABBITMQ_AVAILABLE = False
 
 try:
-    from kafka import KafkaProducer, KafkaConsumer
+    from kafka import KafkaConsumer, KafkaProducer
 
     KAFKA_AVAILABLE = True
 except ImportError:
     KAFKA_AVAILABLE = False
 
 from queue import Empty, Queue
-from threading import Lock, Event
+from threading import Event, Lock
 
 
 class MessageQueueType(Enum):

@@ -3,14 +3,14 @@ Simple async test examples demonstrating pytest-asyncio usage
 This file shows the basic pattern requested in the GitHub issue
 """
 
-import pytest
 import asyncio
-from httpx import AsyncClient
-from unittest.mock import patch
-
+import os
 # Import the FastAPI app
 import sys
-import os
+from unittest.mock import patch
+
+import pytest
+from httpx import AsyncClient
 
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "PLATFORM"))

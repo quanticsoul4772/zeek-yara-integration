@@ -15,9 +15,7 @@ import sys
 import time
 
 from config.config import Config
-from tests.frameworks.test_cases import (
-    create_test_suites,
-)
+from tests.frameworks.test_cases import create_test_suites
 from tests.frameworks.test_framework import CustomTestRunner
 
 # Ensure project root is in path

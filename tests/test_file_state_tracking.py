@@ -4,12 +4,11 @@ Test file processing state tracking functionality.
 """
 
 import os
+import sys
 import tempfile
 import time
 import unittest
 from unittest.mock import Mock, patch
-
-import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 

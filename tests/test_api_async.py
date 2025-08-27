@@ -4,14 +4,14 @@ Async test cases for FastAPI endpoints using pytest-asyncio
 
 import json
 import os
+# Import the FastAPI app and components
+import sys
 import tempfile
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from unittest.mock import Mock, patch, AsyncMock
-
-# Import the FastAPI app and components
-import sys
 
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "PLATFORM"))
@@ -95,7 +95,6 @@ class TestAsyncAPIEndpoints:
         ), patch("api.api_server.rule_manager") as mock_rule_manager, patch(
             "api.api_server.suricata_runner"
         ) as mock_suricata:
-
             # Setup mocks
             mock_rule_manager.get_rule_list.return_value = ["rule1", "rule2"]
             mock_suricata.get_status.return_value = {
@@ -220,7 +219,6 @@ class TestAsyncAPIEndpoints:
             with patch("api.api_server.config", mock_config), patch(
                 "api.api_server.scanner"
             ) as mock_scanner:
-
                 # Setup mock scanner
                 mock_scanner_instance = Mock(spec=SingleThreadScanner)
                 mock_scanner_instance.scan_file.return_value = {
@@ -256,7 +254,6 @@ class TestAsyncAPIEndpoints:
         with patch("api.api_server.config", mock_config), patch(
             "api.api_server.SingleThreadScanner"
         ) as mock_scanner_class:
-
             mock_scanner = Mock()
             mock_scanner.start_monitoring.return_value = True
             mock_scanner_class.return_value = mock_scanner
@@ -370,7 +367,6 @@ class TestAsyncAPIEndpoints:
             ), patch(
                 "os.listdir", return_value=["file1.txt", "file2.bin"]
             ):
-
                 # Mock scanner attributes
                 mock_scanner.running = True
                 mock_scanner.__class__.__name__ = "MultiThreadScanner"
@@ -459,7 +455,6 @@ class TestAsyncAPIEndpoints:
         }
 
         with patch("builtins.open"), patch("json.dump"):
-
             async with client:
                 response = await client.post(
                     "/webhook/config",

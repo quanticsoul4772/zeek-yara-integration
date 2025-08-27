@@ -2,11 +2,12 @@
 Test CI lint and format job validation.
 """
 
-import pytest
-import subprocess
 import os
+import subprocess
 import tempfile
 from pathlib import Path
+
+import pytest
 
 
 class TestLintFormatJob:

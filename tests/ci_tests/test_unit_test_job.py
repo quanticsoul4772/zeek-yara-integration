@@ -2,11 +2,12 @@
 Test CI unit test job validation.
 """
 
-import pytest
-import subprocess
 import os
 import platform
+import subprocess
 from pathlib import Path
+
+import pytest
 
 
 class TestUnitTestJob:

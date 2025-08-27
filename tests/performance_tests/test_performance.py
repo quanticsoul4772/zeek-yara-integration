@@ -1,6 +1,7 @@
 """Performance tests"""
 
 import time
+
 import pytest
 
 

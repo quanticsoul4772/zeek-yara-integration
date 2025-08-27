@@ -2,11 +2,12 @@
 Test CI security scanning job validation.
 """
 
-import pytest
-import subprocess
-import os
 import json
+import os
+import subprocess
 from pathlib import Path
+
+import pytest
 
 
 class TestSecurityScanJob:

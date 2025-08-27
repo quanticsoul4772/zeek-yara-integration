@@ -19,11 +19,8 @@ from queue import Queue
 import pytest
 
 from PLATFORM.core.database import DatabaseManager
-from PLATFORM.core.scanner import (
-    FileEventHandler,
-    MultiThreadScanner,
-    SingleThreadScanner,
-)
+from PLATFORM.core.scanner import (FileEventHandler, MultiThreadScanner,
+                                   SingleThreadScanner)
 from utils.file_utils import FileAnalyzer
 from utils.yara_utils import RuleManager, YaraMatcher
 
@@ -254,8 +251,8 @@ class TestScannerPerformance:
 
     def test_performance_monitoring(self, config):
         """Test performance monitoring features with proper metric validation"""
-        import tempfile
         import shutil
+        import tempfile
 
         # Create multi-threaded scanner with performance monitoring
         thread_config = config.copy()

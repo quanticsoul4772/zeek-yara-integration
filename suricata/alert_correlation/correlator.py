@@ -1,6 +1,7 @@
 """Alert Correlator implementation"""
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from .base import AlertDatabaseManager
 
 

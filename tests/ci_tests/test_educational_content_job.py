@@ -2,10 +2,11 @@
 Test CI educational content validation job.
 """
 
-import pytest
-import subprocess
 import os
+import subprocess
 from pathlib import Path
+
+import pytest
 
 
 class TestEducationalContentJob:

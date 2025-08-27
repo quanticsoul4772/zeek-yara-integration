@@ -343,7 +343,6 @@ class TestFileCleanupManager(unittest.TestCase):
         ) as mock_critical, patch.object(
             self.cleanup_manager.logger, "warning"
         ) as mock_warning:
-
             self.cleanup_manager._check_disk_usage_alerts()
 
             # Should trigger critical alert
@@ -384,7 +383,6 @@ class TestFileCleanupManager(unittest.TestCase):
             "_get_disk_usage",
             return_value={"usage_percent": 50.0},
         ):
-
             result = self.cleanup_manager.cleanup_processed_files()
 
         self.assertTrue(result["success"])

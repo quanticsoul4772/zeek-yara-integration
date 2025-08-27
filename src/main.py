@@ -732,7 +732,6 @@ Perfect for students, educators, and security professionals.
                 and self.config_manager.is_tutorial_mode()
                 and self.config_manager.is_first_run()
             ):
-
                 if self.console:
                     from rich.prompt import Confirm
 
