@@ -95,7 +95,7 @@ sqlalchemy>=2.0.0
 requests>=2.28.0
 ```
 
-## Cross-Platform Installation
+## Installation
 
 The platform supports Windows, macOS, Linux, and containerized deployments. Choose your preferred installation method:
 
@@ -843,6 +843,45 @@ Contributions welcome from all skill levels.
 - Core maintainers and developers
 - Educational institutions using the platform
 - Security researchers and professionals
+
+## Contributing
+
+We welcome contributions from developers, educators, students, and security professionals of all skill levels! There are many ways to get involved:
+
+**Quick Start for Contributors**:
+1. **Read the Guidelines**: Check [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution instructions
+2. **Find Good First Issues**: Look for issues labeled ["good first issue"](https://github.com/quanticsoul4772/zeek-yara-integration/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+3. **Join Discussions**: Participate in [GitHub Discussions](https://github.com/quanticsoul4772/zeek-yara-integration/discussions)
+4. **Set Up Development Environment**: Follow the development setup guide in CONTRIBUTING.md
+
+**Types of Contributions**:
+- **Documentation**: Improve tutorials, fix typos, add examples
+- **Code**: Bug fixes, new features, performance improvements
+- **Educational Content**: Create learning modules, case studies, assessments
+- **Testing**: Write tests, report bugs, verify fixes
+- **Community Support**: Help other users, review pull requests
+
+**Development Process**:
+```bash
+# 1. Fork and clone the repository
+git clone https://github.com/YOUR_USERNAME/zeek-yara-integration.git
+
+# 2. Set up development environment
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Create feature branch
+git checkout -b feature/your-feature-name
+
+# 4. Make changes and test
+./TOOLS/cli/zyi status
+python -m pytest TESTING/
+
+# 5. Submit pull request
+```
+
+For detailed contribution guidelines, development setup, and code standards, please see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
