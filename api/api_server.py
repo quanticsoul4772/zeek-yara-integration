@@ -849,8 +849,7 @@ async def get_webhook_config(_: bool = Depends(verify_api_key)):
         logger.error(f"Error retrieving webhook config: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
-            detail=f"Error retrieving webhook config: {
-                str(e)}",
+            detail=f"Error retrieving webhook config: {str(e)}",
         )
 
 

@@ -179,9 +179,7 @@ async def start_suricata(
             if success:
                 return {
                     "success": True,
-                    "message": f"Completed Suricata monitoring on interface {
-                        request.interface} for {
-                        request.duration} seconds",
+                    "message": f"Completed Suricata monitoring on interface {request.interface} for {request.duration} seconds",
                     "interface": request.interface,
                 }
             else:
