@@ -7,7 +7,6 @@ in educational markdown files for syntax errors and security patterns.
 
 import os
 import shutil
-
 # Add the TOOLS directory to path to import the validation script
 import sys
 import tempfile
@@ -22,16 +21,10 @@ sys.path.insert(
     ),
 )
 
-from validate_examples import (
-    CodeBlock,
-    ValidationResult,
-    extract_code_blocks,
-    validate_bash_code,
-    validate_code_block,
-    validate_directory,
-    validate_json_yaml,
-    validate_python_code,
-)
+from validate_examples import (CodeBlock, ValidationResult,
+                               extract_code_blocks, validate_bash_code,
+                               validate_code_block, validate_directory,
+                               validate_json_yaml, validate_python_code)
 
 
 @pytest.mark.unit

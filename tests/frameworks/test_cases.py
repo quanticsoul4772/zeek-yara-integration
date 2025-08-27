@@ -17,12 +17,8 @@ from typing import Any, Dict, List
 from config.config import Config
 from core.database import DatabaseManager
 from core.scanner import MultiThreadScanner, SingleThreadScanner
-from tests.frameworks.test_framework import (
-    CustomTestCase,
-    CustomTestResult,
-    CustomTestRunner,
-    CustomTestSuite,
-)
+from tests.frameworks.test_framework import (CustomTestCase, CustomTestResult,
+                                             CustomTestRunner, CustomTestSuite)
 from utils.file_utils import FileAnalyzer, FileTypeCategories
 from utils.yara_utils import RuleManager, YaraMatcher
 
