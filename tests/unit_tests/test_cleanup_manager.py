@@ -25,8 +25,6 @@ from PLATFORM.core.database import DatabaseManager
 # Import project modules
 
 
-
-
 class TestFileCleanupManager(unittest.TestCase):
     """Test cases for FileCleanupManager"""
 
