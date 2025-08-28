@@ -17,6 +17,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
+# Add project root to Python path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
 import pytest
 
 from PLATFORM.core.cleanup_manager import FileCleanupManager
