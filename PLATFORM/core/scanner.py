@@ -20,10 +20,10 @@ from queue import Empty, Queue
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from core.cleanup_manager import FileCleanupManager
-from core.database import DatabaseManager
-from utils.file_utils import FileAnalyzer
-from utils.yara_utils import RuleManager, YaraMatcher
+from PLATFORM.core.cleanup_manager import FileCleanupManager
+from PLATFORM.core.database import DatabaseManager
+from PLATFORM.utils.file_utils import FileAnalyzer
+from PLATFORM.utils.yara_utils import RuleManager, YaraMatcher
 
 
 class BaseScanner:

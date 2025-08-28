@@ -14,10 +14,10 @@ import shutil
 import sys
 import time
 
-from config.config import get_config
-from core.database import DatabaseManager
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from utils.logging_utils import setup_logging
+from PLATFORM.config.config import get_config
+from PLATFORM.core.database import DatabaseManager
+from PLATFORM.core.scanner import MultiThreadScanner, SingleThreadScanner
+from PLATFORM.utils.logging_utils import setup_logging
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

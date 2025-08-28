@@ -17,8 +17,8 @@ import time
 
 import pytest
 
-from suricata.alert_correlation import AlertCorrelator
-from suricata.suricata_integration import SuricataRunner
+from PLATFORM.suricata.alert_correlation import AlertCorrelator
+from PLATFORM.suricata.suricata_integration import SuricataRunner
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))

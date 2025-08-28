@@ -29,21 +29,21 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from config.config import Config
-from core.database import DatabaseManager
-from core.distributed import DistributedScanner, TaskPriority, WorkerNode
-from core.monitoring import AlertLevel, MonitoringSystem
-from core.scanner import MultiThreadScanner, SingleThreadScanner
-from core.schemas import SchemaValidator
+from PLATFORM.config.config import Config
+from PLATFORM.core.database import DatabaseManager
+from PLATFORM.core.distributed import DistributedScanner, TaskPriority, WorkerNode
+from PLATFORM.core.monitoring import AlertLevel, MonitoringSystem
+from PLATFORM.core.scanner import MultiThreadScanner, SingleThreadScanner
+from PLATFORM.core.schemas import SchemaValidator
 from PLATFORM.api.suricata_api import (
     get_alert_correlator,
     get_suricata_runner,
     suricata_router,
 )
-from suricata.alert_correlation import AlertCorrelator
-from suricata.suricata_integration import SuricataRunner
-from utils.file_utils import FileAnalyzer
-from utils.yara_utils import RuleManager
+from PLATFORM.suricata.alert_correlation import AlertCorrelator
+from PLATFORM.suricata.suricata_integration import SuricataRunner
+from PLATFORM.utils.file_utils import FileAnalyzer
+from PLATFORM.utils.yara_utils import RuleManager
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

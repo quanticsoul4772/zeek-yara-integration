@@ -13,8 +13,8 @@ import os
 import sys
 import time
 
-from config.config import Config
-from core.scanner import MultiThreadScanner, SingleThreadScanner
+from PLATFORM.config.config import Config
+from PLATFORM.core.scanner import MultiThreadScanner, SingleThreadScanner
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from core.database import DatabaseManager
+from PLATFORM.core.database import DatabaseManager
 
 
 class TestFileStateTracking(unittest.TestCase):

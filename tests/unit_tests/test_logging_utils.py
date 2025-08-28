@@ -10,7 +10,7 @@ import tempfile
 
 import pytest
 
-from utils.logging_utils import JsonFormatter, add_scan_context, setup_logging
+from PLATFORM.utils.logging_utils import JsonFormatter, add_scan_context, setup_logging
 
 
 @pytest.mark.logging

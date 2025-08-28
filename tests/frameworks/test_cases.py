@@ -14,17 +14,17 @@ import tempfile
 import time
 from typing import Any, Dict, List
 
-from config.config import Config
-from core.database import DatabaseManager
-from core.scanner import MultiThreadScanner, SingleThreadScanner
+from PLATFORM.config.config import Config
+from PLATFORM.core.database import DatabaseManager
+from PLATFORM.core.scanner import MultiThreadScanner, SingleThreadScanner
 from tests.frameworks.test_framework import (
     CustomTestCase,
     CustomTestResult,
     CustomTestRunner,
     CustomTestSuite,
 )
-from utils.file_utils import FileAnalyzer, FileTypeCategories
-from utils.yara_utils import RuleManager, YaraMatcher
+from PLATFORM.utils.file_utils import FileAnalyzer, FileTypeCategories
+from PLATFORM.utils.yara_utils import RuleManager, YaraMatcher
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))

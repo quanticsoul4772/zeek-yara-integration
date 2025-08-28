@@ -9,7 +9,7 @@ import tempfile
 import pytest
 import yara
 
-from utils.yara_utils import RuleManager, YaraMatcher
+from PLATFORM.utils.yara_utils import RuleManager, YaraMatcher
 
 
 @pytest.fixture

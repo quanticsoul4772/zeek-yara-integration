@@ -16,7 +16,7 @@ import time
 
 import pytest
 
-from core.database import ConnectionPool, DatabaseManager, performance_track
+from PLATFORM.core.database import ConnectionPool, DatabaseManager, performance_track
 
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

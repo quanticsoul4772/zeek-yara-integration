@@ -14,7 +14,7 @@ import os
 import sys
 import time
 
-from config.config import Config
+from PLATFORM.config.config import Config
 from tests.frameworks.test_cases import create_test_suites
 from tests.frameworks.test_framework import CustomTestRunner
 

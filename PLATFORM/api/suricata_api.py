@@ -15,10 +15,10 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from suricata.alert_correlation import AlertCorrelator
+from PLATFORM.suricata.alert_correlation import AlertCorrelator
 
 # Import application components
-from suricata.suricata_integration import SuricataRunner
+from PLATFORM.suricata.suricata_integration import SuricataRunner
 
 
 # Pydantic models for API

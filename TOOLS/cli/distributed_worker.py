@@ -30,11 +30,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # Add parent directories to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from config.config import Config
-from core.scanner import BaseScanner
+from PLATFORM.config.config import Config
+from PLATFORM.core.scanner import BaseScanner
 from PLATFORM.core.schemas import SchemaValidator
-from utils.file_utils import FileAnalyzer
-from utils.yara_utils import RuleManager, YaraMatcher
+from PLATFORM.utils.file_utils import FileAnalyzer
+from PLATFORM.utils.yara_utils import RuleManager, YaraMatcher
 
 
 class DistributedWorker:

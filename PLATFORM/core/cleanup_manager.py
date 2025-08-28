@@ -16,7 +16,7 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from core.database import DatabaseManager
+from PLATFORM.core.database import DatabaseManager
 
 
 class FileCleanupManager:

@@ -27,8 +27,8 @@ from PLATFORM.core.scanner import (
     MultiThreadScanner,
     SingleThreadScanner,
 )
-from utils.file_utils import FileAnalyzer
-from utils.yara_utils import RuleManager, YaraMatcher
+from PLATFORM.utils.file_utils import FileAnalyzer
+from PLATFORM.utils.yara_utils import RuleManager, YaraMatcher
 
 
 # Unit tests for the Scanner
