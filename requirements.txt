@@ -18,3 +18,6 @@ slowapi>=0.1.9
 
 # JSON Schema validation (security requirement)
 jsonschema>=4.0.0
+
+# Code formatter (pinned to match local Python 3.12.5 compatibility)
+black==23.11.0
