@@ -29,7 +29,11 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from PLATFORM.api.suricata_api import get_alert_correlator, get_suricata_runner, suricata_router
+from PLATFORM.api.suricata_api import (
+    get_alert_correlator,
+    get_suricata_runner,
+    suricata_router,
+)
 from config.config import Config
 from core.database import DatabaseManager
 from core.distributed import DistributedScanner, TaskPriority, WorkerNode
