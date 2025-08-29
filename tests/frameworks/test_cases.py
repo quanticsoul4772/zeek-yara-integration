@@ -600,7 +600,5 @@ def run_tests_with_config(config: Dict[str, Any]) -> int:
 
 # CLI entry point
 if __name__ == "__main__":
-    from config.config import Config
-
     config = Config.load_config()
     sys.exit(run_tests_with_config(config))
