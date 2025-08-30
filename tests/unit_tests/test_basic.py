@@ -12,8 +12,21 @@ def test_imports():
     # Add src to path (use absolute, normalized path to avoid duplicates)
     src_path = (Path(__file__).parent.parent.parent / "src").resolve()
     src_path_str = str(src_path)
+    # More robust path comparison with error handling and better type safety
+    src_path_resolved = str(src_path)
+    
+    def safe_path_resolve(path_entry):
+        """Safely resolve a path entry, handling errors gracefully."""
+        if not path_entry or not isinstance(path_entry, (str, Path)):
+            return None
+        try:
+            return str(Path(path_entry).resolve())
+        except (OSError, ValueError):
+            # Handle malformed paths or filesystem errors
+            return None
+    
     if not any(
-        isinstance(p, str) and p and Path(p).resolve() == src_path for p in sys.path
+        safe_path_resolve(p) == src_path_resolved for p in sys.path
     ):
         sys.path.insert(0, src_path_str)
 
