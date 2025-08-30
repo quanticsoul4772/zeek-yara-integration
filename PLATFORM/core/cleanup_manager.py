@@ -11,6 +11,7 @@ configurable retention policies and processing status.
 import datetime
 import logging
 import os
+import shutil
 import threading
 import time
 from pathlib import Path
@@ -377,11 +378,8 @@ class FileCleanupManager:
             if not self.extract_dir.exists():
                 return None
 
-            stat = os.statvfs(str(self.extract_dir))
-
-            total_bytes = stat.f_frsize * stat.f_blocks
-            available_bytes = stat.f_frsize * stat.f_available
-            used_bytes = total_bytes - available_bytes
+            # Use cross-platform shutil.disk_usage instead of os.statvfs
+            total_bytes, used_bytes, available_bytes = shutil.disk_usage(str(self.extract_dir))
 
             usage_percent = (used_bytes / total_bytes) * 100 if total_bytes > 0 else 0
 

@@ -20,6 +20,10 @@ try:
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
+    
+    # Define dummy Console class for type hints when rich is not available
+    class Console:
+        pass
 
 
 @dataclass

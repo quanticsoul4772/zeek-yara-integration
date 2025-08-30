@@ -307,15 +307,11 @@ class TestFileCleanupManager(unittest.TestCase):
         self.assertTrue(status["matched"])
 
     @pytest.mark.unit
-    @patch("PLATFORM.core.cleanup_manager.os.statvfs")
-    def test_get_disk_usage(self, mock_statvfs):
+    @patch("PLATFORM.core.cleanup_manager.shutil.disk_usage")
+    def test_get_disk_usage(self, mock_disk_usage):
         """Test getting disk usage statistics"""
-        # Mock statvfs return value
-        mock_stat = Mock()
-        mock_stat.f_frsize = 4096  # 4KB blocks
-        mock_stat.f_blocks = 1000  # 1000 blocks total
-        mock_stat.f_available = 200  # 200 blocks available
-        mock_statvfs.return_value = mock_stat
+        # Mock shutil.disk_usage return value (total, used, free)
+        mock_disk_usage.return_value = (4096 * 1000, 4096 * 800, 4096 * 200)
 
         usage = self.cleanup_manager._get_disk_usage()
 
@@ -334,15 +330,14 @@ class TestFileCleanupManager(unittest.TestCase):
         self.assertIsNone(usage)
 
     @pytest.mark.unit
-    @patch("PLATFORM.core.cleanup_manager.os.statvfs")
-    def test_check_disk_usage_alerts(self, mock_statvfs):
+    @patch("PLATFORM.core.cleanup_manager.shutil.disk_usage")
+    def test_check_disk_usage_alerts(self, mock_disk_usage):
         """Test disk usage alerting"""
-        # Mock critical usage
-        mock_stat = Mock()
-        mock_stat.f_frsize = 4096
-        mock_stat.f_blocks = 1000
-        mock_stat.f_available = 50  # 95% usage
-        mock_statvfs.return_value = mock_stat
+        # Mock critical usage (95% used)
+        total_bytes = 4096 * 1000
+        used_bytes = 4096 * 950  # 95% usage
+        available_bytes = 4096 * 50
+        mock_disk_usage.return_value = (total_bytes, used_bytes, available_bytes)
 
         with patch.object(
             self.cleanup_manager.logger, "critical"
