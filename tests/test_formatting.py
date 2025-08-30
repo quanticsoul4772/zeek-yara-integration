@@ -13,7 +13,7 @@ from typing import Dict, List
 # Intentionally poorly formatted code (Black violations)
 def poorly_formatted_function(param1,param2,param3):
     """This function has poor formatting to test Black enforcement."""
-    # Long line that exceeds 88 characters and should be wrapped by Black formatting tool
+    # This line intentionally exceeds Black's 88-character limit to trigger formatting checks
     result={'key1':'value1','key2':'value2','key3':'value3','key4':'value4'}
     
     if param1=='test'and param2=='value'or param3=='something':
