@@ -12,7 +12,9 @@ def test_imports():
     # Add src to path (use absolute, normalized path to avoid duplicates)
     src_path = (Path(__file__).parent.parent.parent / "src").resolve()
     src_path_str = str(src_path)
-    if not any(isinstance(p, str) and p and Path(p).resolve() == src_path for p in sys.path):
+    if not any(
+        isinstance(p, str) and p and Path(p).resolve() == src_path for p in sys.path
+    ):
         sys.path.insert(0, src_path_str)
 
     import main as src_main
