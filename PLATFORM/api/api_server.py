@@ -8,6 +8,7 @@ This module implements a RESTful API for the Zeek-YARA integration system using 
 It provides endpoints for retrieving alerts, system status, and basic control operations.
 """
 
+# Standard library imports
 import datetime
 import json
 import logging
@@ -16,6 +17,7 @@ import sys
 import time
 from typing import Any, Dict, List, Optional
 
+# Third-party imports
 import uvicorn
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi import Path as PathParam
@@ -30,6 +32,7 @@ from slowapi.util import get_remote_address
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
+# Application-specific imports
 from PLATFORM.api.suricata_api import (
     get_alert_correlator,
     get_suricata_runner,
@@ -45,11 +48,6 @@ from PLATFORM.suricata.alert_correlation import AlertCorrelator
 from PLATFORM.suricata.suricata_integration import SuricataRunner
 from PLATFORM.utils.file_utils import FileAnalyzer
 from PLATFORM.utils.yara_utils import RuleManager
-
-
-# Import application components
-
-# Import Suricata components
 
 # Configure logging
 logging.basicConfig(
