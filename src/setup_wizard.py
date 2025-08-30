@@ -59,7 +59,9 @@ class SystemDetector:
         path = shutil.which(command)
         return path is not None, path or ""
 
-    def get_command_version(self, command: str, version_arg: str = "--version") -> str:
+    def get_command_version(
+        self, command: str, version_arg: str = "--version"
+    ) -> str:
         """Get version of a command."""
         try:
             result = subprocess.run(
@@ -219,7 +221,10 @@ class SystemDetector:
         if self.platform == "darwin":
             return "Install with: brew install zeek"
         elif self.platform == "linux":
-            return "Install with: sudo apt-get install zeek (Ubuntu/Debian) or sudo yum install zeek (CentOS/RHEL)"
+            return (
+                "Install with: sudo apt-get install zeek (Ubuntu/Debian) "
+                "or sudo yum install zeek (CentOS/RHEL)"
+            )
         elif self.platform == "windows":
             return "Download from: https://zeek.org/get-zeek/"
         return "Visit: https://zeek.org/get-zeek/"
@@ -233,7 +238,10 @@ class SystemDetector:
         if self.platform == "darwin":
             return "Install with: brew install suricata"
         elif self.platform == "linux":
-            return "Install with: sudo apt-get install suricata (Ubuntu/Debian) or sudo yum install suricata (CentOS/RHEL)"
+            return (
+                "Install with: sudo apt-get install suricata (Ubuntu/Debian) "
+                "or sudo yum install suricata (CentOS/RHEL)"
+            )
         elif self.platform == "windows":
             return "Download from: https://suricata.io/download/"
         return "Visit: https://suricata.io/download/"

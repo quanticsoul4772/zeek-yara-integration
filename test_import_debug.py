@@ -11,7 +11,8 @@ print(f"Test file path: {test_file_path}")
 print(f"Project root: {project_root}")
 print(f"PLATFORM exists: {os.path.exists(os.path.join(project_root, 'PLATFORM'))}")
 print(
-    f"cleanup_manager.py exists: {os.path.exists(os.path.join(project_root, 'PLATFORM/core/cleanup_manager.py'))}"
+    f"cleanup_manager.py exists: "
+    f"{os.path.exists(os.path.join(project_root, 'PLATFORM/core/cleanup_manager.py'))}"
 )
 
 # Try the import

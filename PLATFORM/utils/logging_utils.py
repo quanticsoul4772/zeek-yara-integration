@@ -101,7 +101,8 @@ def setup_logging(config, logger_name="zeek_yara"):
 
         # Ensure log directory exists
         log_dir = os.path.dirname(log_file)
-        if log_dir and os.path.isabs(log_file) and log_dir != log_file:  # Validate path is non-empty, absolute, and not the same as file
+        # Validate path is non-empty, absolute, and not the same as file
+        if log_dir and os.path.isabs(log_file) and log_dir != log_file:
             os.makedirs(log_dir, exist_ok=True)
 
         # Create handler with rotation

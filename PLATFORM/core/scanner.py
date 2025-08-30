@@ -676,7 +676,8 @@ class MultiThreadScanner(BaseScanner):
 
             self.running = True
             self.logger.info(
-                f"Started monitoring directory with {self.num_threads} threads (max queue: {self.max_queue_size}): {self.extract_dir}"
+                f"Started monitoring directory with {self.num_threads} threads "
+                f"(max queue: {self.max_queue_size}): {self.extract_dir}"
             )
 
             # Start cleanup manager

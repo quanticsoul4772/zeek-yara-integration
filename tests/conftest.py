@@ -42,11 +42,17 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Windows only test"))
         
         # Skip Unix-specific tests on non-Unix platforms
-        if item.get_closest_marker("unix") and current_platform not in ["Linux", "Darwin"]:
+        if item.get_closest_marker("unix") and current_platform not in [
+            "Linux",
+            "Darwin",
+        ]:
             item.add_marker(pytest.mark.skip(reason="Unix-like systems only test"))
         
         # Skip POSIX-specific tests on non-POSIX platforms
-        if item.get_closest_marker("posix") and current_platform not in ["Linux", "Darwin"]:
+        if item.get_closest_marker("posix") and current_platform not in [
+            "Linux",
+            "Darwin",
+        ]:
             item.add_marker(pytest.mark.skip(reason="POSIX-compliant systems only test"))
 
 
