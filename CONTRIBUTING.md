@@ -95,6 +95,51 @@ Thank you for your interest in contributing to this educational security platfor
 - Write docstrings for functions and classes
 - Keep line length under 100 characters
 
+### Code Formatting
+We use automated code formatting tools to ensure consistency across the codebase:
+
+**Black for Code Formatting:**
+```bash
+# Format all Python files
+black .
+
+# Check formatting without making changes
+black --check --diff .
+```
+
+**isort for Import Sorting:**
+```bash
+# Sort imports in all Python files
+isort .
+
+# Check import sorting without making changes
+isort --check-only --diff .
+```
+
+**Running Both Tools:**
+```bash
+# Format code and sort imports
+black . && isort .
+```
+
+All code must pass Black and isort checks before being merged. The CI pipeline will automatically verify formatting compliance.
+
+### Pre-commit Hooks (Recommended)
+To automatically run formatting checks before each commit, set up pre-commit hooks:
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install the git hooks
+pre-commit install
+
+# Run on all files (optional)
+pre-commit run --all-files
+```
+
+Once installed, Black, isort, and other quality checks will run automatically before each commit.
+
 ### Documentation Standards
 - Use clear, beginner-friendly language
 - Include code examples where relevant
