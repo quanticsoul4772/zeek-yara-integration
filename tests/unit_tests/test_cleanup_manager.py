@@ -150,7 +150,7 @@ class TestFileCleanupManager(unittest.TestCase):
     def test_process_file_for_cleanup_old_unprocessed(self, mock_time):
         """Test processing an old unprocessed file for cleanup"""
         # Mock current time to make file appear old
-        current_time = time.time()
+        current_time = 1234567890.0  # Fixed timestamp for consistent testing
         mock_time.return_value = current_time
 
         # Create test file and make it old
@@ -177,7 +177,7 @@ class TestFileCleanupManager(unittest.TestCase):
     @patch("PLATFORM.core.cleanup_manager.time.time")
     def test_process_file_for_cleanup_old_matched(self, mock_time):
         """Test processing an old matched file for cleanup"""
-        current_time = time.time()
+        current_time = 1234567890.0  # Fixed timestamp for consistent testing
         mock_time.return_value = current_time
 
         test_file = self.extract_dir / "matched_file.txt"
@@ -208,7 +208,7 @@ class TestFileCleanupManager(unittest.TestCase):
     @patch("PLATFORM.core.cleanup_manager.time.time")
     def test_process_file_for_cleanup_old_clean(self, mock_time):
         """Test processing an old clean file for cleanup"""
-        current_time = time.time()
+        current_time = 1234567890.0  # Fixed timestamp for consistent testing
         mock_time.return_value = current_time
 
         test_file = self.extract_dir / "clean_file.txt"
@@ -236,7 +236,7 @@ class TestFileCleanupManager(unittest.TestCase):
     @patch("PLATFORM.core.cleanup_manager.time.time")
     def test_process_file_for_cleanup_recent_file(self, mock_time):
         """Test processing a recent file that should not be cleaned up"""
-        current_time = time.time()
+        current_time = 1234567890.0  # Fixed timestamp for consistent testing
         mock_time.return_value = current_time
 
         test_file = self.extract_dir / "recent_file.txt"
@@ -369,7 +369,7 @@ class TestFileCleanupManager(unittest.TestCase):
     @patch("PLATFORM.core.cleanup_manager.time.time")
     def test_cleanup_processed_files_success(self, mock_time):
         """Test successful cleanup operation"""
-        current_time = time.time()
+        current_time = 1234567890.0  # Fixed timestamp for consistent testing
         mock_time.return_value = current_time
 
         # Create old test files

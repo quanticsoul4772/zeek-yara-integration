@@ -5,7 +5,16 @@ from pathlib import Path
 
 def test_imports():
     """Test basic imports work"""
-    import main
+    # Import from src directory to avoid circular import
+    import sys
+    from pathlib import Path
+    
+    # Add src to path
+    src_path = str(Path(__file__).parent.parent.parent / "src")
+    if src_path not in sys.path:
+        sys.path.insert(0, src_path)
+    
+    import main as src_main
     import setup_wizard
     import tutorial_system
 
