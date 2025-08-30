@@ -100,7 +100,9 @@ def setup_logging(config, logger_name="zeek_yara"):
         log_file = config["LOG_FILE"]
 
         # Ensure log directory exists
-        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        log_dir = os.path.dirname(log_file)
+        if log_dir:  # Only create if dirname is not empty
+            os.makedirs(log_dir, exist_ok=True)
 
         # Create handler with rotation
         file_handler = logging.handlers.RotatingFileHandler(

@@ -24,6 +24,32 @@ def pytest_configure(config):
     )
 
 
+def pytest_collection_modifyitems(config, items):
+    """Skip platform-specific tests on incompatible platforms."""
+    current_platform = platform.system()
+    
+    for item in items:
+        # Skip Linux-specific tests on non-Linux platforms
+        if item.get_closest_marker("linux") and current_platform != "Linux":
+            item.add_marker(pytest.mark.skip(reason="Linux only test"))
+        
+        # Skip macOS-specific tests on non-macOS platforms
+        if item.get_closest_marker("macos") and current_platform != "Darwin":
+            item.add_marker(pytest.mark.skip(reason="macOS only test"))
+        
+        # Skip Windows-specific tests on non-Windows platforms
+        if item.get_closest_marker("windows") and current_platform != "Windows":
+            item.add_marker(pytest.mark.skip(reason="Windows only test"))
+        
+        # Skip Unix-specific tests on non-Unix platforms
+        if item.get_closest_marker("unix") and current_platform not in ["Linux", "Darwin"]:
+            item.add_marker(pytest.mark.skip(reason="Unix-like systems only test"))
+        
+        # Skip POSIX-specific tests on non-POSIX platforms
+        if item.get_closest_marker("posix") and current_platform not in ["Linux", "Darwin"]:
+            item.add_marker(pytest.mark.skip(reason="POSIX-compliant systems only test"))
+
+
 @pytest.fixture
 def config():
     """Fixture for test configuration"""
